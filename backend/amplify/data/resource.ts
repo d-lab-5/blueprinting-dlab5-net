@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -54,6 +55,78 @@ const schema = a.schema({
       allow.group("bp-admins"),
       allow.groupDefinedIn("group").to(["read"]),
     ]),
+
+  /**
+   * A generated view of some slice of a project's model.
+   *
+   * Views are metadata, not graph: the script itself lives in S3 under
+   * `projects/<slug>/views/`, and `selection` records which elements the view
+   * covers so it can be regenerated when the model changes.
+   */
+  View: a
+    .model({
+      projectSlug: a.string().required(),
+      name: a.string().required(),
+      /** ArchiMate layer this view renders, e.g. "implementation". */
+      layer: a.string().required(),
+      engine: a.enum(["mermaid", "d2"]),
+      /** S3 key of the generated .mmd / .d2 script. */
+      scriptKey: a.string(),
+      /** Element ids and layout hints. Shape is engine-specific. */
+      selection: a.json(),
+      /** Copied from the project so group authorization applies here too. */
+      group: a.string().required(),
+    })
+    .secondaryIndexes((index) => [index("projectSlug")])
+    .authorization((allow) => [
+      allow.group("bp-admins"),
+      allow.groupDefinedIn("group"),
+    ]),
+
+  /** What modelStorageProxy hands back for both reads and writes. */
+  ModelAccess: a.customType({
+    /** Pre-signed GET. Absent on writes and when no model exists yet. */
+    url: a.string(),
+    /** Current ETag — the token a subsequent write must present. */
+    etag: a.string(),
+    exists: a.boolean().required(),
+    key: a.string().required(),
+  }),
+
+  /**
+   * Hands back a short-lived pre-signed GET for the project's abox.ttl.
+   *
+   * `allow.authenticated()` is not the access check. The real check is inside
+   * the function, which compares the caller's Cognito groups against the
+   * project's own group — see ADR-0003 for why it cannot live in
+   * defineStorage.
+   */
+  requestModelReadUrl: a
+    .mutation()
+    .arguments({ projectSlug: a.string().required() })
+    .returns(a.ref("ModelAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(modelStorageProxy)),
+
+  /**
+   * Writes the project's abox.ttl under an S3 precondition.
+   *
+   * The write goes through the function rather than a pre-signed PUT so the
+   * precondition cannot be dropped or altered by the caller. Pass the `etag`
+   * from the read; pass `expectAbsent` for a project's first ever save.
+   * Unconditional writes are refused.
+   */
+  saveModel: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      turtle: a.string().required(),
+      etag: a.string(),
+      expectAbsent: a.boolean(),
+    })
+    .returns(a.ref("ModelAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(modelStorageProxy)),
 });
 
 export type Schema = ClientSchema<typeof schema>;
