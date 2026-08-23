@@ -7,7 +7,20 @@ backend:
         # graphql 16 and the Amplify data construct needs 15, and a single
         # hoisted tree cannot satisfy both. backend/ keeps its own lockfile
         # and node_modules.
-        - npm --prefix backend ci
+        #
+        # `install`, NOT `ci`. Several Amplify CDK packages ship bundled
+        # dependencies (@aws-amplify/data-construct bundles
+        # backend-output-schemas, backend-cli bundles its CDK toolchain), and
+        # npm records the hoisted version in the lockfile while `npm ci`
+        # rebuilds an ideal tree containing the bundled one. The two disagree,
+        # so `npm ci` fails EUSAGE — "Missing: @aws-cdk/toolkit-lib@1.19.0
+        # from lock file" — against a lockfile npm itself just wrote. It is
+        # reproducible from a clean `npm install` and is not staleness.
+        # `npm install` resolves against package.json and self-heals.
+        # digitalhome-cloud-darkfactory's repos/core/amplify.yml made the same
+        # call. atmanyoga-fullstack still has `ci` here and will fail its next
+        # backend deploy for the same reason.
+        - npm --prefix backend install
         - cd backend && npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
