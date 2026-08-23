@@ -24,6 +24,8 @@ model. Keep it current — it is documentation and test fixture at once.
 
 ```
 backend/          Amplify Gen 2 backend. NOT an npm workspace — see ADR-0001.
+packages/metamodel/  ArchiMate 3.2 as TypeScript. Generated; see ADR-0004.
+packages/core/    ABox model, Turtle I/O, validation. Pure TS, no React, no AWS.
 packages/site/    The Gatsby 5 app (@dlab5/blueprint-site).
 ontology/         Pinned Apache-2.0 copy of the ArchiMate OWL/SHACL ontology.
 docs/adr/         Architecture Decision Records. Read these first.
@@ -31,9 +33,7 @@ docs/audits/      Security audit reports, YYYY-MM-DD-audit.md.
 ```
 
 Planned packages, added when their work package starts, not scaffolded empty:
-`metamodel` (generated from the ontology), `core` (ABox types, Turtle I/O,
-diagram generators), `react`, `exchange` (Archi Open Exchange XML), `blockly`,
-`mcp`.
+`react`, `exchange` (Archi Open Exchange XML), `blockly`, `mcp`.
 
 ## Commands
 
@@ -47,8 +47,17 @@ npm run backend:typecheck
 npm test                            # metamodel assertions
 
 npm run gen:metamodel               # regenerate from ontology/upstream/
-BP_USER=… BP_PASSWORD=… npm run verify:auth   # ADR-0002 invariants, live
+
+BP_USER=… BP_PASSWORD=… npm run verify:auth          # ADR-0002 invariants, live
+BP_USER=… BP_PASSWORD=… npm run verify:model-store   # ADR-0003 invariants, live
+BP_USER=… BP_PASSWORD=… npm run seed                 # the platform's own roadmap
 ```
+
+`verify:model-store` creates a scratch project, proves the authorization
+boundary and the ETag conflict against real AWS, then deletes it. Both live
+checks target whatever `backend/amplify_outputs.json` points at — for the
+deployed branch, regenerate it first with
+`cd backend && npx ampx generate outputs --app-id <id> --branch stage`.
 
 `verify:auth` drives the real `aws-amplify/auth` client through the same
 sequence `AuthGate` uses — `signIn`, the new-password challenge,
@@ -107,6 +116,26 @@ These are things that will bite. Each is load-bearing and has cost someone time.
     hand-edit it, and never hard-code an element type, layer or relationship
     rule anywhere else — that module is the only place the ArchiMate
     specification enters the codebase. ADR-0004.
+12. **Client-only routes need an Amplify Hosting rewrite, which lives outside
+    this repo.** `/p/*` is a `matchPath` route, so no file exists at
+    `/p/<slug>/`. The catch-all rule serves the right HTML but returns 404,
+    which needs an explicit 200 rewrite *ahead* of it — order matters:
+
+    ```
+    /p/<*>  ->  /p/index.html   200
+    /<*>    ->  /index.html     404-200
+    ```
+
+    Adding another client-only route means adding another rule. There is no
+    file in the repository that captures this; it is app configuration, set
+    with `aws amplify update-app --custom-rules`.
+13. **The Amplify client in `packages/site` is deliberately untyped.**
+    Importing `Schema` from `backend/amplify/data/resource` would pull
+    `@aws-amplify/backend` — and graphql 15 — into the site's TypeScript
+    program, undoing constraint 1. The result shapes in `src/lib/data.ts` are
+    hand-written for that reason and must be kept in step with
+    `data/resource.ts` by hand. Check with:
+    `npx tsc --noEmit -p packages/site/tsconfig.json --listFiles | grep -c '@aws-amplify/backend/'` — must be 0.
 
 ## House conventions
 
