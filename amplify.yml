@@ -21,7 +21,15 @@ backend:
         # call. atmanyoga-fullstack still has `ci` here and will fail its next
         # backend deploy for the same reason.
         - npm --prefix backend install
-        - cd backend && npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+        #
+        # Wrapped in a subshell. Amplify runs every command in this file in ONE
+        # persistent shell session, so a bare `cd backend` leaks into the
+        # frontend phase and the `npm ci` below then runs inside backend/
+        # against the wrong lockfile. That failure looks nothing like a cwd
+        # problem — it surfaces as EUSAGE "Missing: @opentelemetry/core@2.0.0",
+        # a package the root lockfile does not even contain. The parentheses
+        # are what keep the two phases independent.
+        - (cd backend && npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID)
 frontend:
   phases:
     preBuild:
