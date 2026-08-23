@@ -7,8 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build:metamodel && npm run build:web",
+    "build": "npm run build:metamodel && npm run build:core && npm run build:web",
     "build:metamodel": "npm run build -w @dlab5/archimate-metamodel",
+    "build:core": "npm run build -w @dlab5/blueprint-core",
     "build:web": "npm run build -w @dlab5/blueprint-site",
     "gen:metamodel": "node scripts/gen-metamodel.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",
