@@ -1,0 +1,25 @@
+{
+  "name": "@dlab5/archimate-metamodel",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "The ArchiMate 3.2 metamodel as TypeScript, generated from the OWL ontology and the Appendix B relationship matrix",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test __tests__/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

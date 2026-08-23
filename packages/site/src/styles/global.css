@@ -1,0 +1,174 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#___gatsby,
+#gatsby-focus-wrapper {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bp-bg);
+  color: var(--bp-text);
+  font-family: var(--bp-font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: var(--bp-font-mono);
+  font-size: 0.9em;
+  background: var(--bp-bg-sunken);
+  padding: 0.1em 0.35em;
+  border-radius: var(--bp-radius-sm);
+}
+
+a {
+  color: var(--bp-accent);
+}
+
+/* -- the sign-in / notice screen ----------------------------------------- */
+
+.bp-gate {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--bp-space-6);
+}
+
+.bp-gate__card {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  box-shadow: var(--bp-shadow);
+  padding: var(--bp-space-8);
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-gate__title {
+  margin: 0;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
+}
+
+.bp-gate__subtitle,
+.bp-gate__note {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+.bp-gate__note {
+  border-top: 1px solid var(--bp-border);
+  padding-top: var(--bp-space-4);
+}
+
+.bp-gate__error {
+  margin: 0;
+  color: var(--bp-danger);
+  font-size: 0.875rem;
+}
+
+/* -- form primitives ------------------------------------------------------ */
+
+.bp-field {
+  display: grid;
+  gap: var(--bp-space-1);
+  font-size: 0.875rem;
+}
+
+.bp-field > span {
+  color: var(--bp-text-muted);
+}
+
+.bp-field input {
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-field input:focus-visible {
+  outline: 2px solid var(--bp-accent);
+  outline-offset: 1px;
+}
+
+.bp-button {
+  background: var(--bp-accent-strong);
+  border: 0;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-inverse);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: var(--bp-space-3) var(--bp-space-4);
+}
+
+.bp-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* -- app shell ------------------------------------------------------------ */
+
+.bp-shell {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.bp-shell__header {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-4);
+  padding: var(--bp-space-3) var(--bp-space-6);
+  background: var(--bp-bg-sunken);
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.bp-shell__brand {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bp-shell__spacer {
+  flex: 1;
+}
+
+.bp-shell__user {
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+.bp-shell__main {
+  padding: var(--bp-space-8) var(--bp-space-6);
+  max-width: 72rem;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.bp-linkbutton {
+  background: none;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-linkbutton:hover {
+  color: var(--bp-text);
+  border-color: var(--bp-text-muted);
+}

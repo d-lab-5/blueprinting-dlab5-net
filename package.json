@@ -1,0 +1,27 @@
+{
+  "name": "blueprinting-dlab5-net",
+  "private": true,
+  "description": "D-LAB-5 Blueprinting Platform — engineering governance over an ArchiMate 3.2 semantic model",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:metamodel && npm run build:web",
+    "build:metamodel": "npm run build -w @dlab5/archimate-metamodel",
+    "build:web": "npm run build -w @dlab5/blueprint-site",
+    "gen:metamodel": "node scripts/gen-metamodel.mjs",
+    "verify:auth": "node scripts/verify-auth.mjs",
+    "dev:web": "npm run develop -w @dlab5/blueprint-site",
+    "start:web": "npm run serve -w @dlab5/blueprint-site",
+    "clean:web": "npm run clean -w @dlab5/blueprint-site",
+    "test": "npm run test --workspaces --if-present",
+    "backend:install": "npm --prefix backend install",
+    "backend:sandbox": "npm --prefix backend run sandbox",
+    "backend:sync-outputs": "npm --prefix backend run sync-outputs",
+    "backend:typecheck": "npm --prefix backend run typecheck"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

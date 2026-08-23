@@ -1,0 +1,39 @@
+version: 1
+backend:
+  phases:
+    build:
+      commands:
+        # The backend is deliberately NOT an npm workspace: Gatsby needs
+        # graphql 16 and the Amplify data construct needs 15, and a single
+        # hoisted tree cannot satisfy both. backend/ keeps its own lockfile
+        # and node_modules.
+        - npm --prefix backend ci
+        - cd backend && npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - node -v
+        # npm workspaces installs every package's dependencies from the root
+        # lockfile, so there is no second install inside packages/site.
+        - npm ci
+        # pipeline-deploy writes amplify_outputs.json into backend/. The whole
+        # site sits behind Cognito, so without it there is nothing to sign in
+        # to — but the build is still allowed to succeed, because a
+        # frontend-only rebuild (no backend phase) must not fail the branch.
+        # AuthGate renders its "backend not configured" notice instead.
+        - cp backend/amplify_outputs.json packages/site/src/amplify_outputs.json || echo "no backend outputs; the app will show the unconfigured notice"
+    build:
+      commands:
+        # The workspace packages are plain tsc builds that packages/site
+        # imports from dist/, so they must be built before Gatsby runs.
+        - npm run build
+  artifacts:
+    baseDirectory: packages/site/public
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
+      - backend/node_modules/**/*
+      - packages/site/.cache/**/*

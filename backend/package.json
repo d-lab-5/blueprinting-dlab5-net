@@ -1,0 +1,32 @@
+{
+  "name": "@dlab5/blueprint-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sandbox": "ampx sandbox",
+    "sandbox:once": "ampx sandbox --once && npm run sync-outputs",
+    "sandbox:delete": "ampx sandbox delete",
+    "sync-outputs": "cp amplify_outputs.json ../packages/site/src/amplify_outputs.json",
+    "pipeline-deploy": "ampx pipeline-deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.16.0",
+    "@aws-amplify/backend-cli": "^1.7.0",
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.7.0",
+    "aws-cdk-lib": "^2.158.0",
+    "constructs": "^10.4.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.658.0",
+    "@aws-sdk/lib-dynamodb": "^3.658.0",
+    "@aws-sdk/client-dynamodb": "^3.658.0",
+    "@aws-sdk/s3-request-presigner": "^3.658.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

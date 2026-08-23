@@ -1,0 +1,66 @@
+/*
+ * D-LAB-5 Blueprinting — design tokens.
+ *
+ * Convention borrowed from digitalhome-cloud-darkfactory's dhc-tokens.css:
+ * everything is a CSS custom property on :root, component classes are
+ * .bp-{component}__{part}--{modifier}, and the palette is dark-first.
+ *
+ * The layer colours are NOT free choices. They are the standard ArchiMate
+ * pastels that Archi, the specification's own figures and every ArchiMate
+ * reader already associate with each layer, so a Blockly block, a D2 node and
+ * a legend swatch all agree with what someone sees in Archi. `--ink` is the
+ * text colour to use ON that pastel; the pastels are light, so it is dark.
+ */
+
+:root {
+  /* -- surfaces ---------------------------------------------------------- */
+  --bp-bg: #0f172a;
+  --bp-bg-sunken: #020617;
+  --bp-surface: #1e293b;
+  --bp-surface-raised: #334155;
+  --bp-border: #334155;
+  --bp-border-strong: #475569;
+
+  /* -- text -------------------------------------------------------------- */
+  --bp-text: #e5e7eb;
+  --bp-text-muted: #94a3b8;
+  --bp-text-inverse: #0f172a;
+
+  /* -- accents ----------------------------------------------------------- */
+  --bp-accent: #38bdf8;
+  --bp-accent-strong: #0ea5e9;
+  --bp-success: #22c55e;
+  --bp-warning: #f59e0b;
+  --bp-danger: #ef4444;
+
+  /* -- ArchiMate 3.2 layers ---------------------------------------------- */
+  --bp-layer-motivation: #ccccff;
+  --bp-layer-motivation-ink: #2a2a5c;
+  --bp-layer-strategy: #f5deaa;
+  --bp-layer-strategy-ink: #5c4a1f;
+  --bp-layer-business: #ffffb5;
+  --bp-layer-business-ink: #5c5c1f;
+  --bp-layer-application: #b5ffff;
+  --bp-layer-application-ink: #1f5c5c;
+  --bp-layer-technology: #c9e7b7;
+  --bp-layer-technology-ink: #2f5c1f;
+  --bp-layer-physical: #c9e7b7;
+  --bp-layer-physical-ink: #2f5c1f;
+  --bp-layer-implementation: #ffe0e0;
+  --bp-layer-implementation-ink: #5c2a2a;
+
+  /* -- type -------------------------------------------------------------- */
+  --bp-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bp-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* -- space and shape --------------------------------------------------- */
+  --bp-space-1: 0.25rem;
+  --bp-space-2: 0.5rem;
+  --bp-space-3: 0.75rem;
+  --bp-space-4: 1rem;
+  --bp-space-6: 1.5rem;
+  --bp-space-8: 2rem;
+  --bp-radius: 0.5rem;
+  --bp-radius-sm: 0.25rem;
+  --bp-shadow: 0 10px 30px rgb(2 6 23 / 0.5);
+}
