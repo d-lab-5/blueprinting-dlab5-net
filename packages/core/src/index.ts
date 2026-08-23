@@ -33,3 +33,5 @@ export {
   typeIri,
   uniqueId,
 } from "./iri.js";
+
+export { PLATFORM_ROADMAP } from "./seed/platform-roadmap.js";

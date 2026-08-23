@@ -172,3 +172,158 @@ a {
   color: var(--bp-text);
   border-color: var(--bp-text-muted);
 }
+
+/* -- project list and model view ------------------------------------------ */
+
+.bp-lede,
+.bp-muted {
+  color: var(--bp-text-muted);
+}
+
+.bp-error {
+  color: var(--bp-danger);
+}
+
+.bp-crumb {
+  margin: 0 0 var(--bp-space-2);
+  font-size: 0.875rem;
+}
+
+.bp-empty {
+  border: 1px dashed var(--bp-border-strong);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-6);
+}
+
+.bp-empty p {
+  margin: 0 0 var(--bp-space-2);
+}
+
+.bp-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.bp-card {
+  display: grid;
+  gap: var(--bp-space-1);
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.bp-card:hover {
+  border-color: var(--bp-accent);
+}
+
+.bp-card__title {
+  font-weight: 600;
+}
+
+.bp-card__body,
+.bp-card__meta {
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+.bp-layer h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  font-size: 1rem;
+  margin-bottom: var(--bp-space-2);
+}
+
+/* The swatch is the standard ArchiMate layer colour, so a reader who knows
+   Archi recognises the layer before reading the heading. */
+.bp-layer__swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.bp-elements {
+  list-style: none;
+  margin: 0 0 var(--bp-space-6);
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-elements li {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  background: var(--bp-surface);
+  border-radius: var(--bp-radius-sm);
+  font-size: 0.875rem;
+}
+
+.bp-element__type {
+  color: var(--bp-text-muted);
+}
+
+.bp-element__props {
+  grid-column: 2;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.8rem;
+}
+
+.bp-findings {
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-findings h2 {
+  font-size: 1rem;
+}
+
+.bp-findings ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-finding {
+  display: flex;
+  gap: var(--bp-space-3);
+  align-items: baseline;
+  font-size: 0.875rem;
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-surface);
+}
+
+.bp-finding__severity {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  min-width: 4.5rem;
+}
+
+.bp-finding--error {
+  border-left: 3px solid var(--bp-danger);
+}
+
+.bp-finding--error .bp-finding__severity {
+  color: var(--bp-danger);
+}
+
+.bp-finding--warning {
+  border-left: 3px solid var(--bp-warning);
+}
+
+.bp-finding--warning .bp-finding__severity {
+  color: var(--bp-warning);
+}
