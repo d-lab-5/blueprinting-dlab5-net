@@ -97,7 +97,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <RoadmapEditor model={model} onChange={update} />
             </>
           ) : (
-            <ModelByLayer model={model} />
+            <ModelByDomain model={model} />
           )}
         </>
       )}
@@ -192,7 +192,7 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
   );
 }
 
-function ModelByLayer({ model }: { model: AbModel }) {
+function ModelByDomain({ model }: { model: AbModel }) {
   const byLayer = new Map<LayerId, AbModel["elements"]>();
   for (const el of model.elements) {
     const layer = ELEMENTS[el.type].layer;

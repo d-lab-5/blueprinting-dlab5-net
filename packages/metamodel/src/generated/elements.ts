@@ -16,7 +16,7 @@ export const LAYER_LABELS: Record<LayerId, string> = {
   "technology": "Technology",
   "physical": "Physical",
   "implementation": "Implementation & Migration",
-  "composite": "Composite"
+  "composite": "Common"
 };
 
 export interface ElementType {

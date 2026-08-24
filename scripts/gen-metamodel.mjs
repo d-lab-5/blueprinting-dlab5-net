@@ -101,6 +101,18 @@ const LAYER_ORDER = [
   "composite",
 ];
 
+/**
+ * Labels use ArchiMate 4's word, "domain", for what 3.2 calls a layer.
+ *
+ * 4 reorganises the language around domains and the two line up one-for-one
+ * for everything 3.2 has, so the newer term costs nothing and is where the
+ * standard has gone. The identifiers stay as they are — they come from the
+ * pinned 3.2 ontology's class names and renaming them would be churn.
+ *
+ * Two do not survive into 4: Physical is folded into Technology, and 3.2's
+ * Composite pair (Grouping, Location) moves into 4's new Common Domain. Both
+ * are labelled honestly here as what 3.2 says they are. See ADR-0008.
+ */
 const LAYER_LABELS = {
   motivation: "Motivation",
   strategy: "Strategy",
@@ -110,7 +122,7 @@ const LAYER_LABELS = {
   physical: "Physical",
   implementation: "Implementation & Migration",
   // Grouping and Location belong to no single layer by design (spec 3.3).
-  composite: "Composite",
+  composite: "Common",
 };
 
 const ASPECT_SUPERCLASSES = new Set([
