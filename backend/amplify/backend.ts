@@ -1,15 +1,18 @@
 import { defineBackend } from "@aws-amplify/backend";
+import { Stack } from "aws-cdk-lib";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import { storage } from "./storage/resource";
 import { modelStorageProxy } from "./functions/modelStorageProxy/resource";
+import { projectAdmin } from "./functions/projectAdmin/resource";
 
 const backend = defineBackend({
   auth,
   data,
   storage,
   modelStorageProxy,
+  projectAdmin,
 });
 
 /* ------------------------------------------------------------------------ *
@@ -95,5 +98,44 @@ backend.modelStorageProxy.addEnvironment(
   projectTable.tableName
 );
 backend.modelStorageProxy.addEnvironment("MODEL_BUCKET_NAME", bucket.bucketName);
+
+/* ------------------------------------------------------------------------ *
+ * projectAdmin.
+ * ------------------------------------------------------------------------ */
+
+const projectAdminLambda = backend.projectAdmin.resources.lambda;
+
+projectAdminLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:PutItem"],
+    resources: [projectTable.tableArn],
+  })
+);
+
+// Wildcarded to this account and region rather than naming the user pool.
+//
+// The auth stack already references function code, so pointing an IAM grant
+// back at backend.auth.resources.userPool.userPoolArn closes a CloudFormation
+// cycle — the same trap the dhc-amplify-gen2 skill documents for Cognito
+// triggers. The function recovers the real pool id from the caller's token
+// issuer at runtime, which is authoritative anyway: it is the pool that signed
+// the request.
+const stack = Stack.of(projectAdminLambda);
+projectAdminLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: [
+      "cognito-idp:CreateGroup",
+      "cognito-idp:GetGroup",
+      "cognito-idp:AdminAddUserToGroup",
+    ],
+    resources: [
+      `arn:aws:cognito-idp:${stack.region}:${stack.account}:userpool/*`,
+    ],
+  })
+);
+
+backend.projectAdmin.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
 
 export default backend;

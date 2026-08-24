@@ -4,6 +4,7 @@ import { Shell } from "../components/Shell";
 import { useSession } from "../components/AuthGate";
 import { listProjects } from "../lib/data";
 import type { Project } from "../lib/data";
+import { NewProjectForm } from "../components/NewProjectForm";
 
 /**
  * Reached only after AuthGate has a session, so there is no signed-out branch
@@ -30,6 +31,14 @@ const IndexPage: React.FC<PageProps> = () => {
         through implementation, with the views generated from it.
       </p>
 
+      {session.isAdmin && (
+        <NewProjectForm
+          onCreated={(project) =>
+            setProjects((current) => [...(current ?? []), project])
+          }
+        />
+      )}
+
       {error && (
         <p className="bp-error" role="alert">
           {error}
@@ -47,11 +56,7 @@ const IndexPage: React.FC<PageProps> = () => {
           </p>
           <p className="bp-muted">
             {session.isAdmin ? (
-              <>
-                A project needs a row in the Project table and a matching
-                Cognito group named <code>bp-&lt;slug&gt;</code>. Creating them
-                from the UI arrives with the project admin screen.
-              </>
+              <>Use &ldquo;New project&rdquo; above to create the first one.</>
             ) : (
               <>
                 Access is granted by adding your account to a project&rsquo;s{" "}

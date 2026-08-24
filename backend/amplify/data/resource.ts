@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
+import { projectAdmin } from "../functions/projectAdmin/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -116,6 +117,41 @@ const schema = a.schema({
    * from the read; pass `expectAbsent` for a project's first ever save.
    * Unconditional writes are refused.
    */
+  /** What provisionProject returns. Not the Project model — this is a Lambda. */
+  CreatedProject: a.customType({
+    slug: a.string().required(),
+    name: a.string().required(),
+    description: a.string(),
+    group: a.string().required(),
+    ttlKey: a.string().required(),
+  }),
+
+  /**
+   * Creates a project row AND its Cognito group, together.
+   *
+   * Named `provisionProject`, not `createProject`: `a.model("Project")` already
+   * generates a `createProject` mutation, and redeclaring it fails the CDK
+   * assembly with "Object type extension 'Mutation' cannot redeclare field".
+   * The generated one still exists and writes a bare row — this is the one to
+   * call, because a row without its group is a project nobody can open.
+   *
+   * `allow.authenticated()` is not the access check — the bp-admins check is
+   * inside the function, alongside the Cognito calls that need admin
+   * permissions the browser must never hold. A project row without its group
+   * is a project nobody but an administrator can open, so the two are created
+   * in one place or not at all.
+   */
+  provisionProject: a
+    .mutation()
+    .arguments({
+      slug: a.string().required(),
+      name: a.string().required(),
+      description: a.string(),
+    })
+    .returns(a.ref("CreatedProject"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(projectAdmin)),
+
   saveModel: a
     .mutation()
     .arguments({

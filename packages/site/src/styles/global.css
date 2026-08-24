@@ -529,3 +529,31 @@ a {
   flex-wrap: wrap;
   gap: var(--bp-space-1);
 }
+
+/* -- new project ----------------------------------------------------------- */
+
+.bp-newproject__open {
+  margin-bottom: var(--bp-space-4);
+}
+
+.bp-newproject {
+  display: grid;
+  gap: var(--bp-space-3);
+  max-width: 34rem;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-newproject h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bp-newproject__actions {
+  display: flex;
+  gap: var(--bp-space-3);
+  align-items: center;
+}

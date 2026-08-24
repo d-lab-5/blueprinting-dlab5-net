@@ -51,6 +51,18 @@ const LIST_PROJECTS = /* GraphQL */ `
   }
 `;
 
+const PROVISION_PROJECT = /* GraphQL */ `
+  mutation ProvisionProject($slug: String!, $name: String!, $description: String) {
+    provisionProject(slug: $slug, name: $name, description: $description) {
+      slug
+      name
+      description
+      group
+      ttlKey
+    }
+  }
+`;
+
 const REQUEST_READ_URL = /* GraphQL */ `
   mutation RequestModelReadUrl($projectSlug: String!) {
     requestModelReadUrl(projectSlug: $projectSlug) {
@@ -110,6 +122,33 @@ export async function listProjects(): Promise<Project[]> {
     query: LIST_PROJECTS,
   })) as GraphQLResult<{ listProjects: { items: Project[] } }>;
   return unwrap(result).listProjects.items;
+}
+
+/**
+ * Creates a project and its Cognito group.
+ *
+ * Calls `provisionProject`, not the `createProject` that Amplify generates for
+ * the Project model — that one writes a bare row with no Cognito group, which
+ * is a project nobody but an administrator can open.
+ *
+ * Administrators only, enforced in the Lambda rather than here — the Cognito
+ * calls need admin permissions the browser must never hold, and a project row
+ * without its group is one nobody but an administrator can open.
+ */
+export async function createProject(input: {
+  slug: string;
+  name: string;
+  description?: string;
+}): Promise<Project> {
+  const result = (await client().graphql({
+    query: PROVISION_PROJECT,
+    variables: {
+      slug: input.slug,
+      name: input.name,
+      description: input.description || undefined,
+    },
+  })) as GraphQLResult<{ provisionProject: Project }>;
+  return unwrap(result).provisionProject;
 }
 
 /**
