@@ -55,6 +55,19 @@ benefit.
 
 Do **not** attempt to support ArchiMate 4 yet.
 
+### Amendment, same day: Implementation & Migration stays as 3.2 has it
+
+Gap and Implementation Event are kept, and the roadmap keeps using them, even
+though they appear to be absent from ArchiMate 4.
+
+Implementation & Migration is peripheral to the language — it is the schedule
+around an architecture rather than part of it — and it is where this platform
+does its most concrete work. Dropping Gap to pre-empt a migration would remove
+a modelling concept that is doing real work today in exchange for a saving in
+a migration nobody can yet plan. When 4 becomes supportable, a Gap maps to an
+annotation or a Common element and the answer will be obvious with the
+specification's own migration guidance in hand.
+
 ## Consequences
 
 Two things block it, and neither is effort:

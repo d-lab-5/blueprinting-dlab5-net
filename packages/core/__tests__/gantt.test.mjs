@@ -119,12 +119,26 @@ test("a work package with no deliverable inherits the plateau that triggers it",
 });
 
 test("status drives the bar, and events become milestones", () => {
-  const out = toMermaidGantt(PLATFORM_ROADMAP);
-  assert.match(out, /WP1 Foundation :done,/);
-  assert.match(out, /WP4 Layer 7 roadmap view :active,/);
-  assert.match(out, /stage builds green :done, milestone,/);
+  // Its own fixture rather than the platform roadmap. That model is live
+  // planning data now — statuses move as work lands — and a test that pins
+  // them would fail every time the plan is honest.
+  const out = toMermaidGantt({
+    projectSlug: "x",
+    elements: [
+      { id: "a", type: "WorkPackage", name: "Finished", properties: { startDate: "2026-01-01", endDate: "2026-01-05", status: "done" } },
+      { id: "b", type: "WorkPackage", name: "Running", properties: { startDate: "2026-01-05", status: "in-progress" } },
+      { id: "c", type: "WorkPackage", name: "Later", properties: { status: "planned" } },
+      { id: "d", type: "WorkPackage", name: "Wobbling", properties: { startDate: "2026-01-05", status: "at-risk" } },
+      { id: "e", type: "ImplementationEvent", name: "Go live", properties: { startDate: "2026-01-06", status: "done" } },
+    ],
+    relationships: [],
+  });
+  assert.match(out, /Finished :done,/);
+  assert.match(out, /Running :active,/);
+  assert.match(out, /Wobbling :crit,/);
+  assert.match(out, /Go live :done, milestone,/);
   // Planned work carries no status tag.
-  assert.match(out, /WP5 Open Exchange XML :t_wp5,/);
+  assert.match(out, /Later :t_c,/);
 });
 
 test("triggering becomes an after dependency", () => {
@@ -149,14 +163,28 @@ test("every `after` names a task that was actually emitted", () => {
 });
 
 test("work packages sort naturally, not lexically", () => {
-  const out = toMermaidGantt(PLATFORM_ROADMAP);
+  const out = toMermaidGantt({
+    projectSlug: "x",
+    elements: [
+      { id: "wp9", type: "WorkPackage", name: "WP9 Ninth", properties: {} },
+      { id: "wp10", type: "WorkPackage", name: "WP10 Tenth", properties: {} },
+    ],
+    relationships: [],
+  });
   assert.ok(
-    out.indexOf("WP9 Tech Radar") < out.indexOf("WP10 Body of knowledge"),
+    out.indexOf("WP9 Ninth") < out.indexOf("WP10 Tenth"),
     "WP10 must not sort before WP9"
   );
 });
 
 test("on the same day, work comes before the milestone it produced", () => {
-  const out = toMermaidGantt(PLATFORM_ROADMAP);
-  assert.ok(out.indexOf("WP1 Foundation") < out.indexOf("stage builds green"));
+  const out = toMermaidGantt({
+    projectSlug: "x",
+    elements: [
+      { id: "wp", type: "WorkPackage", name: "The work", properties: { startDate: "2026-01-01", endDate: "2026-01-02" } },
+      { id: "ev", type: "ImplementationEvent", name: "The milestone", properties: { startDate: "2026-01-01" } },
+    ],
+    relationships: [],
+  });
+  assert.ok(out.indexOf("The work") < out.indexOf("The milestone"));
 });

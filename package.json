@@ -13,6 +13,7 @@
     "build:web": "npm run build -w @dlab5/blueprint-site",
     "gen:metamodel": "node scripts/gen-metamodel.mjs",
     "seed": "node scripts/seed.mjs",
+    "export": "node scripts/export.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",
     "verify:model-store": "node scripts/verify-model-store.mjs",
     "dev:web": "npm run develop -w @dlab5/blueprint-site",

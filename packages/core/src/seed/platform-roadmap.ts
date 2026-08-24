@@ -126,7 +126,11 @@ export const PLATFORM_ROADMAP: AbModel = {
       name: "WP4 Layer 7 roadmap view",
       documentation:
         "A Mermaid Gantt generated from this very model, plus forms to edit it.",
-      properties: { startDate: "2026-08-24", status: "in-progress" },
+      properties: {
+        startDate: "2026-08-24",
+        endDate: "2026-08-24",
+        status: "done",
+      },
     },
     {
       id: "wp5",
@@ -163,8 +167,10 @@ export const PLATFORM_ROADMAP: AbModel = {
       type: "WorkPackage",
       name: "WP9 Tech Radar",
       documentation:
-        "d-lab-5/gatsby-techradar, with entries linked to element types.",
-      properties: { status: "planned" },
+        "Two halves. The modelling convention — quadrants as Groupings, rings " +
+        "as ArchiMate Properties — is done, ahead of its place in the " +
+        "sequence. The radar visual, d-lab-5/gatsby-techradar, is not.",
+      properties: { startDate: "2026-08-24", status: "in-progress" },
     },
     {
       id: "wp10",
@@ -203,7 +209,7 @@ export const PLATFORM_ROADMAP: AbModel = {
       id: "d-gantt",
       type: "Deliverable",
       name: "Layer 7 Gantt view",
-      properties: { status: "planned" },
+      properties: { status: "done" },
     },
 
     /* -- events ------------------------------------------------------------ */
@@ -222,6 +228,28 @@ export const PLATFORM_ROADMAP: AbModel = {
       type: "ImplementationEvent",
       name: "first model stored",
       properties: { startDate: "2026-08-24", status: "done" },
+    },
+    {
+      id: "e-self-hosting",
+      type: "ImplementationEvent",
+      name: "the roadmap renders itself",
+      documentation:
+        "The Gantt above is generated from this model. From here the plan for " +
+        "the platform is maintained in the platform, and this file is a seed " +
+        "rather than the source of truth — see scripts/export.mjs.",
+      properties: { startDate: "2026-08-24", status: "done" },
+    },
+    {
+      id: "e-current-build",
+      type: "ImplementationEvent",
+      name: "current build",
+      documentation:
+        "Where the work actually is, as against where the plan said it would " +
+        "be. Delivery has run ahead of the sequence: the radar convention " +
+        "(WP9) landed alongside WP4, and ArchiMate 4 was assessed before any " +
+        "work package called for it. Move this marker when it stops being " +
+        "true — a roadmap that flatters itself is worse than none.",
+      properties: { startDate: "2026-08-24", status: "in-progress" },
     },
   ],
 
@@ -249,12 +277,14 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-wp4-wp6", type: "triggering", source: "wp4", target: "wp6", properties: {} },
     { id: "r-wp6-wp7", type: "triggering", source: "wp6", target: "wp7", properties: {} },
     { id: "r-wp3-wp8", type: "triggering", source: "wp3", target: "wp8", properties: {} },
-    { id: "r-wp8-wp9", type: "triggering", source: "wp8", target: "wp9", properties: {} },
-    { id: "r-wp9-wp10", type: "triggering", source: "wp9", target: "wp10", properties: {} },
+    { id: "r-wp4-wp9", type: "triggering", source: "wp4", target: "wp9", properties: {} },
+    { id: "r-wp8-wp10", type: "triggering", source: "wp8", target: "wp10", properties: {} },
 
     /* Milestones. */
     { id: "r-wp1-green", type: "triggering", source: "wp1", target: "e-stage-green", properties: {} },
     { id: "r-wp3-first", type: "triggering", source: "wp3", target: "e-first-model", properties: {} },
+    { id: "r-wp4-self", type: "triggering", source: "wp4", target: "e-self-hosting", properties: {} },
+    { id: "r-wp9-now", type: "triggering", source: "wp9", target: "e-current-build", properties: {} },
 
     /* Gaps sit between the states they describe. */
     { id: "r-p0-gapauth", type: "association", source: "p0", target: "gap-auth", properties: {} },
