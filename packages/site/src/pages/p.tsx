@@ -6,6 +6,7 @@ import { toMermaidGantt } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
 import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
+import { DiagramViewport } from "../components/DiagramViewport";
 import { RoadmapEditor } from "../components/RoadmapEditor";
 import { useModel } from "../hooks/useModel";
 
@@ -184,7 +185,11 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
     () => toMermaidGantt(model, { title: slug }),
     [model, slug]
   );
-  return <MermaidView script={script} id={`gantt-${slug}`} />;
+  return (
+    <DiagramViewport>
+      <MermaidView script={script} id={`gantt-${slug}`} />
+    </DiagramViewport>
+  );
 }
 
 function ModelByLayer({ model }: { model: AbModel }) {

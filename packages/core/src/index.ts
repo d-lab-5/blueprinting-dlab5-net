@@ -37,3 +37,20 @@ export {
 export { PLATFORM_ROADMAP } from "./seed/platform-roadmap.js";
 export { toMermaidGantt } from "./diagrams/gantt.js";
 export type { GanttOptions } from "./diagrams/gantt.js";
+
+export {
+  RADAR_ELEMENT_TYPES,
+  RADAR_MOVED,
+  RADAR_PROPS,
+  RADAR_RINGS,
+  canBeRadarEntry,
+  toRadar,
+  validateRadar,
+} from "./radar.js";
+export type {
+  RadarEntry,
+  RadarFinding,
+  RadarMoved,
+  RadarQuadrant,
+  RadarRing,
+} from "./radar.js";

@@ -557,3 +557,56 @@ a {
   gap: var(--bp-space-3);
   align-items: center;
 }
+
+/* -- diagram viewport ------------------------------------------------------ */
+
+.bp-viewport {
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  overflow: hidden;
+}
+
+.bp-viewport__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-1);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.bp-viewport__level {
+  min-width: 4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-viewport__hint {
+  margin-left: auto;
+  color: var(--bp-text-muted);
+  font-size: 0.75rem;
+}
+
+.bp-viewport__frame {
+  /* Tall enough for a real roadmap without swallowing the page. Overflow is
+     hidden rather than scrolled because panning is the gesture here; a
+     scrollbar and a drag-pan fight each other. */
+  height: min(70vh, 34rem);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.bp-viewport__frame:active {
+  cursor: grabbing !important;
+}
+
+.bp-viewport__stage {
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* The viewport owns the chrome now, so the diagram inside is bare. */
+.bp-viewport .bp-diagram {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
