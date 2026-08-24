@@ -612,3 +612,58 @@ a {
   border-radius: 0;
   overflow: visible;
 }
+
+/* -- gantt legend ---------------------------------------------------------- */
+
+.bp-legend {
+  margin: var(--bp-space-3) 0 var(--bp-space-6);
+  font-size: 0.8rem;
+}
+
+.bp-legend__items {
+  list-style: none;
+  margin: 0 0 var(--bp-space-2);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2) var(--bp-space-6);
+}
+
+.bp-legend__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bp-space-2);
+}
+
+.bp-legend__swatch {
+  width: 1.4rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  flex: none;
+  align-self: center;
+}
+
+/* Mermaid draws a milestone as a rotated square, so the legend does too. */
+.bp-legend__swatch--milestone {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.bp-legend__label {
+  color: var(--bp-text);
+}
+
+.bp-legend__meaning {
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.72rem;
+}
+
+.bp-legend__note {
+  margin: 0;
+  color: var(--bp-text-muted);
+  max-width: 60ch;
+  line-height: 1.5;
+}

@@ -70,7 +70,7 @@ export const CONVENTIONS = {
     propertyKey: "status",
     label: "Status",
     comment: "Drives the Gantt bar style. Anything outside this list renders untagged.",
-    values: ["planned","in-progress","done","at-risk","closed"],
+    values: ["planned","in-progress","done","at-risk","open","closed"],
     defaultValue: null,
   },
 } as const satisfies Record<string, Convention>;

@@ -85,7 +85,7 @@ bp:status a owl:AnnotationProperty ;
     rdfs:label "Status"@en ;
     rdfs:comment "Drives the Gantt bar style. Anything outside this list renders untagged."@en ;
     bp:propertyKey "status" ;
-    sh:in ( "planned" "in-progress" "done" "at-risk" "closed" ) .
+    sh:in ( "planned" "in-progress" "done" "at-risk" "open" "closed" ) .
 
 # ── Technology Radar ────────────────────────────────────────
 # Quadrants are archimate:Grouping elements aggregating their
