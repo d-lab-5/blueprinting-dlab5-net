@@ -741,3 +741,127 @@ a {
   border-color: var(--bp-accent);
   background: var(--bp-surface);
 }
+
+/* -- technology radar ------------------------------------------------------ */
+
+.bp-radar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+@media (max-width: 60rem) {
+  .bp-radar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bp-radar__chart svg {
+  width: 100%;
+  height: auto;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+}
+
+.bp-radar__ringlabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.bp-radar__quadrantlabel {
+  font-size: 12px;
+  fill: var(--bp-text-muted);
+}
+
+.bp-radar__blip {
+  cursor: pointer;
+}
+
+.bp-radar__blip:hover circle,
+.bp-radar__blip:hover polygon {
+  filter: brightness(1.25);
+}
+
+.bp-radar__blip:focus-visible {
+  outline: 2px solid var(--bp-accent);
+}
+
+.bp-radar__blipnumber {
+  font-size: 10px;
+  font-weight: 600;
+  fill: #0f172a;
+  pointer-events: none;
+}
+
+.bp-radar__side {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-radar__quadrant h3,
+.bp-radar__detail h3 {
+  font-size: 0.9rem;
+  margin: 0 0 var(--bp-space-2);
+}
+
+.bp-radar__quadrant ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.bp-radar__entry {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-2);
+}
+
+.bp-radar__entry:hover {
+  background: var(--bp-surface);
+  color: var(--bp-text);
+}
+
+.bp-radar__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: none;
+}
+
+.bp-radar__num {
+  font-variant-numeric: tabular-nums;
+  min-width: 1.4rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-radar__detail {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-2);
+  font-size: 0.875rem;
+}
+
+.bp-radar__meta {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.8rem;
+}

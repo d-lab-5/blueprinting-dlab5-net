@@ -11,9 +11,10 @@ import { GanttLegend } from "../components/GanttLegend";
 import { RoadmapEditor } from "../components/RoadmapEditor";
 import { BlocklyEditor } from "../components/BlocklyEditor";
 import { D2View } from "../components/D2View";
+import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "views" | "model" | "blocks";
+type Tab = "roadmap" | "views" | "radar" | "model" | "blocks";
 
 /**
  * Client-only route for everything under /p/. gatsby-node.ts rewrites this
@@ -31,7 +32,9 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
         ? "blocks"
         : section === "views"
           ? "views"
-          : "roadmap";
+          : section === "radar"
+            ? "radar"
+            : "roadmap";
 
   const {
     model,
@@ -79,6 +82,12 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
             Views
           </a>
           <a
+            href={`/p/${slug}/radar/`}
+            className={`bp-tab${tab === "radar" ? " bp-tab--on" : ""}`}
+          >
+            Radar
+          </a>
+          <a
             href={`/p/${slug}/model/`}
             className={`bp-tab${tab === "model" ? " bp-tab--on" : ""}`}
           >
@@ -120,6 +129,17 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
             </>
           )}
           {tab === "views" && <Views model={model} />}
+          {tab === "radar" && (
+            <>
+              <p className="bp-lede">
+                Every entry is an element of this model, not a copy of one — so
+                a component cannot sit at ADOPT here while the architecture
+                says otherwise. Quadrants are Groupings; the ring is an
+                ArchiMate Property.
+              </p>
+              <RadarChart model={model} />
+            </>
+          )}
           {tab === "model" && <ModelByDomain model={model} />}
           {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>

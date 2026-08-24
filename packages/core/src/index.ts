@@ -59,3 +59,11 @@ export { toD2 } from "./diagrams/d2.js";
 export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
+
+export { toRadarLayout } from "./diagrams/radar-layout.js";
+export type {
+  RadarBlip,
+  RadarLayout,
+  RadarLayoutOptions,
+  RadarSector,
+} from "./diagrams/radar-layout.js";
