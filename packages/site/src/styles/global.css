@@ -667,3 +667,48 @@ a {
   max-width: 60ch;
   line-height: 1.5;
 }
+
+/* -- blockly editor -------------------------------------------------------- */
+
+.bp-blockly {
+  position: relative;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  overflow: hidden;
+}
+
+.bp-blockly__canvas {
+  /* Tall enough to work in without swallowing the page. Blockly measures its
+     container on inject, so this must be a real height, not a percentage. */
+  height: min(72vh, 40rem);
+  width: 100%;
+}
+
+.bp-blockly__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  z-index: 1;
+}
+
+.bp-blockly__warnings {
+  list-style: none;
+  margin: 0 0 var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-left: 3px solid var(--bp-warning);
+  background: var(--bp-surface);
+  border-radius: var(--bp-radius-sm);
+  font-size: 0.8rem;
+  color: var(--bp-text-muted);
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+/* Blockly injects its own light chrome; nudge the canvas to the app's ground
+   so it does not sit as a white slab in a dark page. */
+.bp-blockly .injectionDiv,
+.bp-blockly .blocklyMainBackground {
+  background: var(--bp-bg-sunken);
+}

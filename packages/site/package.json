@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@dlab5/archimate-metamodel": "^0.1.0",
+    "@dlab5/blueprint-blockly": "^0.1.0",
     "@dlab5/blueprint-core": "^0.1.0",
     "aws-amplify": "^6.15.0",
+    "blockly": "^13.2.1",
     "gatsby": "^5.16.0",
     "graphql": "^16.14.2",
     "mermaid": "^11.17.0",

@@ -9,9 +9,10 @@ import { MermaidView } from "../components/MermaidView";
 import { DiagramViewport } from "../components/DiagramViewport";
 import { GanttLegend } from "../components/GanttLegend";
 import { RoadmapEditor } from "../components/RoadmapEditor";
+import { BlocklyEditor } from "../components/BlocklyEditor";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "model";
+type Tab = "roadmap" | "model" | "blocks";
 
 /**
  * Client-only route for everything under /p/. gatsby-node.ts rewrites this
@@ -22,7 +23,8 @@ type Tab = "roadmap" | "model";
 const ProjectPage: React.FC<PageProps> = ({ location }) => {
   const path = location.pathname.replace(/^\/p\/?/, "").replace(/\/$/, "");
   const [slug, section] = path.split("/");
-  const tab: Tab = section === "model" ? "model" : "roadmap";
+  const tab: Tab =
+    section === "model" ? "model" : section === "blocks" ? "blocks" : "roadmap";
 
   const {
     model,
@@ -69,6 +71,12 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
           >
             Model
           </a>
+          <a
+            href={`/p/${slug}/blocks/`}
+            className={`bp-tab${tab === "blocks" ? " bp-tab--on" : ""}`}
+          >
+            Blocks
+          </a>
         </nav>
       </div>
 
@@ -91,15 +99,15 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
 
           <Findings findings={findings} />
 
-          {tab === "roadmap" ? (
+          {tab === "roadmap" && (
             <>
               <Roadmap model={model} slug={slug} />
               <h2>Edit</h2>
               <RoadmapEditor model={model} onChange={update} />
             </>
-          ) : (
-            <ModelByDomain model={model} />
           )}
+          {tab === "model" && <ModelByDomain model={model} />}
+          {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>
       )}
     </Shell>
@@ -192,6 +200,33 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
         <MermaidView script={script} id={`gantt-${slug}`} />
       </DiagramViewport>
       <GanttLegend model={model} />
+    </>
+  );
+}
+
+function Blocks({
+  model,
+  onChange,
+}: {
+  model: AbModel;
+  onChange: (next: AbModel) => void;
+}) {
+  const [warnings, setWarnings] = React.useState<string[]>([]);
+  return (
+    <>
+      <p className="bp-lede">
+        Every block and every relationship in the palette is generated from the
+        ArchiMate specification, so a connection the language forbids is not
+        offered. Changes here are unsaved until you press Save above.
+      </p>
+      {warnings.length > 0 && (
+        <ul className="bp-blockly__warnings" role="status">
+          {warnings.map((w, i) => (
+            <li key={i}>{w}</li>
+          ))}
+        </ul>
+      )}
+      <BlocklyEditor model={model} onChange={onChange} onWarnings={setWarnings} />
     </>
   );
 }
