@@ -25,6 +25,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@terrastruct/d2": "^0.1.33",
     "@types/n3": "^1.26.1",
     "jsdom": "^30.0.1",
     "mermaid": "^11.17.0",

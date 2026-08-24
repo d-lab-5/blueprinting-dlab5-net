@@ -18,6 +18,7 @@
     "seed": "node scripts/seed.mjs",
     "export": "node scripts/export.mjs",
     "verify:archi": "node scripts/verify-archi-roundtrip.mjs",
+    "verify:views": "node scripts/verify-views.mjs",
     "verify:auth": "node scripts/verify-auth.mjs",
     "verify:model-store": "node scripts/verify-model-store.mjs",
     "verify:mcp": "node scripts/verify-mcp.mjs",

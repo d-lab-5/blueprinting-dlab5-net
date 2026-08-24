@@ -2,7 +2,7 @@ import * as React from "react";
 import type { HeadFC, PageProps } from "gatsby";
 import { ELEMENTS, LAYER_LABELS, LAYER_ORDER } from "@dlab5/archimate-metamodel";
 import type { LayerId } from "@dlab5/archimate-metamodel";
-import { toMermaidGantt } from "@dlab5/blueprint-core";
+import { toD2, toMermaidGantt, toMermaidSequence } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
 import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
@@ -10,9 +10,10 @@ import { DiagramViewport } from "../components/DiagramViewport";
 import { GanttLegend } from "../components/GanttLegend";
 import { RoadmapEditor } from "../components/RoadmapEditor";
 import { BlocklyEditor } from "../components/BlocklyEditor";
+import { D2View } from "../components/D2View";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "model" | "blocks";
+type Tab = "roadmap" | "views" | "model" | "blocks";
 
 /**
  * Client-only route for everything under /p/. gatsby-node.ts rewrites this
@@ -24,7 +25,13 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   const path = location.pathname.replace(/^\/p\/?/, "").replace(/\/$/, "");
   const [slug, section] = path.split("/");
   const tab: Tab =
-    section === "model" ? "model" : section === "blocks" ? "blocks" : "roadmap";
+    section === "model"
+      ? "model"
+      : section === "blocks"
+        ? "blocks"
+        : section === "views"
+          ? "views"
+          : "roadmap";
 
   const {
     model,
@@ -64,6 +71,12 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
             className={`bp-tab${tab === "roadmap" ? " bp-tab--on" : ""}`}
           >
             Roadmap
+          </a>
+          <a
+            href={`/p/${slug}/views/`}
+            className={`bp-tab${tab === "views" ? " bp-tab--on" : ""}`}
+          >
+            Views
           </a>
           <a
             href={`/p/${slug}/model/`}
@@ -106,6 +119,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <RoadmapEditor model={model} onChange={update} />
             </>
           )}
+          {tab === "views" && <Views model={model} />}
           {tab === "model" && <ModelByDomain model={model} />}
           {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>
@@ -200,6 +214,90 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
         <MermaidView script={script} id={`gantt-${slug}`} />
       </DiagramViewport>
       <GanttLegend model={model} />
+    </>
+  );
+}
+
+/**
+ * The structural and behavioural views, both generated from the same graph.
+ *
+ * D2 for structure because its layout engine copes with the shape an
+ * architecture actually has; a Mermaid flowchart of thirty cross-linked
+ * components becomes spaghetti. Mermaid sequence for behaviour, because that
+ * is what a sequence diagram is for.
+ */
+function Views({ model }: { model: AbModel }) {
+  const [domains, setDomains] = React.useState<LayerId[] | null>(null);
+
+  const present = React.useMemo(() => {
+    const seen = new Set<LayerId>();
+    for (const el of model.elements) seen.add(ELEMENTS[el.type].layer);
+    return LAYER_ORDER.filter((l) => seen.has(l));
+  }, [model]);
+
+  const selected = domains ?? present;
+
+  const d2 = React.useMemo(
+    () => toD2(model, { title: model.projectSlug, domains: selected }),
+    [model, selected]
+  );
+  const sequence = React.useMemo(
+    () => toMermaidSequence(model, { title: model.projectSlug }),
+    [model]
+  );
+
+  const toggle = (layer: LayerId) =>
+    setDomains((current) => {
+      const base = current ?? present;
+      return base.includes(layer)
+        ? base.filter((l) => l !== layer)
+        : LAYER_ORDER.filter((l) => base.includes(l) || l === layer);
+    });
+
+  return (
+    <>
+      <h2>Structure</h2>
+      <p className="bp-lede">
+        Domains are containers in the standard ArchiMate colours, and a shape
+        follows the element&rsquo;s aspect: hexagon for motivation, rounded for
+        behaviour, page for passive structure.
+      </p>
+
+      <div className="bp-domainfilter" role="group" aria-label="Domains shown">
+        {present.map((layer) => (
+          <button
+            key={layer}
+            type="button"
+            className={`bp-chip${selected.includes(layer) ? " bp-chip--on" : ""}`}
+            onClick={() => toggle(layer)}
+          >
+            <span
+              className="bp-layer__swatch"
+              style={{ background: `var(--bp-layer-${layer})` }}
+              aria-hidden="true"
+            />
+            {LAYER_LABELS[layer]}
+          </button>
+        ))}
+      </div>
+
+      {selected.length === 0 ? (
+        <p className="bp-muted">Select at least one domain.</p>
+      ) : (
+        <DiagramViewport>
+          <D2View script={d2} />
+        </DiagramViewport>
+      )}
+
+      <h2>Behaviour</h2>
+      <p className="bp-lede">
+        Who does what, and what happens next. Participants come from the
+        assignment relationship — ArchiMate already records who performs each
+        step, which is why this can be derived rather than drawn.
+      </p>
+      <DiagramViewport>
+        <MermaidView script={sequence} id={`seq-${model.projectSlug}`} />
+      </DiagramViewport>
     </>
   );
 }

@@ -712,3 +712,32 @@ a {
 .bp-blockly .blocklyMainBackground {
   background: var(--bp-bg-sunken);
 }
+
+/* -- domain filter --------------------------------------------------------- */
+
+.bp-domainfilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  background: none;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 999px;
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-chip--on {
+  color: var(--bp-text);
+  border-color: var(--bp-accent);
+  background: var(--bp-surface);
+}
