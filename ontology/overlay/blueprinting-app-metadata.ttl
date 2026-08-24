@@ -87,6 +87,23 @@ bp:status a owl:AnnotationProperty ;
     bp:propertyKey "status" ;
     sh:in ( "planned" "in-progress" "done" "at-risk" "open" "closed" ) .
 
+# ── Pattern library ─────────────────────────────────────────
+# The engineering pattern library models a practice in ArchiMate's
+# Motivation layer — Principle, Constraint, Assessment — and the
+# architecture it constrains in the core layers. These two
+# properties are the link out to the material ArchiMate cannot
+# hold: the runbook, the ADR, the code.
+
+bp:reference a owl:AnnotationProperty ;
+    rdfs:label "Reference"@en ;
+    rdfs:comment "Where the detail lives: an ADR path, a Claude Code skill name, or a package. ArchiMate says what applies and why; the reference says how."@en ;
+    bp:propertyKey "reference" .
+
+bp:instances a owl:AnnotationProperty ;
+    rdfs:label "Instances"@en ;
+    rdfs:comment "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping."@en ;
+    bp:propertyKey "instances" .
+
 # ── Technology Radar ────────────────────────────────────────
 # Quadrants are archimate:Grouping elements aggregating their
 # members, because the element type cannot carry the quadrant:

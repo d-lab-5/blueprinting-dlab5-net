@@ -8,7 +8,12 @@
  * never clobbers a concurrent edit unnoticed.
  *
  * Usage:
- *   BP_USER=… BP_PASSWORD=… node scripts/seed.mjs [--project <slug>]
+ *   BP_USER=… BP_PASSWORD=… node scripts/seed.mjs \
+ *     [--project <slug>] [--from <ttl>] [--name <name>] [--description <text>]
+ *
+ * `--from` seeds any project from committed Turtle rather than from the
+ * built-in roadmap — which is how the engineering pattern library, and any
+ * other model kept in git, gets into the platform.
  *
  * Targets whichever backend backend/amplify_outputs.json points at. For the
  * deployed branch, regenerate it first:
@@ -30,6 +35,7 @@ import { generateClient } from "aws-amplify/data";
 import {
   PLATFORM_ROADMAP,
   hasErrors,
+  parseAbox,
   serializeAbox,
   validateModel,
 } from "@dlab5/blueprint-core";
@@ -53,9 +59,21 @@ if (!username || !password) {
   process.exit(2);
 }
 
-const argIdx = process.argv.indexOf("--project");
-const slug = argIdx > -1 ? process.argv[argIdx + 1] : PLATFORM_ROADMAP.projectSlug;
-const model = { ...PLATFORM_ROADMAP, projectSlug: slug };
+const arg = (name) => {
+  const i = process.argv.indexOf(name);
+  return i > -1 ? process.argv[i + 1] : undefined;
+};
+
+const from = arg("--from");
+const source = from
+  ? parseAbox(readFileSync(resolve(process.cwd(), from), "utf8"), "seed")
+  : PLATFORM_ROADMAP;
+
+const slug = arg("--project") ?? source.projectSlug;
+
+// Re-slugged so the instance IRIs match the project the model lands in. The
+// ids inside are unchanged, so a re-export of the same content is stable.
+const model = { ...source, projectSlug: slug };
 
 // Refuse to seed a model the metamodel rejects. A broken seed would be worse
 // than none: it becomes the example everything else is copied from.
@@ -86,9 +104,8 @@ try {
     unwrap(
       await client.models.Project.create({
         slug,
-        name: "D-LAB-5 Blueprinting Platform",
-        description:
-          "The platform's own build plan. Layer 7 today; the other six as they arrive.",
+        name: arg("--name") ?? slug,
+        description: arg("--description") ?? undefined,
         group: `bp-${slug}`,
         ttlKey: `projects/${slug}/abox.ttl`,
         version: 0,
@@ -117,7 +134,8 @@ try {
 
   console.log(
     `seeded ${model.elements.length} elements and ` +
-      `${model.relationships.length} relationships`
+      `${model.relationships.length} relationships` +
+      (from ? ` from ${from}` : "")
   );
   console.log(`  key  ${saved.key}`);
   console.log(`  etag ${saved.etag}`);

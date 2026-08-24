@@ -1,0 +1,498 @@
+@prefix archimate: <https://purl.org/archimate#>.
+@prefix bp: <https://blueprinting.dlab5.net/ns#>.
+
+<https://blueprinting.dlab5.net/i/patterns/model> bp:languageVersion "3.2".
+<https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-npm-ci-rejects-amplify-lockfile> a archimate:Assessment;
+    archimate:identifier "assessment-npm-ci-rejects-amplify-lockfile";
+    archimate:name "npm ci rejects a backend lockfile npm itself wrote";
+    archimate:documentation "Several Amplify CDK packages ship bundled dependencies. npm install records the hoisted version while npm ci rebuilds an ideal tree containing the bundled one, and the two disagree. Reproducible from a clean install; use npm install for the backend phase.";
+    archimate:hasProperty _:p-e-assessment-npm-ci-rejects-amplify-lockfile-0.
+_:p-e-assessment-npm-ci-rejects-amplify-lockfile-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0001; digitalhome-cloud-core amplify.yml".
+<https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-repin-is-a-swap> a archimate:Assessment;
+    archimate:identifier "assessment-repin-is-a-swap";
+    archimate:name "Re-pinning becomes a swap rather than a merge";
+    archimate:documentation "Observed twice. It is also what makes two versions of a language coexistable: the overlay carries a version discriminator on only the terms that differ, which for application conventions is usually none.";
+    archimate:hasProperty _:p-e-assessment-repin-is-a-swap-0.
+_:p-e-assessment-repin-is-a-swap-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-cloud-core; blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-saved-workspaces-go-stale> a archimate:Assessment;
+    archimate:identifier "assessment-saved-workspaces-go-stale";
+    archimate:name "A workspace saved against older block definitions stops opening";
+    archimate:documentation "Recorded by the DHC harness against its own files, which named the fix before anyone acted on it. Where blocks are generated from an ontology that will be re-pinned, this is certain rather than possible.";
+    archimate:hasProperty _:p-e-assessment-saved-workspaces-go-stale-0.
+_:p-e-assessment-saved-workspaces-go-stale-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-cloud-designer".
+<https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-saved-workspaces-go-stale> archimate:hasProperty _:p-e-assessment-saved-workspaces-go-stale-1.
+_:p-e-assessment-saved-workspaces-go-stale-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "digitalhome-cloud-core blockly/README.md".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend> a archimate:ApplicationComponent;
+    archimate:identifier "component-amplify-backend";
+    archimate:name "Amplify Gen 2 backend";
+    archimate:documentation "TypeScript-first IaC: auth, data, storage and functions.";
+    archimate:hasProperty _:p-e-component-amplify-backend-0.
+_:p-e-component-amplify-backend-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "backend/amplify".
+<https://blueprinting.dlab5.net/i/patterns/Artifact/component-app-overlay> a archimate:Artifact;
+    archimate:identifier "component-app-overlay";
+    archimate:name "App-metadata overlay";
+    archimate:documentation "Annotations on upstream classes, in the application's own namespace.";
+    archimate:hasProperty _:p-e-component-app-overlay-0.
+_:p-e-component-app-overlay-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ontology/overlay/".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator> a archimate:ApplicationComponent;
+    archimate:identifier "component-block-generator";
+    archimate:name "Block and toolbox generator";
+    archimate:documentation "One block per element type, one per relationship type, a toolbox category per domain, all from the metamodel.";
+    archimate:hasProperty _:p-e-component-block-generator-0.
+_:p-e-component-block-generator-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly/src/generate.ts".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site> a archimate:ApplicationComponent;
+    archimate:identifier "component-gatsby-site";
+    archimate:name "Gatsby static front end";
+    archimate:documentation "Statically built, authenticated client-side, with one auth gate over every route rather than a guard per page.";
+    archimate:hasProperty _:p-e-component-gatsby-site-0.
+_:p-e-component-gatsby-site-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/site".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-ontology-generator> a archimate:ApplicationComponent;
+    archimate:identifier "component-ontology-generator";
+    archimate:name "Ontology-to-code generator";
+    archimate:documentation "Reads the vendored ontology and the overlay, emits typed source. The one place a specification enters a codebase.";
+    archimate:hasProperty _:p-e-component-ontology-generator-0.
+_:p-e-component-ontology-generator-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "scripts/gen-metamodel.mjs".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-storage-proxy> a archimate:ApplicationComponent;
+    archimate:identifier "component-storage-proxy";
+    archimate:name "Storage proxy function";
+    archimate:documentation "The authorization boundary for per-tenant objects.";
+    archimate:hasProperty _:p-e-component-storage-proxy-0.
+_:p-e-component-storage-proxy-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "backend/amplify/functions/modelStorageProxy".
+<https://blueprinting.dlab5.net/i/patterns/Artifact/component-vendored-ontology> a archimate:Artifact;
+    archimate:identifier "component-vendored-ontology";
+    archimate:name "Vendored upstream ontology";
+    archimate:documentation "A pinned copy with its licence and provenance. Never edited.";
+    archimate:hasProperty _:p-e-component-vendored-ontology-0.
+_:p-e-component-vendored-ontology-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ontology/upstream/".
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-workspace-transforms> a archimate:ApplicationComponent;
+    archimate:identifier "component-workspace-transforms";
+    archimate:name "Workspace and A-Box transforms";
+    archimate:documentation "Model to workspace and back, with a carrier field so a property the block set does not model is not lost on the round trip.";
+    archimate:hasProperty _:p-e-component-workspace-transforms-0.
+_:p-e-component-workspace-transforms-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly/src/transform.ts".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-backend-not-a-workspace> a archimate:Constraint;
+    archimate:identifier "constraint-backend-not-a-workspace";
+    archimate:name "The backend must not be an npm workspace";
+    archimate:documentation "Gatsby needs graphql 16 and the Amplify data construct needs graphql 15. One hoisted dependency tree cannot satisfy both. Tidying the layout by making backend/ a workspace reintroduces the conflict.";
+    archimate:hasProperty _:p-e-constraint-backend-not-a-workspace-0.
+_:p-e-constraint-backend-not-a-workspace-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "amplify.yml; docs/adr/0001".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-blocks-generated-not-written> a archimate:Constraint;
+    archimate:identifier "constraint-blocks-generated-not-written";
+    archimate:name "Blocks and toolbox are generated from the ontology";
+    archimate:documentation "Re-pinning the ontology regenerates the palette instead of starting an editing job across dozens of block definitions.";
+    archimate:hasProperty _:p-e-constraint-blocks-generated-not-written-0.
+_:p-e-constraint-blocks-generated-not-written-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly/src/generate.ts; digitalhome-cloud-modeler blocklyGenerator.js".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-frontend-builds-without-outputs> a archimate:Constraint;
+    archimate:identifier "constraint-frontend-builds-without-outputs";
+    archimate:name "The frontend build must succeed with no amplify_outputs.json";
+    archimate:documentation "A frontend-only rebuild runs no backend phase. Configure Amplify in gatsby-browser only, never in gatsby-ssr, and let the outputs copy fail.";
+    archimate:hasProperty _:p-e-constraint-frontend-builds-without-outputs-0.
+_:p-e-constraint-frontend-builds-without-outputs-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "amplify.yml; packages/site/src/lib/amplify.ts".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-generated-artefacts-committed> a archimate:Constraint;
+    archimate:identifier "constraint-generated-artefacts-committed";
+    archimate:name "Generated artefacts are committed";
+    archimate:documentation "The deployment pipeline then needs no ontology toolchain and cannot drift because upstream moved. The cost is that regeneration must be verified in CI, or the source and the output diverge silently.";
+    archimate:hasProperty _:p-e-constraint-generated-artefacts-committed-0.
+_:p-e-constraint-generated-artefacts-committed-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0004-metamodel-generated-from-the-ontology.md".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-illegal-connections-unofferable> a archimate:Constraint;
+    archimate:identifier "constraint-illegal-connections-unofferable";
+    archimate:name "An illegal connection must be unofferable, not merely rejected";
+    archimate:documentation "Typed variable references, with variableTypes taken from the metamodel's own relationship matrix. A validator that complains afterwards teaches a user that the tool is annoying; a palette that cannot express the mistake teaches them the language.";
+    archimate:hasProperty _:p-e-constraint-illegal-connections-unofferable-0.
+_:p-e-constraint-illegal-connections-unofferable-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly/src/generate.ts".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-overlay-declares-conventions> a archimate:Constraint;
+    archimate:identifier "constraint-overlay-declares-conventions";
+    archimate:name "Application conventions live in an overlay, as annotation properties";
+    archimate:documentation "Declared as owl:AnnotationProperty with sh:in for enumerations and sh:defaultValue for defaults, so a convention is data the generator reads rather than a constant in application code. Adding a value is an ontology change, not a code change.";
+    archimate:hasProperty _:p-e-constraint-overlay-declares-conventions-0.
+_:p-e-constraint-overlay-declares-conventions-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ontology/overlay/blueprinting-app-metadata.ttl; digitalhome-cloud-core schema/tbox/dhc-app-metadata.ttl".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-pipeline-deploy-in-a-subshell> a archimate:Constraint;
+    archimate:identifier "constraint-pipeline-deploy-in-a-subshell";
+    archimate:name "pipeline-deploy runs in a subshell";
+    archimate:documentation "Amplify runs every command in one persistent shell, so a bare `cd backend` leaks into the frontend phase and its npm ci then runs against the wrong lockfile. The symptom names a package the root lockfile does not contain, so it reads as a dependency problem rather than a directory one.";
+    archimate:hasProperty _:p-e-constraint-pipeline-deploy-in-a-subshell-0.
+_:p-e-constraint-pipeline-deploy-in-a-subshell-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-pipeline-deploy-in-a-subshell> archimate:hasProperty _:p-e-constraint-pipeline-deploy-in-a-subshell-1.
+_:p-e-constraint-pipeline-deploy-in-a-subshell-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "amplify.yml".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects> a archimate:Constraint;
+    archimate:identifier "constraint-storage-proxy-for-per-tenant-objects";
+    archimate:name "Per-tenant object access goes through a proxy function";
+    archimate:documentation "defineStorage access rules are fixed at deploy time and cannot reference a group created later. A function checks the caller's groups and returns a short-lived pre-signed URL; the browser never touches the bucket.";
+    archimate:hasProperty _:p-e-constraint-storage-proxy-for-per-tenant-objects-0.
+_:p-e-constraint-storage-proxy-for-per-tenant-objects-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-cloud-core; blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects> archimate:hasProperty _:p-e-constraint-storage-proxy-for-per-tenant-objects-1.
+_:p-e-constraint-storage-proxy-for-per-tenant-objects-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0003; digitalhome-cloud-core dhcDesignStorageProxy".
+<https://blueprinting.dlab5.net/i/patterns/Driver/driver-reuse-across-products> a archimate:Driver;
+    archimate:identifier "driver-reuse-across-products";
+    archimate:name "Knowledge has to outlive the session it was learned in";
+    archimate:documentation "Every one of these was reused because it happened to be in someone's head or context at the right moment, not because it was findable. That is not a mechanism.".
+<https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape> a archimate:Goal;
+    archimate:identifier "goal-a-new-product-starts-from-a-known-shape";
+    archimate:name "A new product starts from a known shape";
+    archimate:documentation "Measured by what a new repository does not have to rediscover.".
+<https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-appsync> a archimate:SystemSoftware;
+    archimate:identifier "node-appsync";
+    archimate:name "AWS AppSync";
+    archimate:documentation "The GraphQL API, and the only path to the data.".
+<https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-cognito> a archimate:SystemSoftware;
+    archimate:identifier "node-cognito";
+    archimate:name "Amazon Cognito";
+    archimate:documentation "User pool and identity pool.".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> a archimate:Grouping;
+    archimate:identifier "pattern-gatsby-amplify-gen2";
+    archimate:name "Pattern: Gatsby and Amplify Gen 2 in one repository";
+    archimate:documentation "Front end and backend in one repository, with the backend deliberately outside the npm workspace. Everything below was learned by a build failing, not by reading documentation.";
+    archimate:hasProperty _:p-e-pattern-gatsby-amplify-gen2-0.
+_:p-e-pattern-gatsby-amplify-gen2-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "atmanyoga-fullstack; blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:hasProperty _:p-e-pattern-gatsby-amplify-gen2-1.
+_:p-e-pattern-gatsby-amplify-gen2-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0001-monorepo-with-non-workspace-backend.md".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:hasProperty _:p-e-pattern-gatsby-amplify-gen2-2.
+_:p-e-pattern-gatsby-amplify-gen2-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> a archimate:Grouping;
+    archimate:identifier "pattern-ontology-driven-blockly";
+    archimate:name "Pattern: a Blockly designer generated from an ontology";
+    archimate:documentation "A visual editor whose palette is generated from the ontology it edits, so the editor cannot drift from the schema and an invalid model cannot be drawn.";
+    archimate:hasProperty _:p-e-pattern-ontology-driven-blockly-0.
+_:p-e-pattern-ontology-driven-blockly-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-cloud-designer; blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:hasProperty _:p-e-pattern-ontology-driven-blockly-1.
+_:p-e-pattern-ontology-driven-blockly-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:hasProperty _:p-e-pattern-ontology-driven-blockly-2.
+_:p-e-pattern-ontology-driven-blockly-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> a archimate:Grouping;
+    archimate:identifier "pattern-ontology-overlay";
+    archimate:name "Pattern: immutable core ontology with an app-metadata overlay";
+    archimate:documentation "How to build on a third-party ontology without forking it. The upstream copy is vendored and never edited; everything the application needs to add is declared in a separate overlay that annotates upstream classes.";
+    archimate:hasProperty _:p-e-pattern-ontology-overlay-0.
+_:p-e-pattern-ontology-overlay-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-cloud-core; blueprinting-dlab5-net".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:hasProperty _:p-e-pattern-ontology-overlay-1.
+_:p-e-pattern-ontology-overlay-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0007-app-metadata-overlay-over-a-vendored-ontology.md".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:hasProperty _:p-e-pattern-ontology-overlay-2.
+_:p-e-pattern-ontology-overlay-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/patterns/Principle/principle-abox-authoritative-workspace-derived> a archimate:Principle;
+    archimate:identifier "principle-abox-authoritative-workspace-derived";
+    archimate:name "The A-Box is the source of truth; the workspace is regenerated";
+    archimate:documentation "A workspace is a rendering, never the record. It is also the only coherent option when the same model is written by forms, by an agent, by another tool and by hand.";
+    archimate:hasProperty _:p-e-principle-abox-authoritative-workspace-derived-0.
+_:p-e-principle-abox-authoritative-workspace-derived-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/blockly/src/transform.ts; digitalhome-cloud-core blockly/README.md".
+<https://blueprinting.dlab5.net/i/patterns/Principle/principle-guest-access-removed-not-hidden> a archimate:Principle;
+    archimate:identifier "principle-guest-access-removed-not-hidden";
+    archimate:name "Guest access is removed, not hidden";
+    archimate:documentation "Unauthenticated identities disabled on the identity pool, no API key, self-signup closed at the user pool. Hiding a sign-up tab in the UI is not a control.";
+    archimate:hasProperty _:p-e-principle-guest-access-removed-not-hidden-0.
+_:p-e-principle-guest-access-removed-not-hidden-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0002-cognito-only-no-guest.md".
+<https://blueprinting.dlab5.net/i/patterns/Principle/principle-promote-on-the-second-instance> a archimate:Principle;
+    archimate:identifier "principle-promote-on-the-second-instance";
+    archimate:name "Promote to a pattern on the second instance";
+    archimate:documentation "One instance is a decision and belongs in an ADR. Two is evidence that the shape generalises. Without the bar a pattern library becomes a list of everything anyone has ever done, which nobody trusts and nobody reads.";
+    archimate:hasProperty _:p-e-principle-promote-on-the-second-instance-0.
+_:p-e-principle-promote-on-the-second-instance-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/patterns/README.md".
+<https://blueprinting.dlab5.net/i/patterns/Principle/principle-upstream-immutable> a archimate:Principle;
+    archimate:identifier "principle-upstream-immutable";
+    archimate:name "A vendored ontology is never edited";
+    archimate:documentation "Editing upstream turns a re-pin into a merge and publishes private conventions as though they were part of the standard. Both costs are permanent; the overlay costs one file.";
+    archimate:hasProperty _:p-e-principle-upstream-immutable-0.
+_:p-e-principle-upstream-immutable-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ontology/upstream/, ontology/README.md".
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Principle/principle-upstream-immutable>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r1> a archimate:Relationship;
+    archimate:identifier "r1";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Principle/principle-upstream-immutable>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-backend-not-a-workspace>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r10> a archimate:Relationship;
+    archimate:identifier "r10";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-backend-not-a-workspace>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-frontend-builds-without-outputs>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r11> a archimate:Relationship;
+    archimate:identifier "r11";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-frontend-builds-without-outputs>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-pipeline-deploy-in-a-subshell>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r12> a archimate:Relationship;
+    archimate:identifier "r12";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-pipeline-deploy-in-a-subshell>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-npm-ci-rejects-amplify-lockfile>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r13> a archimate:Relationship;
+    archimate:identifier "r13";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-npm-ci-rejects-amplify-lockfile>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Principle/principle-guest-access-removed-not-hidden>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r14> a archimate:Relationship;
+    archimate:identifier "r14";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Principle/principle-guest-access-removed-not-hidden>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r15> a archimate:Relationship;
+    archimate:identifier "r15";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r16> a archimate:Relationship;
+    archimate:identifier "r16";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r17> a archimate:Relationship;
+    archimate:identifier "r17";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-storage-proxy>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r18> a archimate:Relationship;
+    archimate:identifier "r18";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-storage-proxy>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-cognito>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r19> a archimate:Relationship;
+    archimate:identifier "r19";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-cognito>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-overlay-declares-conventions>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r2> a archimate:Relationship;
+    archimate:identifier "r2";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-overlay-declares-conventions>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-appsync>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r20> a archimate:Relationship;
+    archimate:identifier "r20";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-appsync>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-frontend-builds-without-outputs>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r21> a archimate:Relationship;
+    archimate:identifier "r21";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-frontend-builds-without-outputs>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-backend-not-a-workspace>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r22> a archimate:Relationship;
+    archimate:identifier "r22";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-backend-not-a-workspace>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-storage-proxy> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r23> a archimate:Relationship;
+    archimate:identifier "r23";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-storage-proxy>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-storage-proxy-for-per-tenant-objects>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend> archimate:serving <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site>.
+<https://blueprinting.dlab5.net/i/patterns/serving/r24> a archimate:Relationship;
+    archimate:identifier "r24";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-gatsby-site>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend> archimate:association <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-cognito>.
+<https://blueprinting.dlab5.net/i/patterns/association/r25> a archimate:Relationship;
+    archimate:identifier "r25";
+    bp:relationshipType archimate:association;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-cognito>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend> archimate:association <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-appsync>.
+<https://blueprinting.dlab5.net/i/patterns/association/r26> a archimate:Relationship;
+    archimate:identifier "r26";
+    bp:relationshipType archimate:association;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-amplify-backend>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/SystemSoftware/node-appsync>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Principle/principle-abox-authoritative-workspace-derived>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r27> a archimate:Relationship;
+    archimate:identifier "r27";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Principle/principle-abox-authoritative-workspace-derived>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-blocks-generated-not-written>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r28> a archimate:Relationship;
+    archimate:identifier "r28";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-blocks-generated-not-written>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-illegal-connections-unofferable>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r29> a archimate:Relationship;
+    archimate:identifier "r29";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-illegal-connections-unofferable>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-generated-artefacts-committed>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r3> a archimate:Relationship;
+    archimate:identifier "r3";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-generated-artefacts-committed>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-saved-workspaces-go-stale>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r30> a archimate:Relationship;
+    archimate:identifier "r30";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-saved-workspaces-go-stale>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r31> a archimate:Relationship;
+    archimate:identifier "r31";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-workspace-transforms>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r32> a archimate:Relationship;
+    archimate:identifier "r32";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-workspace-transforms>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-blocks-generated-not-written>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r33> a archimate:Relationship;
+    archimate:identifier "r33";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-blocks-generated-not-written>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-illegal-connections-unofferable>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r34> a archimate:Relationship;
+    archimate:identifier "r34";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-block-generator>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-illegal-connections-unofferable>.
+<https://blueprinting.dlab5.net/i/patterns/Driver/driver-reuse-across-products> archimate:influence <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/influence/r35> a archimate:Relationship;
+    archimate:identifier "r35";
+    bp:relationshipType archimate:influence;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Driver/driver-reuse-across-products>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/Principle/principle-promote-on-the-second-instance> archimate:influence <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/influence/r36> a archimate:Relationship;
+    archimate:identifier "r36";
+    bp:relationshipType archimate:influence;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Principle/principle-promote-on-the-second-instance>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r37> a archimate:Relationship;
+    archimate:identifier "r37";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r38> a archimate:Relationship;
+    archimate:identifier "r38";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-gatsby-amplify-gen2>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r39> a archimate:Relationship;
+    archimate:identifier "r39";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-driven-blockly>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Goal/goal-a-new-product-starts-from-a-known-shape>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-repin-is-a-swap>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r4> a archimate:Relationship;
+    archimate:identifier "r4";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Assessment/assessment-repin-is-a-swap>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-ontology-generator>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r5> a archimate:Relationship;
+    archimate:identifier "r5";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-ontology-generator>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Artifact/component-vendored-ontology>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r6> a archimate:Relationship;
+    archimate:identifier "r6";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Artifact/component-vendored-ontology>.
+<https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay> archimate:aggregation <https://blueprinting.dlab5.net/i/patterns/Artifact/component-app-overlay>.
+<https://blueprinting.dlab5.net/i/patterns/aggregation/r7> a archimate:Relationship;
+    archimate:identifier "r7";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Grouping/pattern-ontology-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Artifact/component-app-overlay>.
+<https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-ontology-generator> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-generated-artefacts-committed>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r8> a archimate:Relationship;
+    archimate:identifier "r8";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/ApplicationComponent/component-ontology-generator>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-generated-artefacts-committed>.
+<https://blueprinting.dlab5.net/i/patterns/Artifact/component-app-overlay> archimate:realization <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-overlay-declares-conventions>.
+<https://blueprinting.dlab5.net/i/patterns/realization/r9> a archimate:Relationship;
+    archimate:identifier "r9";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/patterns/Artifact/component-app-overlay>;
+    bp:target <https://blueprinting.dlab5.net/i/patterns/Constraint/constraint-overlay-declares-conventions>.

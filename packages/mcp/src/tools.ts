@@ -239,22 +239,61 @@ const getModel: Tool = {
 const queryElements: Tool = {
   name: "query_elements",
   description:
-    "Elements of a project, filtered by domain, type, or a substring of the " +
-    "name. Prefer this to get_model on a large model.",
+    "Elements of a project, filtered by domain, type, a substring of the " +
+    "name, or connection to another element. Prefer this to get_model on a " +
+    "large model. Use relatedTo to answer questions about one part of a " +
+    "model — what a Grouping contains, what a component connects to — rather " +
+    "than fetching everything and filtering by eye.",
   schema: {
     project: z.string(),
     domain: z.string().optional(),
     type: z.string().optional(),
     nameContains: z.string().optional(),
+    relatedTo: z.string().optional(),
+    /** How many relationship hops from relatedTo. Defaults to 1. */
+    depth: z.number().optional(),
   },
-  run: async ({ project, domain, type, nameContains }) => {
+  run: async ({ project, domain, type, nameContains, relatedTo, depth }) => {
     const { model } = await backend.loadModel(String(project));
     const needle = nameContains ? String(nameContains).toLowerCase() : null;
+
+    // Elements reachable from `relatedTo`, in either direction.
+    //
+    // Added because the library could not answer its own first question:
+    // "what constrains the Amplify backend" returned every Constraint in the
+    // model, because a Grouping's membership was expressed in relationships
+    // that nothing could traverse. Direction-agnostic on purpose — a reader
+    // asking what belongs to a pattern does not care which way the
+    // aggregation points.
+    let reachable: Set<string> | null = null;
+    if (relatedTo) {
+      const start = String(relatedTo);
+      if (!model.elements.some((e) => e.id === start)) {
+        return `No element with id "${start}" in ${project}.`;
+      }
+      const hops = Math.max(1, Math.min(5, Number(depth) || 1));
+      reachable = new Set([start]);
+      for (let i = 0; i < hops; i++) {
+        // Collected first, merged after. Adding to `reachable` inside the loop
+        // lets a newly-found element be followed in the same pass, which turns
+        // one hop into a transitive closure — the Gatsby pattern reached the
+        // Blockly pattern through the goal they share.
+        const found = new Set<string>();
+        for (const r of model.relationships) {
+          if (reachable.has(r.source)) found.add(r.target);
+          if (reachable.has(r.target)) found.add(r.source);
+        }
+        for (const id of found) reachable.add(id);
+      }
+      reachable.delete(start);
+    }
+
     const matches = model.elements.filter(
       (e) =>
         (!domain || ELEMENTS[e.type].layer === domain) &&
         (!type || e.type === type) &&
-        (!needle || e.name.toLowerCase().includes(needle))
+        (!needle || e.name.toLowerCase().includes(needle)) &&
+        (!reachable || reachable.has(e.id))
     );
     return json(
       matches.map((e) => ({

@@ -41,6 +41,14 @@ export const CONVENTIONS = {
     values: null,
     defaultValue: null,
   },
+  instances: {
+    term: "instances",
+    propertyKey: "instances",
+    label: "Instances",
+    comment: "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping.",
+    values: null,
+    defaultValue: null,
+  },
   radarMoved: {
     term: "radarMoved",
     propertyKey: "radarMoved",
@@ -55,6 +63,14 @@ export const CONVENTIONS = {
     label: "Radar ring",
     comment: "Adoption status. Presence of this property is what puts an element on the radar.",
     values: ["adopt","trial","assess","hold"],
+    defaultValue: null,
+  },
+  reference: {
+    term: "reference",
+    propertyKey: "reference",
+    label: "Reference",
+    comment: "Where the detail lives: an ADR path, a Claude Code skill name, or a package. ArchiMate says what applies and why; the reference says how.",
+    values: null,
     defaultValue: null,
   },
   startDate: {
