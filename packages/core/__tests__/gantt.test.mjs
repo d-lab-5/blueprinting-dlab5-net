@@ -188,3 +188,33 @@ test("on the same day, work comes before the milestone it produced", () => {
   });
   assert.ok(out.indexOf("The work") < out.indexOf("The milestone"));
 });
+
+test("a sub work package inherits its parent's plateau", () => {
+  // Found by planning WP6 through the MCP server: breaking a work package into
+  // WP6.1..6.4 scattered the children into "Unscheduled" because only
+  // triggering conferred a plateau, and composition is how a breakdown is
+  // expressed. A breakdown must not move the work off the roadmap.
+  const out = toMermaidGantt({
+    projectSlug: "x",
+    elements: [
+      { id: "p", type: "Plateau", name: "Target", properties: { startDate: "2026-01-01" } },
+      { id: "wp", type: "WorkPackage", name: "Parent", properties: { startDate: "2026-01-01" } },
+      { id: "d", type: "Deliverable", name: "Thing", properties: {} },
+      { id: "sub1", type: "WorkPackage", name: "Child one", properties: { startDate: "2026-01-02" } },
+      { id: "sub2", type: "WorkPackage", name: "Child two", properties: { startDate: "2026-01-03" } },
+      { id: "deep", type: "WorkPackage", name: "Grandchild", properties: { startDate: "2026-01-04" } },
+    ],
+    relationships: [
+      { id: "r1", type: "realization", source: "wp", target: "d", properties: {} },
+      { id: "r2", type: "realization", source: "d", target: "p", properties: {} },
+      { id: "r3", type: "composition", source: "wp", target: "sub1", properties: {} },
+      { id: "r4", type: "composition", source: "wp", target: "sub2", properties: {} },
+      { id: "r5", type: "composition", source: "sub2", target: "deep", properties: {} },
+    ],
+  });
+  assert.ok(!out.includes("section Unscheduled"), "nothing should be unscheduled");
+  const target = out.split("section Target")[1];
+  for (const name of ["Child one", "Child two", "Grandchild"]) {
+    assert.match(target, new RegExp(name), `${name} sits with its parent`);
+  }
+});

@@ -161,18 +161,34 @@ export function toMermaidGantt(
     section.items.push(el);
   };
 
-  // A work package with no deliverable of its own inherits the plateau of
-  // whatever triggers it. Planned work is usually specified as "then this",
-  // long before anyone writes down which deliverable it produces, and burying
-  // the whole planned tail in "Unscheduled" would make the roadmap useless
-  // precisely where it is most needed. Resolved iteratively so a chain of
-  // undeclared work packages all inherit from the last declared one.
+  // Which work package contains which, from composition and aggregation. A
+  // sub-package belongs wherever its parent does — breaking WP6 into WP6.1..4
+  // must not scatter them away from WP6.
+  const parentOf = new Map<string, string>();
+  for (const rel of model.relationships) {
+    if (rel.type !== "composition" && rel.type !== "aggregation") continue;
+    const parent = byId.get(rel.source);
+    const child = byId.get(rel.target);
+    if (parent?.type !== "WorkPackage" || child?.type !== "WorkPackage") continue;
+    if (!parentOf.has(child.id)) parentOf.set(child.id, parent.id);
+  }
+
+  // A work package with no deliverable of its own inherits a plateau from its
+  // parent, or failing that from whatever triggers it. Planned work is usually
+  // specified as "break this down" or "then this", long before anyone writes
+  // down which deliverable it produces, and burying the planned tail in
+  // "Unscheduled" would make the roadmap useless precisely where it is most
+  // needed. Resolved iteratively so a chain or a nesting several deep all
+  // inherit from the nearest declared ancestor.
   for (let pass = 0; pass < workPackages.length; pass++) {
     let changed = false;
     for (const wp of workPackages) {
       if (plateauOf.has(wp.id)) continue;
+      const parent = parentOf.get(wp.id);
       const trigger = predecessorOf.get(wp.id);
-      const inherited = trigger ? plateauOf.get(trigger) : undefined;
+      const inherited =
+        (parent ? plateauOf.get(parent) : undefined) ??
+        (trigger ? plateauOf.get(trigger) : undefined);
       if (inherited) {
         plateauOf.set(wp.id, inherited);
         changed = true;
