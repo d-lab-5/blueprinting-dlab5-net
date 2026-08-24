@@ -51,7 +51,16 @@ npm run gen:metamodel               # regenerate from ontology/upstream/
 BP_USER=… BP_PASSWORD=… npm run verify:auth          # ADR-0002 invariants, live
 BP_USER=… BP_PASSWORD=… npm run verify:model-store   # ADR-0003 invariants, live
 BP_USER=… BP_PASSWORD=… npm run seed                 # the platform's own roadmap
+BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef]
+
+npm run verify:archi                # round-trip through Archi itself
 ```
+
+`verify:archi` drives a real Archi installation: it imports our Open Exchange
+export, re-exports it, and compares. Schema validity says a document matches
+the XSD; it does not say Archi will open it or that anything survives. Install
+Archi from archimatetool.com — a user-local unpack under `~/opt/Archi` is
+enough — and the check skips cleanly when it is absent.
 
 `verify:model-store` creates a scratch project, proves the authorization
 boundary and the ETag conflict against real AWS, then deletes it. Both live
