@@ -122,7 +122,7 @@ _:p-e-gap-store-0 a archimate:Property;
     archimate:hasProperty _:p-e-gap-views-0.
 _:p-e-gap-views-0 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "open".
+    archimate:propertyValue "closed".
 <https://blueprinting.dlab5.net/i/blueprinting/Gap/gap-vocab> a archimate:Gap;
     archimate:identifier "gap-vocab";
     archimate:name "ArchiMate rules exist only in a PDF";
@@ -220,8 +220,12 @@ _:p-e-wp1-2 a archimate:Property;
     archimate:name "WP10 Body of knowledge and plugins";
     archimate:hasProperty _:p-e-wp10-0.
 _:p-e-wp10-0 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp10> archimate:hasProperty _:p-e-wp10-1.
+_:p-e-wp10-1 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "in-progress".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp2> a archimate:WorkPackage;
     archimate:identifier "wp2";
     archimate:name "WP2 Metamodel from ontology";
@@ -276,16 +280,32 @@ _:p-e-wp4-2 a archimate:Property;
     archimate:documentation "Round-tripping into Archi.";
     archimate:hasProperty _:p-e-wp5-0.
 _:p-e-wp5-0 a archimate:Property;
+    archimate:propertyKey "endDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp5> archimate:hasProperty _:p-e-wp5-1.
+_:p-e-wp5-1 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp5> archimate:hasProperty _:p-e-wp5-2.
+_:p-e-wp5-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6> a archimate:WorkPackage;
     archimate:identifier "wp6";
     archimate:name "WP6 Blockly ABox editor";
     archimate:documentation "Blocks generated from the metamodel; relationships as typed variable references, so an illegal one cannot be expressed.";
     archimate:hasProperty _:p-e-wp6-0.
 _:p-e-wp6-0 a archimate:Property;
+    archimate:propertyKey "endDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6> archimate:hasProperty _:p-e-wp6-1.
+_:p-e-wp6-1 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6> archimate:hasProperty _:p-e-wp6-2.
+_:p-e-wp6-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-1-generate-blocks-from-the-metamodel> a archimate:WorkPackage;
     archimate:identifier "wp6-1-generate-blocks-from-the-metamodel";
     archimate:name "WP6.1 Generate blocks from the metamodel";
@@ -293,15 +313,15 @@ _:p-e-wp6-0 a archimate:Property;
     archimate:hasProperty _:p-e-wp6-1-generate-blocks-from-the-metamodel-0.
 _:p-e-wp6-1-generate-blocks-from-the-metamodel-0 a archimate:Property;
     archimate:propertyKey "endDate";
-    archimate:propertyValue "2026-09-05".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-1-generate-blocks-from-the-metamodel> archimate:hasProperty _:p-e-wp6-1-generate-blocks-from-the-metamodel-1.
 _:p-e-wp6-1-generate-blocks-from-the-metamodel-1 a archimate:Property;
     archimate:propertyKey "startDate";
-    archimate:propertyValue "2026-09-01".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-1-generate-blocks-from-the-metamodel> archimate:hasProperty _:p-e-wp6-1-generate-blocks-from-the-metamodel-2.
 _:p-e-wp6-1-generate-blocks-from-the-metamodel-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-2-relationships-as-typed-variable-references> a archimate:WorkPackage;
     archimate:identifier "wp6-2-relationships-as-typed-variable-references";
     archimate:name "WP6.2 Relationships as typed variable references";
@@ -309,15 +329,15 @@ _:p-e-wp6-1-generate-blocks-from-the-metamodel-2 a archimate:Property;
     archimate:hasProperty _:p-e-wp6-2-relationships-as-typed-variable-references-0.
 _:p-e-wp6-2-relationships-as-typed-variable-references-0 a archimate:Property;
     archimate:propertyKey "endDate";
-    archimate:propertyValue "2026-09-15".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-2-relationships-as-typed-variable-references> archimate:hasProperty _:p-e-wp6-2-relationships-as-typed-variable-references-1.
 _:p-e-wp6-2-relationships-as-typed-variable-references-1 a archimate:Property;
     archimate:propertyKey "startDate";
-    archimate:propertyValue "2026-09-08".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-2-relationships-as-typed-variable-references> archimate:hasProperty _:p-e-wp6-2-relationships-as-typed-variable-references-2.
 _:p-e-wp6-2-relationships-as-typed-variable-references-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-3-workspace-regenerated-from-the-abox> a archimate:WorkPackage;
     archimate:identifier "wp6-3-workspace-regenerated-from-the-abox";
     archimate:name "WP6.3 Workspace regenerated from the ABox";
@@ -325,15 +345,15 @@ _:p-e-wp6-2-relationships-as-typed-variable-references-2 a archimate:Property;
     archimate:hasProperty _:p-e-wp6-3-workspace-regenerated-from-the-abox-0.
 _:p-e-wp6-3-workspace-regenerated-from-the-abox-0 a archimate:Property;
     archimate:propertyKey "endDate";
-    archimate:propertyValue "2026-09-22".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-3-workspace-regenerated-from-the-abox> archimate:hasProperty _:p-e-wp6-3-workspace-regenerated-from-the-abox-1.
 _:p-e-wp6-3-workspace-regenerated-from-the-abox-1 a archimate:Property;
     archimate:propertyKey "startDate";
-    archimate:propertyValue "2026-09-15".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-3-workspace-regenerated-from-the-abox> archimate:hasProperty _:p-e-wp6-3-workspace-regenerated-from-the-abox-2.
 _:p-e-wp6-3-workspace-regenerated-from-the-abox-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-4-embed-the-editor-in-the-app> a archimate:WorkPackage;
     archimate:identifier "wp6-4-embed-the-editor-in-the-app";
     archimate:name "WP6.4 Embed the editor in the app";
@@ -341,43 +361,63 @@ _:p-e-wp6-3-workspace-regenerated-from-the-abox-2 a archimate:Property;
     archimate:hasProperty _:p-e-wp6-4-embed-the-editor-in-the-app-0.
 _:p-e-wp6-4-embed-the-editor-in-the-app-0 a archimate:Property;
     archimate:propertyKey "endDate";
-    archimate:propertyValue "2026-09-30".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-4-embed-the-editor-in-the-app> archimate:hasProperty _:p-e-wp6-4-embed-the-editor-in-the-app-1.
 _:p-e-wp6-4-embed-the-editor-in-the-app-1 a archimate:Property;
     archimate:propertyKey "startDate";
-    archimate:propertyValue "2026-09-22".
+    archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp6-4-embed-the-editor-in-the-app> archimate:hasProperty _:p-e-wp6-4-embed-the-editor-in-the-app-2.
 _:p-e-wp6-4-embed-the-editor-in-the-app-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp7> a archimate:WorkPackage;
     archimate:identifier "wp7";
     archimate:name "WP7 D2 and sequence views";
     archimate:documentation "Layers 4-6 in D2, Layer 3 as Mermaid sequence diagrams.";
     archimate:hasProperty _:p-e-wp7-0.
 _:p-e-wp7-0 a archimate:Property;
+    archimate:propertyKey "endDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp7> archimate:hasProperty _:p-e-wp7-1.
+_:p-e-wp7-1 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp7> archimate:hasProperty _:p-e-wp7-2.
+_:p-e-wp7-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp8> a archimate:WorkPackage;
     archimate:identifier "wp8";
     archimate:name "WP8 MCP server";
     archimate:documentation "The model exposed to LLM agents, stdio first.";
     archimate:hasProperty _:p-e-wp8-0.
 _:p-e-wp8-0 a archimate:Property;
+    archimate:propertyKey "endDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp8> archimate:hasProperty _:p-e-wp8-1.
+_:p-e-wp8-1 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp8> archimate:hasProperty _:p-e-wp8-2.
+_:p-e-wp8-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "planned".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp9> a archimate:WorkPackage;
     archimate:identifier "wp9";
     archimate:name "WP9 Tech Radar";
     archimate:documentation "Two halves. The modelling convention — quadrants as Groupings, rings as ArchiMate Properties — is done, ahead of its place in the sequence. The radar visual, d-lab-5/gatsby-techradar, is not.";
     archimate:hasProperty _:p-e-wp9-0.
 _:p-e-wp9-0 a archimate:Property;
-    archimate:propertyKey "startDate";
+    archimate:propertyKey "endDate";
     archimate:propertyValue "2026-08-24".
 <https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp9> archimate:hasProperty _:p-e-wp9-1.
 _:p-e-wp9-1 a archimate:Property;
+    archimate:propertyKey "startDate";
+    archimate:propertyValue "2026-08-24".
+<https://blueprinting.dlab5.net/i/blueprinting/WorkPackage/wp9> archimate:hasProperty _:p-e-wp9-2.
+_:p-e-wp9-2 a archimate:Property;
     archimate:propertyKey "status";
-    archimate:propertyValue "in-progress".
+    archimate:propertyValue "done".
 <https://blueprinting.dlab5.net/i/blueprinting/Deliverable/blockly-model-editor> archimate:realization <https://blueprinting.dlab5.net/i/blueprinting/Plateau/p3>.
 <https://blueprinting.dlab5.net/i/blueprinting/realization/blockly-model-editor-realization-p3> a archimate:Relationship;
     archimate:identifier "blockly-model-editor-realization-p3";
