@@ -192,3 +192,35 @@ test("a ring on something nobody adopts is a warning", () => {
 test("a clean radar reports nothing", () => {
   assert.deepEqual(validateRadar(model), []);
 });
+
+/* -- the overlay is the source, not a copy -------------------------------- */
+
+test("the radar convention comes from the ontology, not from TypeScript", async () => {
+  const { readFileSync } = await import("node:fs");
+  // Comments stripped first. The overlay's own § Spec versions section shows
+  // an illustrative `archimate:SomeNewElement bp:radarEligible true`, and a
+  // naive read of the file picks it up. The generator does not — it anchors
+  // its subject match at the start of a line — but this test must not either.
+  const overlay = readFileSync(
+    new URL("../../../ontology/overlay/blueprinting-app-metadata.ttl", import.meta.url),
+    "utf8"
+  )
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n");
+
+  // Every ring the code accepts must be declared in the overlay's sh:in list.
+  // If someone adds a ring in TypeScript, this fails; the overlay is the only
+  // place a convention is declared. See ADR-0007.
+  const declared = overlay
+    .match(/bp:radarRing[\s\S]*?sh:in\s*\(([^)]*)\)/)[1]
+    .match(/"([^"]*)"/g)
+    .map((s) => s.replaceAll('"', ""));
+  assert.deepEqual([...RADAR_RINGS], declared);
+
+  // Likewise the eligible types.
+  const eligible = [...overlay.matchAll(/archimate:(\w+)\s+bp:radarEligible\s+true/g)]
+    .map((m) => m[1])
+    .sort();
+  assert.deepEqual([...RADAR_ELEMENT_TYPES].sort(), eligible);
+});

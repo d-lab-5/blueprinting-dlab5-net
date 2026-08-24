@@ -1,4 +1,9 @@
-import { ELEMENTS, isAllowed } from "@dlab5/archimate-metamodel";
+import {
+  CONVENTIONS,
+  ELEMENTS,
+  RADAR_ELIGIBLE_TYPES,
+  isAllowed,
+} from "@dlab5/archimate-metamodel";
 import type { ElementTypeId } from "@dlab5/archimate-metamodel";
 import type { AbElement, AbModel } from "./types.js";
 
@@ -39,17 +44,25 @@ import type { AbElement, AbModel } from "./types.js";
  *   radarMoved   in | out | none        (movement since the last radar)
  */
 
-export const RADAR_RINGS = ["adopt", "trial", "assess", "hold"] as const;
-export type RadarRing = (typeof RADAR_RINGS)[number];
+/*
+ * Rings, movement and the eligible types are DECLARED IN THE ONTOLOGY, in
+ * ontology/overlay/blueprinting-app-metadata.ttl, and reach us through the
+ * generated metamodel. They were hard-coded here first; moving them out means
+ * one place declares a convention and one place changes it. See ADR-0007.
+ */
+export const RADAR_RINGS = CONVENTIONS.radarRing.values as readonly string[];
+export type RadarRing = string;
 
-export const RADAR_MOVED = ["in", "out", "none"] as const;
-export type RadarMoved = (typeof RADAR_MOVED)[number];
+export const RADAR_MOVED = CONVENTIONS.radarMoved.values as readonly string[];
+export type RadarMoved = string;
 
 /** Property keys, so nothing downstream spells them by hand. */
 export const RADAR_PROPS = {
-  ring: "radarRing",
-  moved: "radarMoved",
+  ring: CONVENTIONS.radarRing.propertyKey,
+  moved: CONVENTIONS.radarMoved.propertyKey,
 } as const;
+
+const DEFAULT_MOVED = CONVENTIONS.radarMoved.defaultValue ?? "none";
 
 /**
  * Element types that may sit on a radar.
@@ -58,15 +71,8 @@ export const RADAR_PROPS = {
  * or holds — a Plateau or a Gap is neither, and offering every one of the 60
  * element types would make the convention meaningless.
  */
-export const RADAR_ELEMENT_TYPES: ElementTypeId[] = [
-  "ApplicationComponent",
-  "Node",
-  "SystemSoftware",
-  "TechnologyService",
-  "BusinessProcess",
-  "Capability",
-  "CourseOfAction",
-];
+export const RADAR_ELEMENT_TYPES: readonly ElementTypeId[] =
+  RADAR_ELIGIBLE_TYPES as readonly ElementTypeId[];
 
 export interface RadarEntry {
   /** The element's id — an entry IS an element, not a copy of one. */
@@ -90,16 +96,12 @@ export interface RadarQuadrant {
 
 function ringOf(el: AbElement): RadarRing | undefined {
   const value = el.properties[RADAR_PROPS.ring]?.toLowerCase();
-  return (RADAR_RINGS as readonly string[]).includes(value ?? "")
-    ? (value as RadarRing)
-    : undefined;
+  return value && RADAR_RINGS.includes(value) ? value : undefined;
 }
 
 function movedOf(el: AbElement): RadarMoved {
   const value = el.properties[RADAR_PROPS.moved]?.toLowerCase();
-  return (RADAR_MOVED as readonly string[]).includes(value ?? "")
-    ? (value as RadarMoved)
-    : "none";
+  return value && RADAR_MOVED.includes(value) ? value : DEFAULT_MOVED;
 }
 
 /**

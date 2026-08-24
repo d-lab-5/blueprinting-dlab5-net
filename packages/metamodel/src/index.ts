@@ -25,6 +25,14 @@ export {
 
 export { MATRIX } from "./generated/matrix.js";
 
+export {
+  CONVENTIONS,
+  ELEMENT_LABELS_I18N,
+  RADAR_ELIGIBLE_TYPES,
+  SCHEDULABLE_TYPES,
+} from "./generated/overlay.js";
+export type { Convention, ConventionId } from "./generated/overlay.js";
+
 import { ELEMENTS, LAYER_ORDER } from "./generated/elements.js";
 import type {
   ElementType,

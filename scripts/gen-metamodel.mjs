@@ -29,6 +29,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const IN_TTL = resolve(ROOT, "ontology/upstream/archimate.ttl");
 const IN_XML = resolve(ROOT, "ontology/upstream/relationships.xml");
+const IN_OVERLAY = resolve(
+  ROOT,
+  "ontology/overlay/blueprinting-app-metadata.ttl"
+);
 const OUT_DIR = resolve(ROOT, "packages/metamodel/src/generated");
 const PINNED = readFileSync(
   resolve(ROOT, "ontology/upstream/.pinned-commit"),
@@ -260,6 +264,63 @@ function parseMatrix(xml) {
 }
 
 /* -------------------------------------------------------------------------- *
+ * Overlay
+ *
+ * Platform conventions annotated onto the ArchiMate classes, kept in a
+ * separate file so ontology/upstream/ stays byte-identical to what upstream
+ * publishes. Same pattern as digitalhome-cloud-core's dhc-app-metadata.ttl
+ * over Brick. See ADR-0007.
+ * -------------------------------------------------------------------------- */
+
+/** `bp:name ( "a" "b" )` — SHACL's list form, as it appears in the overlay. */
+function shaclIn(body, predicate) {
+  const m = body.match(new RegExp(`${predicate}\\s*\\(([^)]*)\\)`));
+  if (!m) return undefined;
+  return [...m[1].matchAll(/"([^"]*)"/g)].map((x) => x[1]);
+}
+
+function parseOverlay(ttl) {
+  const annotations = {}; // archimate local name -> { flag: true, labels: {} }
+  const conventions = {}; // bp: term -> { propertyKey, values, default }
+
+  // Subject blocks: `prefix:Name ... .` terminated by " ." at a line end, the
+  // same shape the upstream file uses.
+  const blocks = [
+    ...ttl.matchAll(
+      /^(archimate|bp):([A-Za-z]+)\s+([\s\S]*?)\s\.\s*$/gm
+    ),
+  ];
+
+  for (const [, prefix, name, body] of blocks) {
+    if (prefix === "archimate") {
+      const entry = (annotations[name] ??= { labels: {} });
+      for (const flag of ["radarEligible", "schedulable"]) {
+        if (new RegExp(`bp:${flag}\\s+true`).test(body)) entry[flag] = true;
+      }
+      for (const m of body.matchAll(/rdfs:label\s+"([^"]*)"@([a-z]{2})/g)) {
+        entry.labels[m[2]] = m[1];
+      }
+      continue;
+    }
+
+    // bp: terms. Only those declaring a propertyKey are conventions the
+    // application reads off an element; the rest are plumbing.
+    const key = body.match(/bp:propertyKey\s+"([^"]*)"/)?.[1];
+    if (!key) continue;
+    conventions[name] = {
+      term: name,
+      propertyKey: key,
+      values: shaclIn(body, "sh:in"),
+      defaultValue: body.match(/sh:defaultValue\s+"([^"]*)"/)?.[1],
+      label: oneOf(body, "rdfs:label"),
+      comment: oneOf(body, "rdfs:comment"),
+    };
+  }
+
+  return { annotations, conventions };
+}
+
+/* -------------------------------------------------------------------------- *
  * Emit
  * -------------------------------------------------------------------------- */
 
@@ -391,9 +452,78 @@ ${rows}
 `;
 }
 
+function emitOverlay(conventions, annotations) {
+  const conventionEntries = Object.values(conventions)
+    .sort((a, b) => a.term.localeCompare(b.term))
+    .map(
+      (c) =>
+        `  ${c.term}: {\n` +
+        `    term: ${lit(c.term)},\n` +
+        `    propertyKey: ${lit(c.propertyKey)},\n` +
+        `    label: ${lit(c.label ?? c.term)},\n` +
+        `    comment: ${lit(c.comment ?? "")},\n` +
+        `    values: ${c.values ? lit(c.values) : "null"},\n` +
+        `    defaultValue: ${lit(c.defaultValue ?? null)},\n` +
+        `  },`
+    )
+    .join("\n");
+
+  const flagged = (flag) =>
+    Object.entries(annotations)
+      .filter(([, a]) => a[flag])
+      .map(([name]) => name)
+      .sort();
+
+  const labels = Object.entries(annotations)
+    .filter(([, a]) => Object.keys(a.labels).length > 0)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, a]) => `  ${name}: ${JSON.stringify(a.labels)},`)
+    .join("\n");
+
+  return `${banner}
+/**
+ * Platform conventions, declared in ontology/overlay/ and emitted here.
+ *
+ * These are NOT part of the ArchiMate language — they are what this platform
+ * layers on top of it. Keeping them in the ontology rather than in TypeScript
+ * means one place declares them and one place changes them, and it is what
+ * makes more than one language version possible at once. See ADR-0007.
+ */
+export interface Convention {
+  /** Term local name in the bp: namespace. */
+  readonly term: string;
+  /** Key used when stored as an ArchiMate Property on an element. */
+  readonly propertyKey: string;
+  readonly label: string;
+  readonly comment: string;
+  /** Permitted values from sh:in, or null when the value is free text. */
+  readonly values: readonly string[] | null;
+  readonly defaultValue: string | null;
+}
+
+export const CONVENTIONS = {
+${conventionEntries}
+} as const satisfies Record<string, Convention>;
+
+export type ConventionId = keyof typeof CONVENTIONS;
+
+/** Element types that name something a team can adopt or hold. */
+export const RADAR_ELIGIBLE_TYPES = ${lit(flagged("radarEligible"))} as const;
+
+/** Element types the Layer 7 Gantt places on a timeline. */
+export const SCHEDULABLE_TYPES = ${lit(flagged("schedulable"))} as const;
+
+/** Translated element labels, by element type then language tag. */
+export const ELEMENT_LABELS_I18N: Record<string, Record<string, string>> = {
+${labels}
+};
+`;
+}
+
 /* -------------------------------------------------------------------------- */
 
 const ttl = readFileSync(IN_TTL, "utf8");
+const overlayTtl = readFileSync(IN_OVERLAY, "utf8");
 const xml = readFileSync(IN_XML, "utf8");
 
 const matrix = parseMatrix(xml);
@@ -451,6 +581,19 @@ writeFileSync(
 );
 writeFileSync(`${OUT_DIR}/matrix.ts`, emitMatrix(matrix));
 
+const { annotations, conventions } = parseOverlay(overlayTtl);
+for (const name of Object.keys(annotations)) {
+  if (!elements[name]) {
+    throw new Error(
+      `the overlay annotates ${name}, which is not an ArchiMate element type`
+    );
+  }
+}
+if (Object.keys(conventions).length === 0) {
+  throw new Error("the overlay declared no conventions; check the parser");
+}
+writeFileSync(`${OUT_DIR}/overlay.ts`, emitOverlay(conventions, annotations));
+
 const byLayer = {};
 for (const e of Object.values(elements)) byLayer[e.layer] = (byLayer[e.layer] ?? 0) + 1;
 
@@ -461,3 +604,6 @@ for (const layer of LAYER_ORDER) {
 }
 console.log(`  ${relationshipCount} relationship types`);
 console.log(`  ${Object.keys(matrix).length} matrix source rows`);
+console.log(`overlay`);
+console.log(`  ${Object.keys(conventions).length} conventions`);
+console.log(`  ${Object.keys(annotations).length} annotated element types`);
