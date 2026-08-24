@@ -601,7 +601,9 @@ a {
 
 .bp-viewport__stage {
   transform-origin: 0 0;
-  will-change: transform;
+  /* No will-change. Promoting this to a compositor layer is exactly what made
+     zooming blurry: the layer is rasterised once at its original size and then
+     stretched. The stage only translates now, which is cheap regardless. */
 }
 
 /* The viewport owns the chrome now, so the diagram inside is bare. */

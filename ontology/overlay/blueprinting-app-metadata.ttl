@@ -38,7 +38,15 @@
     dcterms:creator "D-LAB-5" ;
     dcterms:description "Platform conventions over the ArchiMate ontology. Annotations only; no language semantics."@en ;
     dcterms:license <https://opensource.org/licenses/MIT> ;
-    owl:versionInfo "1.0.0" .
+    owl:versionInfo "1.0.0" ;
+
+    # Which version of the language the pinned upstream ontology expresses.
+    #
+    # Declared here rather than read from upstream: that file's owl:versionInfo
+    # says "Beta", which describes the ontology's own maturity, not the
+    # specification version it covers. Every model this platform writes is
+    # stamped with this, so an export can always name what it conforms to.
+    bp:languageVersion "3.2" .
 
 # ────────────────────────────────────────────────────────────
 # § Annotation property definitions

@@ -24,6 +24,14 @@ export interface Convention {
   readonly defaultValue: string | null;
 }
 
+/**
+ * The ArchiMate specification version the pinned ontology expresses.
+ *
+ * Every model written by this platform is stamped with it, so an export can
+ * name what it conforms to rather than leaving a reader to guess. See ADR-0007.
+ */
+export const LANGUAGE_VERSION = "3.2";
+
 export const CONVENTIONS = {
   endDate: {
     term: "endDate",

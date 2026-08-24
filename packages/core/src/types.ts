@@ -35,6 +35,15 @@ export interface AbRelationship {
 /** One project's ArchiMate ABox: the whole graph, as read from its .ttl. */
 export interface AbModel {
   projectSlug: string;
+  /**
+   * The ArchiMate version this model conforms to, e.g. "3.2".
+   *
+   * Set from the .ttl when reading and stamped back when writing, so a model
+   * keeps the version it was authored against even if the platform later knows
+   * others. Absent on a model built in memory; serializeAbox falls back to the
+   * build's LANGUAGE_VERSION.
+   */
+  languageVersion?: string;
   elements: AbElement[];
   relationships: AbRelationship[];
 }

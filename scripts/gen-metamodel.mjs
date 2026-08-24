@@ -280,6 +280,10 @@ function shaclIn(body, predicate) {
 }
 
 function parseOverlay(ttl) {
+  const languageVersion = ttl.match(/bp:languageVersion\s+"([^"]*)"/)?.[1];
+  if (!languageVersion) {
+    throw new Error("the overlay does not declare bp:languageVersion");
+  }
   const annotations = {}; // archimate local name -> { flag: true, labels: {} }
   const conventions = {}; // bp: term -> { propertyKey, values, default }
 
@@ -317,7 +321,7 @@ function parseOverlay(ttl) {
     };
   }
 
-  return { annotations, conventions };
+  return { annotations, conventions, languageVersion };
 }
 
 /* -------------------------------------------------------------------------- *
@@ -452,7 +456,7 @@ ${rows}
 `;
 }
 
-function emitOverlay(conventions, annotations) {
+function emitOverlay(conventions, annotations, languageVersion) {
   const conventionEntries = Object.values(conventions)
     .sort((a, b) => a.term.localeCompare(b.term))
     .map(
@@ -500,6 +504,14 @@ export interface Convention {
   readonly values: readonly string[] | null;
   readonly defaultValue: string | null;
 }
+
+/**
+ * The ArchiMate specification version the pinned ontology expresses.
+ *
+ * Every model written by this platform is stamped with it, so an export can
+ * name what it conforms to rather than leaving a reader to guess. See ADR-0007.
+ */
+export const LANGUAGE_VERSION = ${lit(languageVersion)};
 
 export const CONVENTIONS = {
 ${conventionEntries}
@@ -581,7 +593,7 @@ writeFileSync(
 );
 writeFileSync(`${OUT_DIR}/matrix.ts`, emitMatrix(matrix));
 
-const { annotations, conventions } = parseOverlay(overlayTtl);
+const { annotations, conventions, languageVersion } = parseOverlay(overlayTtl);
 for (const name of Object.keys(annotations)) {
   if (!elements[name]) {
     throw new Error(
@@ -592,7 +604,10 @@ for (const name of Object.keys(annotations)) {
 if (Object.keys(conventions).length === 0) {
   throw new Error("the overlay declared no conventions; check the parser");
 }
-writeFileSync(`${OUT_DIR}/overlay.ts`, emitOverlay(conventions, annotations));
+writeFileSync(
+  `${OUT_DIR}/overlay.ts`,
+  emitOverlay(conventions, annotations, languageVersion)
+);
 
 const byLayer = {};
 for (const e of Object.values(elements)) byLayer[e.layer] = (byLayer[e.layer] ?? 0) + 1;
@@ -607,3 +622,4 @@ console.log(`  ${Object.keys(matrix).length} matrix source rows`);
 console.log(`overlay`);
 console.log(`  ${Object.keys(conventions).length} conventions`);
 console.log(`  ${Object.keys(annotations).length} annotated element types`);
+console.log(`  ArchiMate ${languageVersion}`);

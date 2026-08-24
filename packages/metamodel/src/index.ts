@@ -27,6 +27,7 @@ export { MATRIX } from "./generated/matrix.js";
 
 export {
   CONVENTIONS,
+  LANGUAGE_VERSION,
   ELEMENT_LABELS_I18N,
   RADAR_ELIGIBLE_TYPES,
   SCHEDULABLE_TYPES,

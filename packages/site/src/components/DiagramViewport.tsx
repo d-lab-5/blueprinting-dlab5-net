@@ -8,9 +8,16 @@ import * as React from "react";
  * exactly the same controls, and a Gantt of a real programme is far wider than
  * a column of text.
  *
- * Zoom is a CSS transform on a wrapper rather than a change to the SVG's
- * viewBox: the SVG comes from Mermaid as an opaque string and rewriting its
- * attributes would mean parsing and re-serialising it on every zoom step.
+ * Zoom RESIZES the SVG rather than CSS-scaling a wrapper around it.
+ *
+ * Scaling a wrapper is the obvious approach and it looks terrible. A
+ * transformed element gets promoted to its own compositor layer, rasterised
+ * once at its original size and then stretched as a bitmap — so text that is
+ * perfectly sharp at 100% is soft at 200%, which defeats the point of zooming
+ * into a diagram. Setting width and height on the <svg> makes the browser lay
+ * it out again and re-render the vectors, so it stays crisp at any zoom.
+ *
+ * Panning is still a CSS translate. Translation does not resample anything.
  */
 
 const MIN = 0.4;
@@ -23,12 +30,66 @@ export function DiagramViewport({ children }: { children: React.ReactNode }) {
   const [scale, setScale] = React.useState(1);
   const [offset, setOffset] = React.useState({ x: 0, y: 0 });
   const frameRef = React.useRef<HTMLDivElement>(null);
+  const stageRef = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef<{ x: number; y: number } | null>(null);
+  /** Natural size from the SVG's viewBox, measured once per diagram. */
+  const naturalRef = React.useRef<{ w: number; h: number } | null>(null);
 
   const reset = () => {
     setScale(1);
     setOffset({ x: 0, y: 0 });
   };
+
+  /**
+   * Applies the zoom by resizing the SVG.
+   *
+   * Re-run when the diagram itself changes, not only when the scale does: the
+   * SVG arrives asynchronously — MermaidView renders it after an await — and
+   * is replaced wholesale whenever the model changes, which resets its size.
+   */
+  React.useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const apply = () => {
+      const svg = stage.querySelector("svg");
+      if (!svg) return;
+
+      if (!naturalRef.current) {
+        const box = svg.viewBox?.baseVal;
+        // A mermaid gantt always carries a viewBox; getBoundingClientRect is
+        // the fallback for anything that does not.
+        const rect = svg.getBoundingClientRect();
+        naturalRef.current = {
+          w: box && box.width ? box.width : rect.width,
+          h: box && box.height ? box.height : rect.height,
+        };
+      }
+
+      const natural = naturalRef.current;
+      if (!natural?.w || !natural?.h) return;
+
+      svg.style.width = `${natural.w * scale}px`;
+      svg.style.height = `${natural.h * scale}px`;
+      // Mermaid sets max-width when useMaxWidth is on, which would clamp the
+      // width we just set and silently cap the zoom.
+      svg.style.maxWidth = "none";
+    };
+
+    apply();
+
+    // The SVG is swapped out on every model change; catch the new one.
+    const observer = new MutationObserver(() => {
+      naturalRef.current = null;
+      apply();
+    });
+    observer.observe(stage, { childList: true, subtree: true });
+    return () => observer.disconnect();
+    // Deliberately not depending on `children`: it is a new React node on every
+    // render, which would tear down and rebuild the observer each time. The
+    // observer is what notices a new diagram.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scale]);
 
   /**
    * Ctrl/Cmd + wheel zooms, plain wheel scrolls.
@@ -118,12 +179,13 @@ export function DiagramViewport({ children }: { children: React.ReactNode }) {
         onPointerCancel={endDrag}
       >
         <div
+          ref={stageRef}
           className="bp-viewport__stage"
           style={{
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            // Anchoring at the top-left keeps the earliest date and the
-            // section labels in view as the diagram grows, which is where a
-            // reader looks first.
+            // Translate only. The scale is applied to the SVG's own width and
+            // height above, so the vectors are re-rendered rather than a
+            // bitmap being stretched.
+            transform: `translate(${offset.x}px, ${offset.y}px)`,
             transformOrigin: "0 0",
           }}
         >

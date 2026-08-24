@@ -15,6 +15,8 @@ export const ARCHIMATE_NS = "https://purl.org/archimate#";
 export const BP_NS = "https://blueprinting.dlab5.net/ns#";
 
 export const BP = {
+  /** Stamped on every model so an export can name what it conforms to. */
+  languageVersion: `${BP_NS}languageVersion`,
   relationshipType: `${BP_NS}relationshipType`,
   source: `${BP_NS}source`,
   target: `${BP_NS}target`,

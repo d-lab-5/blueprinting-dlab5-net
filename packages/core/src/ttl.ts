@@ -1,6 +1,10 @@
 import { DataFactory, Parser, Store, Writer } from "n3";
 import type { Quad_Object, Quad_Subject } from "n3";
-import { isElementType, isRelationshipType } from "@dlab5/archimate-metamodel";
+import {
+  LANGUAGE_VERSION,
+  isElementType,
+  isRelationshipType,
+} from "@dlab5/archimate-metamodel";
 import type {
   ElementTypeId,
   RelationshipTypeId,
@@ -14,6 +18,7 @@ import {
   archimateLocalName,
   elementIri,
   idFromIri,
+  instanceBase,
   relationshipIri,
   typeIri,
   uniqueId,
@@ -72,6 +77,19 @@ export function serializeAbox(model: AbModel): Promise<string> {
       writer.addQuad(node, namedNode(AM.propertyValue), literal(properties[key]));
     }
   };
+
+  // The model stamps the language version it conforms to.
+  //
+  // Without it, a .ttl read back in five years is ambiguous: the element types
+  // alone do not say which edition of ArchiMate they came from, and an export
+  // to a versioned interchange format has nothing to declare. Written on the
+  // model resource rather than on each element — it is a property of the
+  // document, not of anything in it.
+  writer.addQuad(
+    namedNode(`${instanceBase(model.projectSlug)}model`),
+    namedNode(BP.languageVersion),
+    literal(model.languageVersion ?? LANGUAGE_VERSION)
+  );
 
   for (const el of [...model.elements].sort((a, b) => a.id.localeCompare(b.id))) {
     const subject = namedNode(elementIri(model.projectSlug, el.type, el.id));
@@ -275,5 +293,19 @@ export function parseAbox(turtle: string, projectSlug: string): AbModel {
   elements.sort((a, b) => a.id.localeCompare(b.id));
   relationships.sort((a, b) => a.id.localeCompare(b.id));
 
-  return { projectSlug, elements, relationships };
+  // A file written before stamping existed, or by another tool, has no version.
+  // Assume the one this build knows rather than refusing to read it — but
+  // record what was actually found, so a caller can tell the two apart.
+  const stamped = store.getObjects(
+    namedNode(`${instanceBase(projectSlug)}model`),
+    namedNode(BP.languageVersion),
+    null
+  )[0]?.value;
+
+  return {
+    projectSlug,
+    languageVersion: stamped ?? LANGUAGE_VERSION,
+    elements,
+    relationships,
+  };
 }

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+import { LANGUAGE_VERSION } from "@dlab5/archimate-metamodel";
 import {
   emptyModel,
   hasErrors,
@@ -178,7 +179,38 @@ test("a descriptor with no matching triple is ignored", async () => {
 test("an empty model round-trips", async () => {
   const model = emptyModel("demo");
   const back = parseAbox(await serializeAbox(model), "demo");
-  assert.deepEqual(back, model);
+  // The parsed model gains the language version the writer stamped on it.
+  assert.deepEqual(back, { ...model, languageVersion: LANGUAGE_VERSION });
+});
+
+test("every model is stamped with the ArchiMate version it conforms to", async () => {
+  const ttl = await serializeAbox(roadmap);
+  assert.match(ttl, /bp:languageVersion "3\.2"/);
+  assert.equal(parseAbox(ttl, "blueprinting").languageVersion, "3.2");
+});
+
+test("a model keeps the version it was authored against", async () => {
+  // The point of stamping. A file written under one edition of the language
+  // must not silently become a file claiming a different one just because the
+  // platform has moved on — an export has to be able to name the real one.
+  const older = { ...roadmap, languageVersion: "3.1" };
+  const ttl = await serializeAbox(older);
+  assert.match(ttl, /bp:languageVersion "3\.1"/);
+  assert.equal(parseAbox(ttl, "blueprinting").languageVersion, "3.1");
+});
+
+test("an unstamped file is read, not refused", async () => {
+  // Files written before stamping existed, or by Archi, or by hand.
+  const plain = `
+    @prefix archimate: <https://purl.org/archimate#> .
+    <https://blueprinting.dlab5.net/i/demo/WorkPackage/wp1>
+        a archimate:WorkPackage ;
+        archimate:identifier "wp1" ;
+        archimate:name "Foundation" .
+  `;
+  const model = parseAbox(plain, "demo");
+  assert.equal(model.elements.length, 1);
+  assert.equal(model.languageVersion, LANGUAGE_VERSION);
 });
 
 /* -- validation ----------------------------------------------------------- */
