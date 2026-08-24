@@ -35,3 +35,5 @@ export {
 } from "./iri.js";
 
 export { PLATFORM_ROADMAP } from "./seed/platform-roadmap.js";
+export { toMermaidGantt } from "./diagrams/gantt.js";
+export type { GanttOptions } from "./diagrams/gantt.js";

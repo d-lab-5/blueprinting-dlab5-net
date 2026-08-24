@@ -327,3 +327,205 @@ a {
 .bp-finding--warning .bp-finding__severity {
   color: var(--bp-warning);
 }
+
+/* -- tabs, save bar, diagram, editor -------------------------------------- */
+
+.bp-pagehead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bp-space-6);
+  flex-wrap: wrap;
+}
+
+.bp-tabs {
+  display: flex;
+  gap: var(--bp-space-1);
+}
+
+.bp-tab {
+  padding: var(--bp-space-1) var(--bp-space-3);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.bp-tab--on {
+  background: var(--bp-surface);
+  color: var(--bp-text);
+}
+
+.bp-savebar {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  flex-wrap: wrap;
+  margin: var(--bp-space-4) 0;
+  font-size: 0.875rem;
+}
+
+.bp-ok {
+  color: var(--bp-success);
+}
+
+.bp-diagram {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  /* A roadmap outgrows its column long before it outgrows the year. Scrolling
+     the diagram beats scrolling the page sideways. */
+  overflow-x: auto;
+}
+
+.bp-diagram svg {
+  max-width: none;
+}
+
+.bp-diagram--error pre {
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-findings summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--bp-text-muted);
+  margin-bottom: var(--bp-space-2);
+}
+
+/* -- editor ---------------------------------------------------------------- */
+
+.bp-editor {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .bp-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bp-editor__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-editor__elements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bp-editor__item {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: var(--bp-space-2);
+  width: 100%;
+  text-align: left;
+  background: var(--bp-surface);
+  border: 1px solid transparent;
+  border-radius: var(--bp-radius-sm);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-editor__item:hover {
+  border-color: var(--bp-border-strong);
+}
+
+.bp-editor__item--selected {
+  border-color: var(--bp-accent);
+}
+
+.bp-editor__item-type {
+  color: var(--bp-text-muted);
+}
+
+.bp-editor__detail {
+  display: grid;
+  gap: var(--bp-space-3);
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+}
+
+.bp-editor__hint {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.bp-field-row {
+  display: flex;
+  gap: var(--bp-space-3);
+  flex-wrap: wrap;
+}
+
+.bp-field textarea,
+.bp-field select {
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-linkbutton--danger {
+  justify-self: start;
+  color: var(--bp-danger);
+  border-color: var(--bp-danger);
+}
+
+.bp-rels h3 {
+  font-size: 0.9rem;
+  margin: var(--bp-space-2) 0;
+}
+
+.bp-rels ul {
+  list-style: none;
+  margin: 0 0 var(--bp-space-3);
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bp-rels li {
+  display: grid;
+  grid-template-columns: 8rem 1fr auto;
+  gap: var(--bp-space-2);
+  align-items: center;
+  font-size: 0.85rem;
+  background: var(--bp-bg-sunken);
+  border-radius: var(--bp-radius-sm);
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-rels__type {
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.8rem;
+}
+
+.bp-rels__add {
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.bp-rels__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1);
+}
