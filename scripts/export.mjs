@@ -8,9 +8,12 @@
  * pull request like anything else.
  *
  * Usage:
- *   BP_USER=… BP_PASSWORD=… node scripts/export.mjs --project <slug> [--out <file>]
+ *   BP_USER=… BP_PASSWORD=… node scripts/export.mjs --project <slug> \
+ *     [--format ttl|oef] [--out <file>]
  *
- * Writes Turtle to stdout by default. Targets whatever
+ * Writes Turtle to stdout by default. `--format oef` writes ArchiMate Model
+ * Exchange XML instead, which opens in Archi via File > Import > Model
+ * Exchange File. Targets whatever
  * backend/amplify_outputs.json points at; for a deployed branch, regenerate it
  * first with `cd backend && npx ampx generate outputs --app-id <id> --branch <branch>`.
  */
@@ -24,6 +27,7 @@ import { cognitoUserPoolsTokenProvider } from "aws-amplify/auth/cognito";
 import { generateClient } from "aws-amplify/data";
 
 import { parseAbox, validateModel } from "@dlab5/blueprint-core";
+import { toOpenExchange } from "@dlab5/archimate-exchange";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 Amplify.configure(
@@ -45,6 +49,11 @@ const arg = (name) => {
 
 const slug = arg("--project");
 const out = arg("--out");
+const format = arg("--format") ?? "ttl";
+if (format !== "ttl" && format !== "oef") {
+  console.error(`unknown format "${format}"; use ttl or oef`);
+  process.exit(2);
+}
 const { BP_USER: username, BP_PASSWORD: password } = process.env;
 
 if (!slug) {
@@ -87,11 +96,22 @@ try {
   );
   for (const f of findings) console.error(`  ${f.severity}: ${f.message}`);
 
+  // Exported against the version the model records, not the build's — an
+  // export has to name what the model actually conforms to. ADR-0008.
+  const payload =
+    format === "oef"
+      ? toOpenExchange(model, { name: slug })
+      : turtle;
+
+  if (format === "oef") {
+    console.error(`exported as ArchiMate ${model.languageVersion} Open Exchange XML`);
+  }
+
   if (out) {
-    writeFileSync(resolve(process.cwd(), out), turtle);
+    writeFileSync(resolve(process.cwd(), out), payload);
     console.error(`written to ${out}`);
   } else {
-    process.stdout.write(turtle);
+    process.stdout.write(payload);
   }
 } finally {
   await signOut();
