@@ -4,6 +4,7 @@ import { ELEMENTS, LAYER_LABELS, LAYER_ORDER } from "@dlab5/archimate-metamodel"
 import type { LayerId } from "@dlab5/archimate-metamodel";
 import { toD2, toMermaidGantt, toMermaidSequence } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
+import { Domains } from "../components/Domains";
 import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
 import { DiagramViewport } from "../components/DiagramViewport";
@@ -14,7 +15,22 @@ import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "views" | "radar" | "model" | "blocks";
+type Tab = "roadmap" | "views" | "radar" | "domains" | "blocks";
+
+/**
+ * URL section to tab. `model` is kept as an alias for `domains`: the screen
+ * was renamed when the hexagon navigator replaced the flat per-layer stack,
+ * and an existing link should not break over a rename.
+ */
+const SECTIONS: Record<string, Tab> = {
+  "": "roadmap",
+  roadmap: "roadmap",
+  views: "views",
+  radar: "radar",
+  domains: "domains",
+  model: "domains",
+  blocks: "blocks",
+};
 
 /**
  * Client-only route for everything under /p/. gatsby-node.ts rewrites this
@@ -25,16 +41,7 @@ type Tab = "roadmap" | "views" | "radar" | "model" | "blocks";
 const ProjectPage: React.FC<PageProps> = ({ location }) => {
   const path = location.pathname.replace(/^\/p\/?/, "").replace(/\/$/, "");
   const [slug, section] = path.split("/");
-  const tab: Tab =
-    section === "model"
-      ? "model"
-      : section === "blocks"
-        ? "blocks"
-        : section === "views"
-          ? "views"
-          : section === "radar"
-            ? "radar"
-            : "roadmap";
+  const tab: Tab = SECTIONS[section ?? ""] ?? "roadmap";
 
   const {
     model,
@@ -102,7 +109,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <RadarChart model={model} />
             </>
           )}
-          {tab === "model" && <ModelByDomain model={model} />}
+          {tab === "domains" && <Domains model={model} />}
           {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>
       )}
@@ -307,62 +314,6 @@ function Blocks({
         </ul>
       )}
       <BlocklyEditor model={model} onChange={onChange} onWarnings={setWarnings} />
-    </>
-  );
-}
-
-function ModelByDomain({ model }: { model: AbModel }) {
-  const byLayer = new Map<LayerId, AbModel["elements"]>();
-  for (const el of model.elements) {
-    const layer = ELEMENTS[el.type].layer;
-    byLayer.set(layer, [...(byLayer.get(layer) ?? []), el]);
-  }
-
-  if (model.elements.length === 0) {
-    return (
-      <div className="bp-empty">
-        <p>This project has no model yet.</p>
-        <p className="bp-muted">
-          Add elements on the Roadmap tab, or seed one with{" "}
-          <code>npm run seed</code>.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <p className="bp-lede">
-        {model.elements.length} elements and {model.relationships.length}{" "}
-        relationships.
-      </p>
-      {LAYER_ORDER.filter((layer) => byLayer.has(layer)).map((layer) => (
-        <section key={layer} className="bp-layer">
-          <h2>
-            <span
-              className="bp-layer__swatch"
-              style={{ background: `var(--bp-layer-${layer})` }}
-              aria-hidden="true"
-            />
-            {LAYER_LABELS[layer]}
-          </h2>
-          <ul className="bp-elements">
-            {byLayer.get(layer)!.map((el) => (
-              <li key={el.id}>
-                <span className="bp-element__type">{ELEMENTS[el.type].label}</span>
-                <span className="bp-element__name">{el.name}</span>
-                {Object.keys(el.properties).length > 0 && (
-                  <span className="bp-element__props">
-                    {Object.entries(el.properties)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(" · ")}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
     </>
   );
 }

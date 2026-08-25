@@ -346,7 +346,10 @@ const ROUTES = [
   { path: "/p/dlab5-blueprint/", name: "project · roadmap" },
   { path: "/p/dlab5-blueprint/views/", name: "project · views" },
   { path: "/p/dlab5-blueprint/radar/", name: "project · radar" },
-  { path: "/p/dlab5-blueprint/model/", name: "project · model" },
+  { path: "/p/dlab5-blueprint/domains/", name: "project · domains" },
+  // The old path for the same screen. It is an alias on purpose, so that a
+  // link made before the rename still resolves.
+  { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
   { path: "/p/dlab5-blueprint/blocks/", name: "project · blocks" },
 ];
 

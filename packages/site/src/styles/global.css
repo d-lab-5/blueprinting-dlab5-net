@@ -1160,3 +1160,81 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* -- domains: the hexagon navigator --------------------------------------- */
+
+.bp-domains {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+.bp-domains__figure svg {
+  width: 100%;
+  height: auto;
+  max-height: 32rem;
+}
+
+.bp-domains__cell {
+  transition: opacity 120ms ease;
+}
+
+.bp-domains__cell[role="button"] {
+  cursor: pointer;
+}
+
+.bp-domains__cell[role="button"]:hover path {
+  fill-opacity: 0.38;
+}
+
+/* The focus ring has to sit on the group, not the path: an SVG path takes no
+   outline, so keyboard focus would otherwise be invisible. */
+.bp-domains__cell:focus-visible {
+  outline: 2px solid var(--bp-accent);
+  outline-offset: 2px;
+}
+
+.bp-domains__label,
+.bp-domains__count {
+  fill: var(--bp-text);
+  font: 600 12px system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.bp-domains__count {
+  fill: var(--bp-text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-domains__cell--empty .bp-domains__label,
+.bp-domains__cell--empty .bp-domains__count {
+  opacity: 0.45;
+}
+
+.bp-domains__side {
+  display: grid;
+  gap: var(--bp-space-4);
+  align-content: start;
+  position: sticky;
+  top: var(--bp-space-4);
+}
+
+.bp-domains__sidetitle {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .bp-domains {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bp-domains__side {
+    position: static;
+  }
+}

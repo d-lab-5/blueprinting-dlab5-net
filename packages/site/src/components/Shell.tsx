@@ -76,13 +76,14 @@ export function railItems(slug: string): RailItem[] {
       ),
     },
     {
-      key: "model",
-      label: "Model",
-      href: `/p/${slug}/model/`,
+      key: "domains",
+      label: "Domains",
+      href: `/p/${slug}/domains/`,
+      // Nested hexagons, matching the navigator the screen actually draws.
       icon: icon(
         <>
-          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" />
-          <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" />
+          <path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z" />
+          <path d="M12 8l4.1 2.375v4.75L12 17.5l-4.1-2.375v-4.75z" />
         </>
       ),
     },

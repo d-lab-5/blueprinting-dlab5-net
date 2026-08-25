@@ -60,6 +60,14 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { hexPoints, toHexNavigator } from "./diagrams/hex-navigator.js";
+export type {
+  HexCell,
+  HexCellSpec,
+  HexNavigator,
+  HexNavigatorOptions,
+} from "./diagrams/hex-navigator.js";
+
 export { toConstellation } from "./diagrams/constellation.js";
 export type {
   Constellation,
