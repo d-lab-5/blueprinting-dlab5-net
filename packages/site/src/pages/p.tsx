@@ -16,6 +16,7 @@ import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
 import { DiagramViewport } from "../components/DiagramViewport";
 import { GanttLegend } from "../components/GanttLegend";
+import { GanttImport } from "../components/GanttImport";
 import { RoadmapEditor } from "../components/RoadmapEditor";
 import { BlocklyEditor } from "../components/BlocklyEditor";
 import { D2View } from "../components/D2View";
@@ -111,6 +112,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <Roadmap model={model} slug={slug} />
               <h2>Edit</h2>
               <RoadmapEditor model={model} onChange={update} />
+              <GanttImport model={model} onChange={update} />
             </>
           )}
           {tab === "views" && <Views model={model} />}

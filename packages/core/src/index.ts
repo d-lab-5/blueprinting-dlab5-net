@@ -60,6 +60,9 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { fromMermaidGantt } from "./import/gantt.js";
+export type { GanttImportResult } from "./import/gantt.js";
+
 export { MAX_DEPTH, neighbourhood } from "./neighbourhood.js";
 export type { Neighbourhood } from "./neighbourhood.js";
 

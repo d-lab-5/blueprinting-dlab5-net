@@ -1494,3 +1494,54 @@ a {
   font-size: 0.75rem;
   line-height: 1.5;
 }
+
+/* -- importing a Mermaid Gantt -------------------------------------------- */
+
+.bp-import {
+  margin-top: var(--bp-space-5);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  padding: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-3);
+}
+
+.bp-import > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.bp-import__note {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.bp-import textarea {
+  font-family: var(--bp-font-mono);
+  font-size: 0.8125rem;
+}
+
+.bp-import__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bp-import__skipped {
+  font-size: 0.75rem;
+}
+
+.bp-import__skipped ul {
+  margin: var(--bp-space-2) 0 0;
+  padding-left: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-import .bp-button {
+  justify-self: start;
+}

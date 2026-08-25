@@ -439,6 +439,94 @@ const ROUTES = [
 ];
 
 /**
+ * Importing a Mermaid Gantt.
+ *
+ * Driven rather than trusted: the parser has unit tests, but nothing else
+ * proves the paste box reaches it, that the preview counts what was parsed, or
+ * that applying actually grows the model. It adds to the in-memory model only,
+ * so this never writes to the project.
+ */
+async function ganttImport(cdp) {
+  console.log("\ngantt import");
+
+  const CHART = [
+    "gantt",
+    "    section Verification",
+    "    A checked task :done, vt1, 2026-01-01, 2026-01-10",
+    "    A checked milestone :milestone, vm1, 2026-01-10, 0d",
+    "    A following task :active, vt2, after vt1, 5d",
+    "    this line is not a task",
+  ].join("\n");
+
+  const paste =
+    "(async () => {" +
+    "  document.querySelector('.bp-import')?.setAttribute('open','');" +
+    "  await new Promise((r) => setTimeout(r, 150));" +
+    "  const area = document.querySelector('.bp-import textarea');" +
+    "  const setter = Object.getOwnPropertyDescriptor(" +
+    "    window.HTMLTextAreaElement.prototype, 'value').set;" +
+    "  setter.call(area, " + JSON.stringify(CHART) + ");" +
+    "  area.dispatchEvent(new Event('input', { bubbles: true }));" +
+    "  await new Promise((r) => setTimeout(r, 400));" +
+    "  window.__before = document.querySelectorAll('.bp-editor__item').length;" +
+    // Read the preview BEFORE applying: applying clears the textarea, which
+    // correctly tears the preview down, so reading afterwards finds nothing.
+    "  window.__preview = document.querySelector('.bp-import__summary')?.textContent.trim() ?? null;" +
+    "  window.__skipped = document.querySelector('.bp-import__skipped summary')?.textContent.trim() ?? null;" +
+    "  document.querySelector('.bp-import .bp-button')?.click();" +
+    "  await new Promise((r) => setTimeout(r, 600));" +
+    "})()";
+
+  const READ = `
+    return {
+      before: window.__before ?? null,
+      after: document.querySelectorAll(".bp-editor__item").length,
+      summary: window.__preview ?? null,
+      skipped: window.__skipped ?? null,
+      // Applying should reset the panel, so the preview is gone now.
+      previewCleared: !document.querySelector(".bp-import__summary"),
+    };
+  `;
+
+  let result;
+  try {
+    result = await visit(cdp, "/p/dlab5-blueprint/", {
+      awaitSelector: ".bp-shell",
+      awaitGone: "Loading model",
+      then: paste,
+      evaluate: READ,
+      shot: "gantt_import.png",
+    });
+  } catch (error) {
+    check(false, "the import panel is usable", error.message);
+    return;
+  }
+
+  const v = result.value;
+  check(
+    v.summary !== null,
+    "pasting a chart previews what was parsed",
+    v.summary ?? "no summary"
+  );
+  check(
+    /1 plateau, 2 work packages, 1 milestone/.test(v.summary ?? ""),
+    "the preview counts sections, tasks and milestones correctly",
+    v.summary ?? ""
+  );
+  check(
+    /1 line/.test(v.skipped ?? ""),
+    "a line it cannot read is reported rather than swallowed",
+    v.skipped ?? "nothing reported"
+  );
+  check(
+    v.before !== null && v.after === v.before + 4,
+    "applying adds exactly the parsed elements",
+    `${v.before} -> ${v.after}, expected +4`
+  );
+  check(v.previewCleared, "applying clears the paste box, so it cannot be applied twice");
+}
+
+/**
  * Centring the structure view on one element.
  *
  * The control narrows the model before the diagram is generated, so the check
@@ -847,6 +935,7 @@ async function signedIn(cdp) {
 
   await editor(cdp);
   await focusView(cdp);
+  await ganttImport(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {
