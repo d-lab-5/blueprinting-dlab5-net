@@ -56,6 +56,28 @@
   --bp-layer-physical-ink: #2f5c1f;
   --bp-layer-implementation: #ffe0e0;
   --bp-layer-implementation-ink: #5c2a2a;
+  /* "Common" in ArchiMate 4, "composite" here: Grouping, Location, Junction.
+     It was missing entirely, so every screen drawing that layer — the hexagon,
+     the canvas, the guest constellation — asked for an undefined property and
+     got an invalid colour. #e8e8e8 is not a new choice: d2.ts and the Blockly
+     palette both already carry it, and CLAUDE.md requires the three to agree. */
+  --bp-layer-composite: #e8e8e8;
+  --bp-layer-composite-ink: #4a4a4a;
+
+  /* The colour to draw a layer's OUTLINE and its label in.
+     On the dark ground the pastel itself reads; on white it does not — a
+     #ffffb5 stroke on #ffffff is invisible, which washed the whole hexagon
+     out. In light these flip to the ink, which is what --ink is for. The
+     FILL stays the pastel in both, because that is the colour CLAUDE.md
+     fixes and a reader recognises from Archi. */
+  --bp-layer-motivation-line: var(--bp-layer-motivation);
+  --bp-layer-strategy-line: var(--bp-layer-strategy);
+  --bp-layer-business-line: var(--bp-layer-business);
+  --bp-layer-application-line: var(--bp-layer-application);
+  --bp-layer-technology-line: var(--bp-layer-technology);
+  --bp-layer-physical-line: var(--bp-layer-physical);
+  --bp-layer-implementation-line: var(--bp-layer-implementation);
+  --bp-layer-composite-line: var(--bp-layer-composite);
 
   /* -- type -------------------------------------------------------------- */
   --bp-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -96,6 +118,16 @@
      because on a tinted page a card is white and a raised element is what
      separates itself from the card. */
   --bp-surface-raised: #e2e8f0;
+
+  /* Outlines and layer labels take the ink here; the pastel fills stay put. */
+  --bp-layer-motivation-line: var(--bp-layer-motivation-ink);
+  --bp-layer-strategy-line: var(--bp-layer-strategy-ink);
+  --bp-layer-business-line: var(--bp-layer-business-ink);
+  --bp-layer-application-line: var(--bp-layer-application-ink);
+  --bp-layer-technology-line: var(--bp-layer-technology-ink);
+  --bp-layer-physical-line: var(--bp-layer-physical-ink);
+  --bp-layer-implementation-line: var(--bp-layer-implementation-ink);
+  --bp-layer-composite-line: var(--bp-layer-composite-ink);
   --bp-rail: #ffffff;
   --bp-border: #cbd5e1;
   --bp-border-strong: #94a3b8;

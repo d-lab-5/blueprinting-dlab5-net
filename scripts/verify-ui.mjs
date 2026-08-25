@@ -176,7 +176,7 @@ async function browserWebSocket() {
 async function visit(
   cdp,
   path,
-  { width = 1400, height = 1000, before, act, awaitSelector, evaluate, shot }
+  { width = 1400, height = 1000, before, act, awaitSelector, awaitGone, evaluate, shot }
 ) {
   const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" });
   const { sessionId } = await cdp.send("Target.attachToTarget", {
@@ -279,8 +279,68 @@ async function visit(
       }
       await sleep(250);
     }
-    if (!appeared) throw new Error(`${awaitSelector} never appeared on ${path}`);
+    if (!appeared) {
+      // A bare "never appeared" says nothing about why. The page is still
+      // open, so ask it what it is showing before giving up — a wrong
+      // password, a new-password challenge and a missed click all look
+      // identical from the outside otherwise.
+      const { result } = await cdp.send(
+        "Runtime.evaluate",
+        {
+          expression: `JSON.stringify({
+            error: document.querySelector(".bp-gate__error")?.textContent ?? null,
+            heading: document.querySelector("h1, h2")?.textContent ?? null,
+            subtitle: document.querySelector(".bp-gate__subtitle")?.textContent ?? null,
+            button: document.querySelector(".bp-gate__card button[type=submit]")?.textContent ?? null,
+            emailFilled: !!document.querySelector('input[type="email"]')?.value,
+            passwordFilled: !!document.querySelector('input[type="password"]')?.value,
+            stillOnForm: !!document.querySelector(".bp-gate__card"),
+          })`,
+          returnByValue: true,
+        },
+        sessionId
+      );
+      if (shot) {
+        const { data } = await cdp.send("Page.captureScreenshot", { format: "png" }, sessionId);
+        writeFileSync(join(SHOTS, `FAILED-${shot}`), Buffer.from(data, "base64"));
+      }
+      const state = JSON.parse(result.value ?? "{}");
+      await cdp.send("Target.closeTarget", { targetId });
+      throw new Error(
+        `${awaitSelector} never appeared on ${path}\n` +
+          `        page says: ${JSON.stringify(state)}\n` +
+          `        console:   ${consoleErrors.slice(0, 3).join(" | ") || "(clean)"}\n` +
+          `        failed:    ${failedRequests.slice(0, 3).join(" | ") || "(none)"}`
+      );
+    }
     await sleep(400);
+  }
+
+  // A selector appearing is not the page being ready. .bp-shell renders the
+  // moment the session exists, while the model is still being fetched from
+  // S3 — so every assertion after it was being made against "Loading model…".
+  // Wait for that to clear, or the check measures the spinner.
+  if (awaitGone) {
+    let cleared = false;
+    for (let attempt = 0; attempt < 80; attempt++) {
+      const { result } = await cdp.send(
+        "Runtime.evaluate",
+        {
+          expression: `!document.body.textContent.includes(${JSON.stringify(awaitGone)})`,
+          returnByValue: true,
+        },
+        sessionId
+      );
+      if (result.value) {
+        cleared = true;
+        break;
+      }
+      await sleep(250);
+    }
+    if (!cleared) {
+      throw new Error(`"${awaitGone}" never cleared on ${path} — the model never arrived`);
+    }
+    await sleep(500);
   }
 
   let value;
@@ -326,6 +386,12 @@ const PROBE = `
     hasShell: !!document.querySelector(".bp-shell"),
     railItems: document.querySelectorAll(".bp-rail__item").length,
     railPosition: style(rail, "position"),
+    // Proof the screen drew something from the model rather than an empty
+    // frame: any of the real views, or a deliberate empty state.
+    renderedContent: !!document.querySelector(
+      ".bp-domains, .bp-canvas, .bp-orgs, .bp-radar, .bp-blockly, " +
+        ".bp-gantt, .bp-views, .bp-empty, svg, table"
+    ),
     // A clickable div is invisible to a keyboard. The design is full of them;
     // the port must not be.
     clickableNonControls: Array.from(
@@ -396,29 +462,61 @@ async function signedIn(cdp) {
     document.querySelector(".bp-gate__card button[type=submit]").click();
   `;
 
-  for (const route of ROUTES) {
+  // Sign in ONCE, then reuse the session.
+  //
+  // This used to sign in on every route, which meant a wrong password was
+  // retried ten times a run — enough to trip Cognito's "Password attempts
+  // exceeded" lockout on the account being tested. Signing in per route was
+  // never necessary anyway: the tabs share an origin, and Amplify keeps its
+  // tokens in localStorage, so one sign-in carries the whole pass.
+  let established;
+  try {
+    established = await visit(cdp, "/", {
+      act: fill,
+      awaitSelector: ".bp-shell",
+      evaluate: PROBE,
+      shot: "in_root.png",
+    });
+  } catch (error) {
+    check(false, "signs in", error.message);
+    console.log(
+      "\n  Stopping the signed-in pass after ONE failed attempt, deliberately.\n" +
+        "  Retrying a rejected password is what locks the account out."
+    );
+    return;
+  }
+
+  check(established.value.h1s === 1, "projects list: exactly one <h1>");
+  check(!established.value.hasSignIn, "projects list: the sign-in form is gone");
+  check(established.value.railItems === 0, "projects list: no rail outside a project");
+
+  for (const route of ROUTES.slice(1)) {
     const shot = `in${route.path.replace(/[^a-z0-9]+/gi, "_") || "_root"}.png`;
     let result;
     try {
+      // No `act`: the session is already in localStorage for this origin.
       result = await visit(cdp, route.path, {
-        act: fill,
         awaitSelector: ".bp-shell",
+        awaitGone: "Loading model",
         evaluate: PROBE,
         shot,
       });
     } catch (error) {
-      check(false, `${route.name}: signs in and renders`, error.message);
+      check(false, `${route.name}: renders signed in`, error.message);
       continue;
     }
 
     const { value, consoleErrors, failedRequests } = result;
-    const isProject = route.path !== "/";
 
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
-    check(!value.hasSignIn, `${route.name}: the sign-in form is gone`);
+    check(!value.hasSignIn, `${route.name}: the gate is gone`);
     check(
-      isProject ? value.railItems === RAIL_ITEMS : value.railItems === 0,
-      `${route.name}: ${isProject ? `${RAIL_ITEMS} rail entries` : "no rail outside a project"}`,
+      value.renderedContent,
+      `${route.name}: the model rendered, not an empty frame`
+    );
+    check(
+      value.railItems === RAIL_ITEMS,
+      `${route.name}: ${RAIL_ITEMS} rail entries`,
       `${value.railItems} items`
     );
     check(
@@ -448,8 +546,8 @@ async function signedIn(cdp) {
     const mobile = await visit(cdp, "/p/dlab5-blueprint/", {
       width: 390,
       height: 844,
-      act: fill,
       awaitSelector: ".bp-shell",
+      awaitGone: "Loading model",
       evaluate: PROBE,
       shot: "in_mobile.png",
     });
@@ -459,7 +557,7 @@ async function signedIn(cdp) {
       `position: ${mobile.value.railPosition}`
     );
   } catch (error) {
-    check(false, "mobile: signs in and renders", error.message);
+    check(false, "mobile: renders signed in", error.message);
   }
 }
 
@@ -588,8 +686,20 @@ main()
     console.error(`\nverify:ui could not run — ${error.message}`);
     failures++;
   })
-  .finally(() => {
+  .finally(async () => {
     chrome.kill();
-    rmSync(profile, { recursive: true, force: true });
+    // Wait for it to actually go, then delete with retries: Chrome writes its
+    // profile out as it shuts down, and a plain rmSync loses the race and
+    // throws ENOTEMPTY over the top of the real result.
+    await new Promise((resolve) => {
+      if (chrome.exitCode !== null) return resolve();
+      chrome.once("exit", resolve);
+      setTimeout(resolve, 3000);
+    });
+    try {
+      rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    } catch {
+      // A leftover temp profile is not worth failing a verification run over.
+    }
     process.exit(failures === 0 ? 0 : 1);
   });

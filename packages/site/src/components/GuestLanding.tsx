@@ -85,6 +85,8 @@ const CONSTELLATION = toConstellation(ITEMS, RELATIONS, {
 
 /** The layer pastels are tokens, so a theme change moves the drawing with it. */
 const layerFill = (layer: string) => `var(--bp-layer-${layer}, var(--bp-accent))`;
+/** Outlines and dots: the pastel on dark, the ink on white. */
+const layerLine = (layer: string) => `var(--bp-layer-${layer}-line, var(--bp-accent))`;
 
 export function GuestLanding({ children }: { children: React.ReactNode }) {
   return (
@@ -127,7 +129,7 @@ export function GuestLanding({ children }: { children: React.ReactNode }) {
                 cx={cluster.cx}
                 cy={cluster.cy}
                 r={cluster.radius}
-                stroke={layerFill(cluster.group)}
+                stroke={layerLine(cluster.group)}
               />
               {cluster.nodes.map((node) => (
                 <circle
@@ -135,7 +137,7 @@ export function GuestLanding({ children }: { children: React.ReactNode }) {
                   cx={node.x}
                   cy={node.y}
                   r={node.r}
-                  fill={layerFill(cluster.group)}
+                  fill={layerLine(cluster.group)}
                 >
                   {/* A tooltip rather than a label: sixty labels at this scale
                       would be unreadable, and the name is still reachable. */}

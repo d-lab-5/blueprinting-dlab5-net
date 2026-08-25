@@ -116,8 +116,8 @@ export function BlueprintCanvas({ model }: { model: AbModel }) {
                   height={band.height}
                   fill={`var(--bp-layer-${band.group})`}
                   fillOpacity={0.05}
-                  stroke={`var(--bp-layer-${band.group})`}
-                  strokeOpacity={0.22}
+                  stroke={`var(--bp-layer-${band.group}-line)`}
+                  strokeOpacity={0.4}
                 />
                 <text
                   className="bp-canvas__band"
@@ -183,8 +183,8 @@ export function BlueprintCanvas({ model }: { model: AbModel }) {
                     rx={4}
                     fill={`var(--bp-layer-${layer})`}
                     fillOpacity={isSelected ? 0.28 : 0.1}
-                    stroke={`var(--bp-layer-${layer})`}
-                    strokeOpacity={isSelected ? 1 : 0.45}
+                    stroke={`var(--bp-layer-${layer}-line)`}
+                    strokeOpacity={isSelected ? 1 : 0.6}
                     strokeWidth={isSelected ? 2 : 1}
                   />
                   <text className="bp-canvas__type" x={node.x + 8} y={node.y + 15}>

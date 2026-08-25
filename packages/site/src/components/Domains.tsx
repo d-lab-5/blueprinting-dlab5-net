@@ -124,8 +124,8 @@ export function Domains({ model }: { model: AbModel }) {
                   fillRule={cell.ring ? "evenodd" : undefined}
                   fill={`var(--bp-layer-${layer})`}
                   fillOpacity={isEmpty ? 0.06 : isSelected ? 0.5 : 0.22}
-                  stroke={`var(--bp-layer-${layer})`}
-                  strokeOpacity={isEmpty ? 0.25 : 0.7}
+                  stroke={`var(--bp-layer-${layer}-line)`}
+                  strokeOpacity={isEmpty ? 0.35 : 0.9}
                   strokeWidth={isSelected ? 2 : 1}
                 />
                 <text
