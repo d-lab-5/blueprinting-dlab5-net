@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { AbModel, Finding } from "@dlab5/blueprint-core";
-import { hasErrors, validateModel } from "@dlab5/blueprint-core";
+import {
+  checkPractices, hasErrors, validateModel } from "@dlab5/blueprint-core";
 import { ModelConflictError, loadModel, saveModel } from "../lib/data";
 
 export type SaveState = "idle" | "saving" | "saved" | "conflict" | "error";
@@ -105,8 +106,15 @@ export function useModel(projectSlug: string): UseModel {
     }
   }, [model, etag]);
 
+  /**
+   * Specification errors and practice warnings, in one list.
+   *
+   * Both return the same Finding shape, so the panel renders them without
+   * knowing which produced which. Practice checks never make a model wrong —
+   * they are all warnings — so the save gate below still keys on errors only.
+   */
   const findings = React.useMemo(
-    () => (model ? validateModel(model) : []),
+    () => (model ? [...validateModel(model), ...checkPractices(model)] : []),
     [model]
   );
 

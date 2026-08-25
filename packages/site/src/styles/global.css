@@ -1878,3 +1878,19 @@ a {
     display: none;
   }
 }
+
+/* -- a finding's citation -------------------------------------------------- */
+
+.bp-finding__message {
+  min-width: 0;
+}
+
+/* Set below the message rather than beside it: the message is the finding,
+   the citation is provenance, and a reader should be able to skip it. */
+.bp-finding__source {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+}

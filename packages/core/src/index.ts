@@ -60,6 +60,9 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { checkPractices } from "./practices.js";
+export type { PracticeOptions } from "./practices.js";
+
 export { toMermaidGitgraph } from "./diagrams/gitgraph.js";
 export type { GitgraphOptions } from "./diagrams/gitgraph.js";
 

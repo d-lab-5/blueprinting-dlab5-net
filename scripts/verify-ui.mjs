@@ -454,6 +454,75 @@ const ROUTES = [
 ];
 
 /**
+ * The findings panel.
+ *
+ * The practice checks are warnings about a model that is otherwise valid, so
+ * an empty panel and a broken checker look identical from outside. This opens
+ * it, counts what is there, and requires that at least one finding carries a
+ * citation — the thing that distinguishes a body of knowledge from a pile of
+ * house opinions.
+ */
+async function findingsPanel(cdp) {
+  console.log("\nfindings");
+
+  const OPEN =
+    "(async () => {" +
+    "  const d = document.querySelector('.bp-findings');" +
+    "  if (d) d.setAttribute('open','');" +
+    "  await new Promise((r) => setTimeout(r, 250));" +
+    "})()";
+
+  const READ = `
+    const items = [...document.querySelectorAll(".bp-finding")];
+    return {
+      present: !!document.querySelector(".bp-findings"),
+      summary: document.querySelector(".bp-findings summary")?.textContent.trim() ?? null,
+      total: items.length,
+      cited: items.filter((li) => li.querySelector(".bp-finding__source")).length,
+      citations: [...new Set(
+        items.map((li) => li.querySelector(".bp-finding__source")?.textContent.trim())
+          .filter(Boolean)
+      )],
+      // A citation must be a reference, never a quotation — this repository is
+      // public and the sources are not.
+      longest: Math.max(0, ...items.map((li) =>
+        (li.querySelector(".bp-finding__source")?.textContent ?? "").length)),
+    };
+  `;
+
+  let result;
+  try {
+    result = await visit(cdp, "/p/dlab5-blueprint/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      then: OPEN,
+      evaluate: READ,
+      shot: "findings.png",
+    });
+  } catch (error) {
+    check(false, "the findings panel renders", error.message);
+    return;
+  }
+
+  const v = result.value;
+  check(v.present, "the findings panel is on the page");
+  check(v.total > 0, "the live model raises findings", `${v.total} shown`);
+  check(
+    v.cited > 0,
+    "at least one finding cites where its rule comes from",
+    `${v.cited} of ${v.total} cited`
+  );
+  check(
+    v.longest > 0 && v.longest < 80,
+    "a citation is a reference, not a quotation",
+    `longest is ${v.longest} chars`
+  );
+  if (v.citations.length) {
+    console.log(`        citing: ${v.citations.join(" | ")}`);
+  }
+}
+
+/**
  * Importing a Mermaid Gantt.
  *
  * Driven rather than trusted: the parser has unit tests, but nothing else
@@ -959,6 +1028,7 @@ async function signedIn(cdp) {
   await editor(cdp);
   await focusView(cdp);
   await ganttImport(cdp);
+  await findingsPanel(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

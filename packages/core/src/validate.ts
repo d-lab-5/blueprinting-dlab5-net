@@ -11,6 +11,15 @@ export interface Finding {
   message: string;
   /** Element or relationship id the finding attaches to, when there is one. */
   subject?: string;
+  /**
+   * Where the rule comes from, when it is not simply the specification.
+   *
+   * A citation, never a quotation. Several of these rules are named pitfalls
+   * in the published literature, and saying so is the difference between a
+   * body of knowledge and a pile of house opinions — a reader can go and read
+   * the argument rather than take ours on trust.
+   */
+  source?: string;
 }
 
 /**
@@ -102,6 +111,7 @@ export function validateModel(model: AbModel): Finding[] {
           `--${rel.type}--> ${ELEMENTS[target.type].label} ` +
           `(relationship "${rel.id}")`,
         subject: rel.id,
+        source: "Mastering ArchiMate §11.1, pitfall 2",
       });
     } else if (isDerived(source.type, rel.type, target.type)) {
       findings.push({
@@ -112,6 +122,7 @@ export function validateModel(model: AbModel): Finding[] {
           `${ELEMENTS[target.type].label} is derived; it is implied by a chain ` +
           `of other relationships and does not usually need asserting`,
         subject: rel.id,
+        source: "Mastering ArchiMate §11.1, pitfalls 1 and 5",
       });
     }
   }

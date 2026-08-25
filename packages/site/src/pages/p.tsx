@@ -206,7 +206,15 @@ function Findings({
         {findings.map((f, i) => (
           <li key={i} className={`bp-finding bp-finding--${f.severity}`}>
             <span className="bp-finding__severity">{f.severity}</span>
-            {f.message}
+            <span className="bp-finding__message">
+              {f.message}
+              {/* Where the rule comes from, when it is not simply the
+                  specification. A reader who disagrees can go and read the
+                  argument rather than take this tool's word for it. */}
+              {f.source && (
+                <span className="bp-finding__source">{f.source}</span>
+              )}
+            </span>
           </li>
         ))}
       </ul>
