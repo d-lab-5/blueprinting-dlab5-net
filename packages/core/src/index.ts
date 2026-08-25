@@ -60,13 +60,21 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { toMermaidGitgraph } from "./diagrams/gitgraph.js";
+export type { GitgraphOptions } from "./diagrams/gitgraph.js";
+
 export { fromMermaidGantt } from "./import/gantt.js";
 export type { GanttImportResult } from "./import/gantt.js";
 
 export { MAX_DEPTH, neighbourhood } from "./neighbourhood.js";
 export type { Neighbourhood } from "./neighbourhood.js";
 
-export { derivePlateauDates, isoDate, toScheduleGraph } from "./schedule.js";
+export {
+  derivePlateauDates,
+  isoDate,
+  orderedPlateaus,
+  toScheduleGraph,
+} from "./schedule.js";
 export type { PlateauDate, ScheduleGraph } from "./schedule.js";
 
 export { initialsOf, toOrganisations } from "./organisations.js";

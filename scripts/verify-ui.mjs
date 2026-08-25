@@ -427,8 +427,8 @@ const PROBE = `
   };
 `;
 
-/** Roadmap, Views, Radar, Domains, Blueprint, Teams, Blocks. */
-const RAIL_ITEMS = 7;
+/** Roadmap, Releases, Views, Radar, Domains, Blueprint, Teams, Blocks. */
+const RAIL_ITEMS = 8;
 
 /**
  * What proves a session exists.
@@ -441,6 +441,7 @@ const SIGNED_IN = ".bp-shell:not(.bp-shell--guest)";
 const ROUTES = [
   { path: "/", name: "projects list" },
   { path: "/p/dlab5-blueprint/", name: "project · roadmap" },
+  { path: "/p/dlab5-blueprint/releases/", name: "project · releases" },
   { path: "/p/dlab5-blueprint/views/", name: "project · views" },
   { path: "/p/dlab5-blueprint/radar/", name: "project · radar" },
   { path: "/p/dlab5-blueprint/domains/", name: "project · domains" },

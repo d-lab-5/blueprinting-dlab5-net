@@ -1,5 +1,10 @@
 import type { AbModel, AbElement } from "../types.js";
-import { derivePlateauDates, isoDate, toScheduleGraph } from "../schedule.js";
+import {
+  derivePlateauDates,
+  isoDate,
+  orderedPlateaus,
+  toScheduleGraph,
+} from "../schedule.js";
 
 /**
  * Turns an ArchiMate Implementation & Migration model into a Mermaid Gantt.
@@ -117,19 +122,7 @@ export function toMermaidGantt(
   // by start put P3 ahead of P2 in the platform's own roadmap, because WP11
   // began a day before WP2 — true, and not what a reader means by the order
   // of the plateaus. Start breaks a tie, name breaks that.
-  const plateaus = model.elements
-    .filter((e) => e.type === "Plateau")
-    .sort((a, b) => {
-      const da = plateauDates.get(a.id);
-      const db = plateauDates.get(b.id);
-      const ea = da?.end ?? "9999";
-      const eb = db?.end ?? "9999";
-      if (ea !== eb) return ea.localeCompare(eb);
-      const sa = da?.start ?? "9999";
-      const sb = db?.start ?? "9999";
-      if (sa !== sb) return sa.localeCompare(sb);
-      return a.name.localeCompare(b.name);
-    });
+  const plateaus = orderedPlateaus(model, plateauDates);
 
   const sections: Array<{ id: string; name: string; items: AbElement[] }> =
     plateaus.map((p) => ({ id: p.id, name: p.name, items: [] }));

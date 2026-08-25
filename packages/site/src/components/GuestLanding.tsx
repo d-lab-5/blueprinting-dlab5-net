@@ -91,6 +91,7 @@ const layerLine = (layer: string) => `var(--bp-layer-${layer}-line, var(--bp-acc
 /** The screens a signed-in user gets, shown locked so a visitor can see them. */
 const LOCKED = [
   "Roadmap",
+  "Releases",
   "Views",
   "Radar",
   "Domains",

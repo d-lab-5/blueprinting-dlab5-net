@@ -247,8 +247,11 @@ export function RoadmapEditor({ model, onChange }: Props) {
                   </p>
                 ) : (
                   <p className="bp-muted bp-derived">
-                    Not yet scheduled — no work package realising this plateau
-                    carries a date.
+                    {derived && derived.realisedBy > 0
+                      ? `Not yet scheduled — ${derived.realisedBy} work package${
+                          derived.realisedBy === 1 ? "" : "s"
+                        } realise${derived.realisedBy === 1 ? "s" : ""} this plateau, none of them dated.`
+                      : "Nothing realises this plateau yet, so there is no date to derive. This is how a starting state looks."}
                   </p>
                 )}
               </div>

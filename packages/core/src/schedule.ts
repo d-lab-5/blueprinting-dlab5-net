@@ -96,8 +96,19 @@ export interface PlateauDate {
   start?: string;
   /** Latest end — the date the plateau is reached. */
   end?: string;
-  /** How many work packages contributed. Zero means nothing is scheduled yet. */
+  /**
+   * How many work packages contributed a date. Zero means nothing is
+   * scheduled yet, which is what the editor reports.
+   */
   from: number;
+  /**
+   * How many work packages realise this plateau at all, dated or not.
+   *
+   * Distinct from `from` on purpose: a plateau whose work carries no dates is
+   * PLANNED and unscheduled, while one that nothing realises is where the plan
+   * begins. Both have no date, and only this tells them apart.
+   */
+  realisedBy: number;
 }
 
 /**
@@ -117,13 +128,17 @@ export function derivePlateauDates(
   const dates = new Map<string, PlateauDate>();
 
   for (const plateau of model.elements) {
-    if (plateau.type === "Plateau") dates.set(plateau.id, { from: 0 });
+    if (plateau.type === "Plateau") {
+      dates.set(plateau.id, { from: 0, realisedBy: 0 });
+    }
   }
 
   for (const [workPackageId, plateauId] of graph.plateauOf) {
     const entry = dates.get(plateauId);
     const workPackage = byId.get(workPackageId);
     if (!entry || !workPackage) continue;
+
+    entry.realisedBy++;
 
     const start = isoDate(workPackage.properties.startDate);
     const end = isoDate(workPackage.properties.endDate) ?? start;
@@ -135,4 +150,57 @@ export function derivePlateauDates(
   }
 
   return dates;
+}
+
+/**
+ * Plateaus in the order a reader should meet them.
+ *
+ * Ordered by when each is REACHED, not when work towards it starts: a long
+ * work package begun early does not make its plateau an early one.
+ *
+ * Two kinds of plateau carry no date, and they belong at opposite ends:
+ *
+ *   - **Nothing realises it** (`from === 0`). No planned work produces this
+ *     state, so it is not somewhere the plan arrives at — it is where the plan
+ *     begins. "P0 Empty Repo" is exactly this. These come first.
+ *   - **Work realises it, but that work has no dates** (`from > 0`, no end).
+ *     The state is planned and unscheduled, so it cannot be placed. These come
+ *     last.
+ *
+ * The distinction is a reading, not something the specification fixes, and it
+ * can be wrong: a far-future plateau nobody has started planning also has
+ * nothing realising it and will sort to the front. Dating the work is what
+ * resolves it.
+ *
+ * Shared so the Gantt's sections and the git graph's commits cannot disagree
+ * about the order of the same plateaus.
+ */
+export function orderedPlateaus(
+  model: AbModel,
+  dates: Map<string, PlateauDate> = derivePlateauDates(model)
+): AbModel["elements"] {
+  const rank = (id: string) => {
+    const date = dates.get(id);
+    if (!date || date.realisedBy === 0) return 0; // where the plan begins
+    if (!date.end) return 2; // planned, but nothing dated
+    return 1;
+  };
+
+  return model.elements
+    .filter((e) => e.type === "Plateau")
+    .sort((a, b) => {
+      const ra = rank(a.id);
+      const rb = rank(b.id);
+      if (ra !== rb) return ra - rb;
+
+      const da = dates.get(a.id);
+      const db = dates.get(b.id);
+      const ea = da?.end ?? "";
+      const eb = db?.end ?? "";
+      if (ea !== eb) return ea.localeCompare(eb);
+      const sa = da?.start ?? "";
+      const sb = db?.start ?? "";
+      if (sa !== sb) return sa.localeCompare(sb);
+      return a.name.localeCompare(b.name);
+    });
 }

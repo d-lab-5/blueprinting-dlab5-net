@@ -5,6 +5,7 @@ import type { LayerId } from "@dlab5/archimate-metamodel";
 import {
   neighbourhood,
   toD2,
+  toMermaidGitgraph,
   toMermaidGantt,
   toMermaidSequence,
 } from "@dlab5/blueprint-core";
@@ -25,6 +26,7 @@ import { useModel } from "../hooks/useModel";
 
 type Tab =
   | "roadmap"
+  | "releases"
   | "views"
   | "radar"
   | "domains"
@@ -40,6 +42,7 @@ type Tab =
 const SECTIONS: Record<string, Tab> = {
   "": "roadmap",
   roadmap: "roadmap",
+  releases: "releases",
   views: "views",
   radar: "radar",
   domains: "domains",
@@ -115,6 +118,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <GanttImport model={model} onChange={update} />
             </>
           )}
+          {tab === "releases" && <Releases model={model} slug={slug} />}
           {tab === "views" && <Views model={model} />}
           {tab === "radar" && (
             <>
@@ -235,6 +239,54 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
  * components becomes spaghetti. Mermaid sequence for behaviour, because that
  * is what a sequence diagram is for.
  */
+/**
+ * The release train: plateaus as commits, work packages as branches.
+ *
+ * A second reading of the same Layer 7 model the Gantt draws. The Gantt
+ * answers "when", this answers "in what order did the architecture actually
+ * change" — and an engineer reads a branch-and-merge picture faster than a
+ * list of realization relationships.
+ */
+function Releases({ model, slug }: { model: AbModel; slug: string }) {
+  const script = React.useMemo(
+    () => toMermaidGitgraph(model, { title: slug }),
+    [model, slug]
+  );
+
+  const plateaus = model.elements.filter((e) => e.type === "Plateau").length;
+
+  if (plateaus === 0) {
+    return (
+      <div className="bp-empty">
+        <p>This project has no plateaus.</p>
+        <p className="bp-muted">
+          A plateau is a stable, frozen baseline — the state the architecture
+          reaches when a batch of work lands. Add one on the Roadmap tab and
+          point a work package at it with a <code>realization</code>
+          relationship, and the train appears here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <h2>Release train</h2>
+      <p className="bp-lede">
+        Each commit on the trunk is a <strong>Plateau</strong> — a frozen
+        baseline. Each branch is a <strong>Work Package</strong>, merged back
+        when it lands, tagged with the{" "}
+        <strong>Implementation Event</strong> it triggers. Nothing here reads a
+        repository: it borrows git&rsquo;s vocabulary because a release train
+        has git&rsquo;s shape.
+      </p>
+      <DiagramViewport>
+        <MermaidView script={script} id={`gitgraph-${slug}`} />
+      </DiagramViewport>
+    </>
+  );
+}
+
 function Views({ model }: { model: AbModel }) {
   const [domains, setDomains] = React.useState<LayerId[] | null>(null);
   /** Element to centre the structure view on, or null for the whole model. */

@@ -5,6 +5,7 @@ import {
   PLATFORM_ROADMAP,
   derivePlateauDates,
   isoDate,
+  orderedPlateaus,
   toScheduleGraph,
 } from "../dist/index.js";
 
@@ -59,6 +60,7 @@ test("a plateau's end is the latest end among the work realising it", () => {
     start: "2026-01-02",
     end: "2026-01-20",
     from: 2,
+    realisedBy: 2,
   });
 });
 
@@ -71,19 +73,19 @@ test("a work package with only a start still contributes, without looking finish
   );
   // The plateau cannot be reached before the work begins, so the start counts;
   // the end falls back to it rather than being invented.
-  assert.deepEqual(dates.get("p"), { start: "2026-03-01", end: "2026-03-01", from: 1 });
+  assert.deepEqual(dates.get("p"), { start: "2026-03-01", end: "2026-03-01", from: 1, realisedBy: 1 });
 });
 
 test("a plateau with nothing scheduled reports no date rather than a wrong one", () => {
   const dates = derivePlateauDates(
     model([el("wp", "WorkPackage"), el("p", "Plateau")], [rel("r", "realization", "wp", "p")])
   );
-  assert.deepEqual(dates.get("p"), { from: 0 });
+  assert.deepEqual(dates.get("p"), { from: 0, realisedBy: 1 });
 });
 
 test("a plateau nothing realises is still listed, as unscheduled", () => {
   const dates = derivePlateauDates(model([el("p", "Plateau")]));
-  assert.deepEqual(dates.get("p"), { from: 0 });
+  assert.deepEqual(dates.get("p"), { from: 0, realisedBy: 0 });
 });
 
 test("a malformed date is ignored rather than propagated", () => {
@@ -97,7 +99,7 @@ test("a malformed date is ignored rather than propagated", () => {
       [rel("r1", "realization", "a", "p"), rel("r2", "realization", "b", "p")]
     )
   );
-  assert.deepEqual(dates.get("p"), { start: "2026-05-01", end: "2026-05-09", from: 1 });
+  assert.deepEqual(dates.get("p"), { start: "2026-05-01", end: "2026-05-09", from: 1, realisedBy: 2 });
 });
 
 test("sub-packages are linked to their parent by composition and aggregation", () => {
@@ -133,4 +135,78 @@ test("the platform's own roadmap derives a date for every plateau it schedules",
     assert.ok(d.start && d.end, "a scheduled plateau needs both ends");
     assert.ok(d.start <= d.end, "a plateau cannot end before it starts");
   }
+});
+
+test("plateaus are ordered by when they are reached", () => {
+  const order = orderedPlateaus(
+    model(
+      [
+        el("late", "Plateau"),
+        el("early", "Plateau"),
+        el("w1", "WorkPackage", { startDate: "2026-03-01", endDate: "2026-03-05" }),
+        el("w2", "WorkPackage", { startDate: "2026-01-01", endDate: "2026-01-05" }),
+      ],
+      [rel("r1", "realization", "w1", "late"), rel("r2", "realization", "w2", "early")]
+    )
+  );
+  assert.deepEqual(order.map((p) => p.id), ["early", "late"]);
+});
+
+test("a plateau nothing realises comes first — it is where the plan begins", () => {
+  // P0 Empty Repo is exactly this: no work produces it, so it is not somewhere
+  // the plan arrives at. Sorting it by its absent date would put the starting
+  // state at the end.
+  const order = orderedPlateaus(
+    model(
+      [
+        el("done", "Plateau"),
+        el("start", "Plateau"),
+        el("w", "WorkPackage", { startDate: "2026-01-01", endDate: "2026-01-09" }),
+      ],
+      [rel("r", "realization", "w", "done")]
+    )
+  );
+  assert.deepEqual(order.map((p) => p.id), ["start", "done"]);
+});
+
+test("a plateau whose work has no dates comes last — planned but unscheduled", () => {
+  const order = orderedPlateaus(
+    model(
+      [
+        el("unscheduled", "Plateau"),
+        el("dated", "Plateau"),
+        el("w1", "WorkPackage"),
+        el("w2", "WorkPackage", { startDate: "2026-05-01", endDate: "2026-05-09" }),
+      ],
+      [
+        rel("r1", "realization", "w1", "unscheduled"),
+        rel("r2", "realization", "w2", "dated"),
+      ]
+    )
+  );
+  assert.deepEqual(order.map((p) => p.id), ["dated", "unscheduled"]);
+});
+
+test("an unrealised plateau and an unscheduled one sit at opposite ends", () => {
+  const order = orderedPlateaus(
+    model(
+      [
+        el("unscheduled", "Plateau"),
+        el("nothing", "Plateau"),
+        el("dated", "Plateau"),
+        el("w1", "WorkPackage"),
+        el("w2", "WorkPackage", { startDate: "2026-05-01", endDate: "2026-05-09" }),
+      ],
+      [
+        rel("r1", "realization", "w1", "unscheduled"),
+        rel("r2", "realization", "w2", "dated"),
+      ]
+    )
+  );
+  assert.deepEqual(order.map((p) => p.id), ["nothing", "dated", "unscheduled"]);
+});
+
+test("the platform's own roadmap starts at P0", () => {
+  const order = orderedPlateaus(PLATFORM_ROADMAP);
+  assert.match(order[0].name, /^P0 /, `got ${order[0].name}`);
 });

@@ -223,11 +223,58 @@ export const PLATFORM_ROADMAP: AbModel = {
       properties: { status: "done" },
     },
     {
+      id: "wp12",
+      type: "WorkPackage",
+      name: "WP12 Implementation & Migration editing",
+      documentation:
+        "bp:appliesTo, so the ontology declares which element types carry " +
+        "which convention and the editor stops offering an end date on a Gap. " +
+        "Plateau dates derived rather than stored. Incoming relationships, " +
+        "bp:cost, a per-element neighbourhood on the structure view, and a " +
+        "one-way Mermaid Gantt import.",
+      properties: {
+        startDate: "2026-08-25",
+        endDate: "2026-08-25",
+        status: "done",
+      },
+    },
+    {
+      id: "wp13",
+      type: "WorkPackage",
+      name: "WP13 Release train",
+      documentation:
+        "Plateaus as commits on a trunk, work packages as branches merged " +
+        "back, implementation events as the tags on those merges. A " +
+        "visualisation borrowing git's vocabulary, not a git integration.",
+      properties: {
+        startDate: "2026-08-25",
+        endDate: "2026-08-25",
+        status: "done",
+      },
+    },
+
+    {
       id: "d-designed-ux",
       type: "Deliverable",
       name: "Designed shell and six screens",
       documentation:
         "Rail, light theme, guest landing, domains, blueprint canvas, teams.",
+      properties: { status: "done" },
+    },
+    {
+      id: "d-schedule",
+      type: "Deliverable",
+      name: "Derived schedule",
+      documentation:
+        "packages/core/src/schedule.ts — one rule for when a plateau is " +
+        "reached and in what order plateaus are met, shared by the Gantt and " +
+        "the release train so the two cannot disagree.",
+      properties: { status: "done" },
+    },
+    {
+      id: "d-releases",
+      type: "Deliverable",
+      name: "Release train view",
       properties: { status: "done" },
     },
     {
@@ -286,6 +333,10 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-wp3-store", type: "realization", source: "wp3", target: "d-store", properties: {} },
     { id: "r-wp4-gantt", type: "realization", source: "wp4", target: "d-gantt", properties: {} },
     { id: "r-wp11-ux", type: "realization", source: "wp11", target: "d-designed-ux", properties: {} },
+    { id: "r-wp12-sched", type: "realization", source: "wp12", target: "d-schedule", properties: {} },
+    { id: "r-wp13-rel", type: "realization", source: "wp13", target: "d-releases", properties: {} },
+    { id: "r-sched-p3", type: "realization", source: "d-schedule", target: "p3", properties: {} },
+    { id: "r-rel-p3", type: "realization", source: "d-releases", target: "p3", properties: {} },
 
     /* Deliverables bring about plateaus. Note the direction: ArchiMate has
        the deliverable realising the state, not the state composing it. */
@@ -307,6 +358,8 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-wp4-wp9", type: "triggering", source: "wp4", target: "wp9", properties: {} },
     { id: "r-wp8-wp10", type: "triggering", source: "wp8", target: "wp10", properties: {} },
     { id: "r-wp9-wp11", type: "triggering", source: "wp9", target: "wp11", properties: {} },
+    { id: "r-wp11-wp12", type: "triggering", source: "wp11", target: "wp12", properties: {} },
+    { id: "r-wp12-wp13", type: "triggering", source: "wp12", target: "wp13", properties: {} },
 
     /* Milestones. */
     { id: "r-wp1-green", type: "triggering", source: "wp1", target: "e-stage-green", properties: {} },

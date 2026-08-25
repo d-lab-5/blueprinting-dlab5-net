@@ -52,6 +52,20 @@ export function railItems(slug: string): RailItem[] {
       icon: icon(<path d="M4 6h16M4 12h11M4 18h7" />),
     },
     {
+      key: "releases",
+      label: "Releases",
+      href: `/p/${slug}/releases/`,
+      // A branch rejoining a trunk: the shape the screen actually draws.
+      icon: icon(
+        <>
+          <circle cx="6" cy="5" r="2" />
+          <circle cx="6" cy="19" r="2" />
+          <circle cx="18" cy="12" r="2" />
+          <path d="M6 7v10M8 5h4a4 4 0 0 1 4 4v1M8 19h4a4 4 0 0 0 4-4v-1" />
+        </>
+      ),
+    },
+    {
       key: "views",
       label: "Views",
       href: `/p/${slug}/views/`,
