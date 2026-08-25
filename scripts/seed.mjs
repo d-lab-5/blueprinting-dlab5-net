@@ -10,6 +10,7 @@
  * Usage:
  *   BP_USER=… BP_PASSWORD=… node scripts/seed.mjs \
  *     [--project <slug>] [--from <ttl>] [--name <name>] [--description <text>]
+ *     [--group <cognito-group>]
  *
  * `--from` seeds any project from committed Turtle rather than from the
  * built-in roadmap — which is how the engineering pattern library, and any
@@ -20,8 +21,9 @@
  *   cd backend && npx ampx generate outputs --app-id <id> --branch stage
  *
  * The caller must be in bp-admins. Note that this does NOT create the
- * project's Cognito group — `bp-<slug>` is still made by hand, so until it
- * exists only bp-admins can open the project.
+ * project's Cognito group — it is still made by hand, so until it exists only
+ * bp-admins can open the project. The group defaults to `bp-<slug>` and
+ * `--group` overrides it.
  */
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -106,7 +108,10 @@ try {
         slug,
         name: arg("--name") ?? slug,
         description: arg("--description") ?? undefined,
-        group: `bp-${slug}`,
+        // Normally bp-<slug>. --group exists for a project read ACROSS
+        // projects rather than owned by one, where the group name should say
+        // what it grants rather than which project it belongs to.
+        group: arg("--group") ?? `bp-${slug}`,
         ttlKey: `projects/${slug}/abox.ttl`,
         version: 0,
       }),

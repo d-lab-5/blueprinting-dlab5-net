@@ -1,0 +1,188 @@
+@prefix archimate: <https://purl.org/archimate#>.
+@prefix bp: <https://blueprinting.dlab5.net/ns#>.
+
+<https://blueprinting.dlab5.net/i/engineering-practices/model> bp:languageVersion "3.2".
+<https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-tool-is-not-the-specification> a archimate:Assessment;
+    archimate:identifier "assessment-a-tool-is-not-the-specification";
+    archimate:name "A tool offers relations the specification does not, and omits ones it does";
+    archimate:documentation "Tools implement the language imperfectly and pick a default relation when asked to connect two things. Neither the offer nor the omission is authority. This platform generates its rules from the published relationship matrix for exactly this reason, and refuses what the matrix refuses.";
+    archimate:hasProperty _:p-e-assessment-a-tool-is-not-the-specification-0.
+_:p-e-assessment-a-tool-is-not-the-specification-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §11.2 pitfall 3; see ADR-0004".
+<https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-viewpoint-constrains-silently> a archimate:Assessment;
+    archimate:identifier "assessment-a-viewpoint-constrains-silently";
+    archimate:name "A viewpoint restricts what you can draw, without saying so";
+    archimate:documentation "Working inside a viewpoint, a relation you cannot create may be perfectly legal — it is simply outside the view's subset. Mistaking that for a rule of the language teaches a false constraint.";
+    archimate:hasProperty _:p-e-assessment-a-viewpoint-constrains-silently-0.
+_:p-e-assessment-a-viewpoint-constrains-silently-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §11.2 pitfall 4".
+<https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-association-hides-a-missing-element> a archimate:Assessment;
+    archimate:identifier "assessment-association-hides-a-missing-element";
+    archimate:name "An association can be standing in for an element nobody drew";
+    archimate:documentation "When no direct relation is permitted between two element types but a derived one is, the derivation names the gap: something belongs between them. An Application Component reaches an Application Service through the Application Function it is assigned to. Drawing an association instead records that the middle was skipped.";
+    archimate:hasProperty _:p-e-assessment-association-hides-a-missing-element-0.
+_:p-e-assessment-association-hides-a-missing-element-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §16.2; enforced by the association-hides-an-element check".
+<https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-metamodel-relations-are-between-types> a archimate:Assessment;
+    archimate:identifier "assessment-metamodel-relations-are-between-types";
+    archimate:name "The metamodel diagram relates types, not the elements in your model";
+    archimate:documentation "A metamodel picture says a function of some kind realises a service of some kind. Copied literally it produces a function realising the very service it also uses, which is a loop nobody meant to draw.";
+    archimate:hasProperty _:p-e-assessment-metamodel-relations-are-between-types-0.
+_:p-e-assessment-metamodel-relations-are-between-types-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §11.3 pitfall 5".
+<https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations> a archimate:Assessment;
+    archimate:identifier "assessment-nesting-without-relations";
+    archimate:name "Nesting boxes without relations loses the architecture";
+    archimate:documentation "A first attempt at a large packaged system often draws containment alone: boxes inside boxes, no layers, no relations. It renders, and it says nothing — nothing can be traversed, and no analysis is possible. The author of the SAP viewpoints calls his own first attempt an embarrassment, which is a more useful thing to publish than a success.";
+    archimate:hasProperty _:p-e-assessment-nesting-without-relations-0.
+_:p-e-assessment-nesting-without-relations-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ArchiMate to explain SAP — Wim Van Hooste, 2020 (published article)".
+<https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-do-not-assert-a-derived-relation> a archimate:Constraint;
+    archimate:identifier "constraint-do-not-assert-a-derived-relation";
+    archimate:name "A derived relation is implied, not asserted";
+    archimate:documentation "A relation the specification marks as derived is already entailed by a chain of others. Asserting it directly states something the model can work out, and hides the chain that gives it meaning. Draw the chain; let the derivation follow.";
+    archimate:hasProperty _:p-e-constraint-do-not-assert-a-derived-relation-0.
+_:p-e-constraint-do-not-assert-a-derived-relation-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §11.1 pitfalls 1 and 5; enforced by the derived-relationship check".
+<https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-properties-for-what-cannot-be-modelled> a archimate:Constraint;
+    archimate:identifier "constraint-properties-for-what-cannot-be-modelled";
+    archimate:name "Use a property only for what the language cannot hold";
+    archimate:documentation "Properties sit outside ArchiMate's structure, so they are invisible to every analysis the model makes possible. That is acceptable for a cost estimate or a radar ring, which the language has no concept for. It is not acceptable for something the language does have a concept for.";
+    archimate:hasProperty _:p-e-constraint-properties-for-what-cannot-be-modelled-0.
+_:p-e-constraint-properties-for-what-cannot-be-modelled-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §16.3; this platform's own bp:owner is a deliberate exception, and is flagged by the checker".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship> a archimate:Grouping;
+    archimate:identifier "practice-choosing-a-relationship";
+    archimate:name "Practice: choosing a relationship";
+    archimate:documentation "Which relation to draw, and what it costs to draw the wrong one. Checked by validateModel and checkPractices.".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> a archimate:Grouping;
+    archimate:identifier "practice-modelling-a-packaged-system";
+    archimate:name "Practice: modelling a packaged system";
+    archimate:documentation "Modelling something bought rather than built — SAP is the worked example, and the lessons are not specific to it.".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels> a archimate:Grouping;
+    archimate:identifier "practice-properties-and-labels";
+    archimate:name "Practice: properties and labels";
+    archimate:documentation "What belongs in the graph and what belongs in text beside it.".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel> a archimate:Grouping;
+    archimate:identifier "practice-reading-the-metamodel";
+    archimate:name "Practice: reading the metamodel";
+    archimate:documentation "Two pitfalls that are about the modeller rather than the model, so no check can catch them.".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-a-party-is-an-element> a archimate:Principle;
+    archimate:identifier "principle-a-party-is-an-element";
+    archimate:name "A party is an element, not a property";
+    archimate:documentation "A property is text. It cannot be traversed, counted or drawn, and nothing links it to anything else. Recording a team as a property on a component, while that team also exists as a Business Actor, creates two unconnected facts about one thing. Model the actor and assign it.";
+    archimate:hasProperty _:p-e-principle-a-party-is-an-element-0.
+_:p-e-principle-a-party-is-an-element-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §16.3; enforced by the property-shadows-element check".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-keep-the-type-in-the-label> a archimate:Principle;
+    archimate:identifier "principle-keep-the-type-in-the-label";
+    archimate:name "Keep the element type in the label";
+    archimate:documentation "Redundant against the icon and the colour, and worth it anyway: a reader who does not use ArchiMate daily recognises the words far faster than the notation. It also survives export to tools that draw none of it.";
+    archimate:hasProperty _:p-e-principle-keep-the-type-in-the-label-0.
+_:p-e-principle-keep-the-type-in-the-label-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §14.6".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-model-the-transport-path> a archimate:Principle;
+    archimate:identifier "principle-model-the-transport-path";
+    archimate:name "Model the path a change takes to production";
+    archimate:documentation "For a packaged system the route from development through test to production is part of the architecture, not an operational detail. It is what makes a change traceable, and it is usually the thing nobody has written down.";
+    archimate:hasProperty _:p-e-principle-model-the-transport-path-0.
+_:p-e-principle-model-the-transport-path-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ArchiMate to explain SAP — Wim Van Hooste, 2020 (published article), viewpoint 6".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-prefer-the-specific-relation> a archimate:Principle;
+    archimate:identifier "principle-prefer-the-specific-relation";
+    archimate:name "Prefer the most specific relation the language defines";
+    archimate:documentation "Association is permitted between every pair of concepts, so it is always available and rarely the best answer. Reaching for it usually means the relationship has not been decided yet. Where the specification defines something precise between two element types, that relation carries meaning an association cannot.";
+    archimate:hasProperty _:p-e-principle-prefer-the-specific-relation-0.
+_:p-e-principle-prefer-the-specific-relation-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §16.2; enforced by the vague-relationship check".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment> a archimate:Principle;
+    archimate:identifier "principle-separate-the-product-from-its-deployment";
+    archimate:name "Separate what the product is from where it runs";
+    archimate:documentation "A packaged system has a structure the vendor defines — modules, add-ons, the versions that ship together — and a deployment the operator chooses. Modelling them as one picture makes both unreadable and makes upgrade impossible to reason about.";
+    archimate:hasProperty _:p-e-principle-separate-the-product-from-its-deployment-0.
+_:p-e-principle-separate-the-product-from-its-deployment-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "ArchiMate to explain SAP — Wim Van Hooste, 2020 (published article), viewpoints 3 and 5".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-prefer-the-specific-relation>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r1> a archimate:Relationship;
+    archimate:identifier "r1";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-prefer-the-specific-relation>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r10> a archimate:Relationship;
+    archimate:identifier "r10";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r11> a archimate:Relationship;
+    archimate:identifier "r11";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-model-the-transport-path>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r12> a archimate:Relationship;
+    archimate:identifier "r12";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-model-the-transport-path>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-association-hides-a-missing-element>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r2> a archimate:Relationship;
+    archimate:identifier "r2";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-association-hides-a-missing-element>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-do-not-assert-a-derived-relation>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r3> a archimate:Relationship;
+    archimate:identifier "r3";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-do-not-assert-a-derived-relation>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-a-party-is-an-element>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r4> a archimate:Relationship;
+    archimate:identifier "r4";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-a-party-is-an-element>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-properties-for-what-cannot-be-modelled>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r5> a archimate:Relationship;
+    archimate:identifier "r5";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-properties-for-what-cannot-be-modelled>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-keep-the-type-in-the-label>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r6> a archimate:Relationship;
+    archimate:identifier "r6";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-properties-and-labels>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-keep-the-type-in-the-label>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-tool-is-not-the-specification>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r7> a archimate:Relationship;
+    archimate:identifier "r7";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-tool-is-not-the-specification>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-viewpoint-constrains-silently>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r8> a archimate:Relationship;
+    archimate:identifier "r8";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-a-viewpoint-constrains-silently>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-metamodel-relations-are-between-types>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r9> a archimate:Relationship;
+    archimate:identifier "r9";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-reading-the-metamodel>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-metamodel-relations-are-between-types>.
