@@ -104,6 +104,24 @@ bp:instances a owl:AnnotationProperty ;
     rdfs:comment "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping."@en ;
     bp:propertyKey "instances" .
 
+# ── Ownership and technical debt ────────────────────────────
+# Two properties the WP11 design assumes and the model did not
+# have. Neither belongs in ArchiMate: the language describes
+# what an architecture IS, and both of these are facts about how
+# an organisation currently runs it. That is exactly the split
+# this overlay exists to hold.
+
+bp:owner a owl:AnnotationProperty ;
+    rdfs:label "Owner"@en ;
+    rdfs:comment "The team accountable for this element. A free-text team name rather than a person: people move, and an element with a former employee's name on it is worse than one with none. ArchiMate can model this properly as a BusinessRole with an assignment, and a mature model should; this property is the pragmatic form for a model that has not drawn its organisation yet."@en ;
+    bp:propertyKey "owner" .
+
+bp:debt a owl:AnnotationProperty ;
+    rdfs:label "Technical debt"@en ;
+    rdfs:comment "A number from 0 to 1, where 0 is clean and 1 is unsustainable. Deliberately coarse and deliberately a judgement: it is an architect's assessment for sorting and colouring, not a measurement, and treating it as one would be false precision."@en ;
+    rdfs:range xsd:decimal ;
+    bp:propertyKey "debt" .
+
 # ── Technology Radar ────────────────────────────────────────
 # Quadrants are archimate:Grouping elements aggregating their
 # members, because the element type cannot carry the quadrant:

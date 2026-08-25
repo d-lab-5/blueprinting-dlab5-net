@@ -60,6 +60,16 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { toBandLayout } from "./diagrams/bands.js";
+export type {
+  Band,
+  BandEdge,
+  BandItem,
+  BandLayout,
+  BandLayoutOptions,
+  BandNode,
+} from "./diagrams/bands.js";
+
 export { hexPoints, toHexNavigator } from "./diagrams/hex-navigator.js";
 export type {
   HexCell,

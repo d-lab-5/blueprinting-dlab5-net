@@ -4,6 +4,7 @@ import { ELEMENTS, LAYER_LABELS, LAYER_ORDER } from "@dlab5/archimate-metamodel"
 import type { LayerId } from "@dlab5/archimate-metamodel";
 import { toD2, toMermaidGantt, toMermaidSequence } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
+import { BlueprintCanvas } from "../components/BlueprintCanvas";
 import { Domains } from "../components/Domains";
 import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
@@ -15,7 +16,7 @@ import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "views" | "radar" | "domains" | "blocks";
+type Tab = "roadmap" | "views" | "radar" | "domains" | "blueprint" | "blocks";
 
 /**
  * URL section to tab. `model` is kept as an alias for `domains`: the screen
@@ -29,6 +30,7 @@ const SECTIONS: Record<string, Tab> = {
   radar: "radar",
   domains: "domains",
   model: "domains",
+  blueprint: "blueprint",
   blocks: "blocks",
 };
 
@@ -110,6 +112,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
             </>
           )}
           {tab === "domains" && <Domains model={model} />}
+          {tab === "blueprint" && <BlueprintCanvas model={model} />}
           {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>
       )}

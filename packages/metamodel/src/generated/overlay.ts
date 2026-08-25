@@ -33,6 +33,14 @@ export interface Convention {
 export const LANGUAGE_VERSION = "3.2";
 
 export const CONVENTIONS = {
+  debt: {
+    term: "debt",
+    propertyKey: "debt",
+    label: "Technical debt",
+    comment: "A number from 0 to 1, where 0 is clean and 1 is unsustainable. Deliberately coarse and deliberately a judgement: it is an architect's assessment for sorting and colouring, not a measurement, and treating it as one would be false precision.",
+    values: null,
+    defaultValue: null,
+  },
   endDate: {
     term: "endDate",
     propertyKey: "endDate",
@@ -46,6 +54,14 @@ export const CONVENTIONS = {
     propertyKey: "instances",
     label: "Instances",
     comment: "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping.",
+    values: null,
+    defaultValue: null,
+  },
+  owner: {
+    term: "owner",
+    propertyKey: "owner",
+    label: "Owner",
+    comment: "The team accountable for this element. A free-text team name rather than a person: people move, and an element with a former employee's name on it is worse than one with none. ArchiMate can model this properly as a BusinessRole with an assignment, and a mature model should; this property is the pragmatic form for a model that has not drawn its organisation yet.",
     values: null,
     defaultValue: null,
   },

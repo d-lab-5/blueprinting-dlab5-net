@@ -341,12 +341,16 @@ const PROBE = `
   };
 `;
 
+/** Roadmap, Views, Radar, Domains, Blueprint, Blocks. */
+const RAIL_ITEMS = 6;
+
 const ROUTES = [
   { path: "/", name: "projects list" },
   { path: "/p/dlab5-blueprint/", name: "project · roadmap" },
   { path: "/p/dlab5-blueprint/views/", name: "project · views" },
   { path: "/p/dlab5-blueprint/radar/", name: "project · radar" },
   { path: "/p/dlab5-blueprint/domains/", name: "project · domains" },
+  { path: "/p/dlab5-blueprint/blueprint/", name: "project · blueprint" },
   // The old path for the same screen. It is an alias on purpose, so that a
   // link made before the rename still resolves.
   { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
@@ -412,8 +416,8 @@ async function signedIn(cdp) {
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
     check(!value.hasSignIn, `${route.name}: the sign-in form is gone`);
     check(
-      isProject ? value.railItems === 5 : value.railItems === 0,
-      `${route.name}: ${isProject ? "five rail entries" : "no rail outside a project"}`,
+      isProject ? value.railItems === RAIL_ITEMS : value.railItems === 0,
+      `${route.name}: ${isProject ? `${RAIL_ITEMS} rail entries` : "no rail outside a project"}`,
       `${value.railItems} items`
     );
     check(

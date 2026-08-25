@@ -88,6 +88,19 @@ export function railItems(slug: string): RailItem[] {
       ),
     },
     {
+      key: "blueprint",
+      label: "Blueprint",
+      href: `/p/${slug}/blueprint/`,
+      // Stacked bands, matching the canvas.
+      icon: icon(
+        <>
+          <rect x="3" y="4" width="18" height="4.5" rx="1.2" />
+          <rect x="3" y="9.75" width="18" height="4.5" rx="1.2" />
+          <rect x="3" y="15.5" width="18" height="4.5" rx="1.2" />
+        </>
+      ),
+    },
+    {
       key: "blocks",
       label: "Blocks",
       href: `/p/${slug}/blocks/`,
