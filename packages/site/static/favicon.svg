@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="D-LAB-5 Blueprinting">
+  <!-- The two linked blocks of the Mark in Shell.tsx: structure, plus the
+       relation between the parts. Slate ground with a sky glyph so the icon
+       holds up against both a light and a dark browser tab strip, which is a
+       choice the CSS tokens cannot make — a favicon gets no media query. -->
+  <rect width="32" height="32" rx="7" fill="#0f172a"/>
+  <g fill="none" stroke="#38bdf8" stroke-width="2.2"
+     stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="8" width="9" height="8" rx="1.8"/>
+    <rect x="17" y="16" width="9" height="8" rx="1.8"/>
+    <path d="M15 12h2.5a2 2 0 0 1 2 2v2"/>
+  </g>
+</svg>

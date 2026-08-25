@@ -123,6 +123,19 @@ a {
 
 .bp-shell {
   min-height: 100%;
+}
+
+/* Inside a project the rail is a column beside the content. At `/` there is
+   no rail, so the shell is a single column and this never applies. */
+.bp-shell--railed {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.bp-shell__body {
+  min-width: 0;
+  min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr;
 }
@@ -130,15 +143,31 @@ a {
 .bp-shell__header {
   display: flex;
   align-items: center;
-  gap: var(--bp-space-4);
+  gap: var(--bp-space-3);
   padding: var(--bp-space-3) var(--bp-space-6);
   background: var(--bp-bg-sunken);
   border-bottom: 1px solid var(--bp-border);
 }
 
 .bp-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
   font-weight: 600;
   letter-spacing: -0.01em;
+  color: var(--bp-text);
+  text-decoration: none;
+}
+
+.bp-mark {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--bp-accent), var(--bp-accent-strong));
+  color: var(--bp-text-inverse);
 }
 
 .bp-shell__spacer {
@@ -150,11 +179,145 @@ a {
   font-size: 0.875rem;
 }
 
+.bp-shell__theme,
+.bp-shell__railtoggle {
+  min-width: 2rem;
+  line-height: 1;
+}
+
 .bp-shell__main {
   padding: var(--bp-space-8) var(--bp-space-6);
-  max-width: 72rem;
+  max-width: 84rem;
   width: 100%;
   margin-inline: auto;
+}
+
+/* -- rail ------------------------------------------------------------------ */
+
+.bp-rail {
+  width: 232px;
+  flex: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-4) 0;
+  background: var(--bp-rail);
+  border-right: 1px solid var(--bp-border);
+  transition: width 180ms ease;
+}
+
+/* Collapsed to nothing rather than to icons: at this width an icon rail would
+   need its own labelling story, and the toggle is one click away. */
+.bp-rail--closed {
+  width: 0;
+  padding-inline: 0;
+  overflow: hidden;
+  border-right-width: 0;
+}
+
+.bp-rail__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  padding: 0 var(--bp-space-4) var(--bp-space-3);
+  border-bottom: 1px solid var(--bp-border);
+  color: var(--bp-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bp-rail__brandaccent {
+  color: var(--bp-accent);
+}
+
+.bp-rail__switcher {
+  display: grid;
+  gap: var(--bp-space-1);
+  padding: 0 var(--bp-space-4);
+}
+
+.bp-rail__switcherlabel {
+  font-family: var(--bp-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__switcher select {
+  width: 100%;
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-2);
+}
+
+.bp-rail__items {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--bp-space-3);
+  display: grid;
+  gap: 2px;
+}
+
+.bp-rail__item {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font-size: 0.8rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bp-rail__item:hover {
+  background: var(--bp-surface);
+  border-color: var(--bp-border);
+}
+
+.bp-rail__item--on {
+  background: var(--bp-surface);
+  border-color: var(--bp-border-strong);
+}
+
+.bp-rail__dot {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--bp-accent);
+}
+
+@media (max-width: 52rem) {
+  .bp-shell--railed {
+    grid-template-columns: 1fr;
+  }
+
+  .bp-rail {
+    position: static;
+    height: auto;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--bp-border);
+  }
+
+  .bp-rail__items {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
 
 .bp-linkbutton {
@@ -864,4 +1027,22 @@ a {
   margin: 0;
   color: var(--bp-text-muted);
   font-size: 0.8rem;
+}
+
+/* -- motion ---------------------------------------------------------------- */
+
+/*
+ * Anything that moves on its own stops when the reader has asked for that.
+ * Transitions on a deliberate action — a rail opening because a button was
+ * pressed — are left alone; it is unattended motion that causes trouble.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -61,46 +61,8 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   }
 
   return (
-    <Shell>
-      <p className="bp-crumb">
-        <a href="/">Projects</a>
-      </p>
-
-      <div className="bp-pagehead">
-        <h1>{slug}</h1>
-        <nav className="bp-tabs">
-          <a
-            href={`/p/${slug}/`}
-            className={`bp-tab${tab === "roadmap" ? " bp-tab--on" : ""}`}
-          >
-            Roadmap
-          </a>
-          <a
-            href={`/p/${slug}/views/`}
-            className={`bp-tab${tab === "views" ? " bp-tab--on" : ""}`}
-          >
-            Views
-          </a>
-          <a
-            href={`/p/${slug}/radar/`}
-            className={`bp-tab${tab === "radar" ? " bp-tab--on" : ""}`}
-          >
-            Radar
-          </a>
-          <a
-            href={`/p/${slug}/model/`}
-            className={`bp-tab${tab === "model" ? " bp-tab--on" : ""}`}
-          >
-            Model
-          </a>
-          <a
-            href={`/p/${slug}/blocks/`}
-            className={`bp-tab${tab === "blocks" ? " bp-tab--on" : ""}`}
-          >
-            Blocks
-          </a>
-        </nav>
-      </div>
+    <Shell project={{ slug, active: tab }}>
+      <h1>{slug}</h1>
 
       {error && (
         <p className="bp-error" role="alert">

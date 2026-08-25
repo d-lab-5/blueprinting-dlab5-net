@@ -5,6 +5,11 @@
  * everything is a CSS custom property on :root, component classes are
  * .bp-{component}__{part}--{modifier}, and the palette is dark-first.
  *
+ * Two themes. Dark is the default on :root; light is an override keyed on
+ * [data-bp-theme="light"], set on a wrapper element by Shell. Every token is
+ * defined in BOTH — a component must never read one that exists in only one
+ * theme, because the failure is invisible until someone toggles.
+ *
  * The layer colours are NOT free choices. They are the standard ArchiMate
  * pastels that Archi, the specification's own figures and every ArchiMate
  * reader already associate with each layer, so a Blockly block, a D2 node and
@@ -18,6 +23,9 @@
   --bp-bg-sunken: #020617;
   --bp-surface: #1e293b;
   --bp-surface-raised: #334155;
+  /* The rail sits deeper than a card so the content area reads as the
+     foreground. In light it is the opposite — white against a tinted page. */
+  --bp-rail: #0b1120;
   --bp-border: #334155;
   --bp-border-strong: #475569;
 
@@ -63,4 +71,40 @@
   --bp-radius: 0.5rem;
   --bp-radius-sm: 0.25rem;
   --bp-shadow: 0 10px 30px rgb(2 6 23 / 0.5);
+}
+
+/*
+ * Light theme.
+ *
+ * Values from the Claude Design handoff, which derived them from this file
+ * rather than the other way round — the dark palette above is what the design
+ * adopted verbatim.
+ *
+ * The ArchiMate layer pastels are deliberately NOT redefined. They are light
+ * by nature and paired with a dark `--ink`, so they read on either ground, and
+ * changing them per theme would break the one thing CLAUDE.md says must not
+ * be a free choice.
+ */
+[data-bp-theme="light"] {
+  --bp-bg: #f1f5f9;
+  --bp-bg-sunken: #f8fafc;
+  --bp-surface: #ffffff;
+  --bp-surface-raised: #f1f5f9;
+  --bp-rail: #ffffff;
+  --bp-border: #cbd5e1;
+  --bp-border-strong: #94a3b8;
+
+  --bp-text: #0f172a;
+  --bp-text-muted: #334155;
+  --bp-text-inverse: #ffffff;
+
+  /* Darkened from the dark-theme accents: #38bdf8 on white is about 1.9:1,
+     nowhere near the 4.5:1 that body text needs. */
+  --bp-accent: #0369a1;
+  --bp-accent-strong: #075985;
+  --bp-success: #15803d;
+  --bp-warning: #b45309;
+  --bp-danger: #b91c1c;
+
+  --bp-shadow: 0 10px 30px rgb(15 23 42 / 0.12);
 }
