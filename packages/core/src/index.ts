@@ -60,6 +60,16 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { toConstellation } from "./diagrams/constellation.js";
+export type {
+  Constellation,
+  ConstellationCluster,
+  ConstellationEdge,
+  ConstellationItem,
+  ConstellationNode,
+  ConstellationOptions,
+} from "./diagrams/constellation.js";
+
 export { toRadarLayout } from "./diagrams/radar-layout.js";
 export type {
   RadarBlip,

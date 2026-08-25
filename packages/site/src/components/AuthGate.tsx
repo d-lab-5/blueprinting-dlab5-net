@@ -1,4 +1,5 @@
 import * as React from "react";
+import { GuestLanding } from "./GuestLanding";
 import {
   confirmSignIn,
   fetchAuthSession,
@@ -96,9 +97,11 @@ function SignInForm({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
   }
 
   return (
-    <main className="bp-gate">
+    <GuestLanding>
       <form className="bp-gate__card" onSubmit={submit}>
-        <h1 className="bp-gate__title">D-LAB-5 Blueprinting</h1>
+        {/* h2, not h1: GuestLanding owns the page heading. A second h1 would
+            leave the page with no single subject. */}
+        <h2 className="bp-gate__title">Sign in</h2>
         <p className="bp-gate__subtitle">
           {needsNewPassword
             ? "Choose a new password to finish setting up your account."
@@ -151,12 +154,8 @@ function SignInForm({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
           {busy ? "Signing in…" : needsNewPassword ? "Set password" : "Sign in"}
         </button>
 
-        <p className="bp-gate__note">
-          Accounts are created by a platform administrator. There is no
-          self-service sign-up.
-        </p>
       </form>
-    </main>
+    </GuestLanding>
   );
 }
 

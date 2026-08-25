@@ -59,16 +59,130 @@ a {
   letter-spacing: -0.01em;
 }
 
-.bp-gate__subtitle,
-.bp-gate__note {
+.bp-gate__subtitle {
   margin: 0;
   color: var(--bp-text-muted);
   font-size: 0.875rem;
 }
 
-.bp-gate__note {
-  border-top: 1px solid var(--bp-border);
-  padding-top: var(--bp-space-4);
+/* -- the guest landing ---------------------------------------------------- */
+
+.bp-guest {
+  min-height: 100%;
+  display: grid;
+  /* Every row content-sized, and the whole block centred vertically. A 1fr
+     row for the figure stretches it and opens a gap between the drawing and
+     the sign-in card that reads as a rendering fault. */
+  grid-auto-rows: min-content;
+  justify-items: center;
+  align-content: center;
+  gap: var(--bp-space-6);
+  padding: var(--bp-space-8) var(--bp-space-6);
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.bp-guest__intro {
+  text-align: center;
+  display: grid;
+  gap: var(--bp-space-3);
+  max-width: 46rem;
+}
+
+.bp-guest__title {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.bp-guest__titleaccent {
+  color: var(--bp-accent);
+}
+
+.bp-guest__lede {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.bp-guest__figure {
+  margin: 0;
+  width: 100%;
+  display: grid;
+  gap: var(--bp-space-4);
+  justify-items: center;
+  min-height: 0;
+}
+
+.bp-guest__constellation {
+  width: 100%;
+  height: auto;
+  max-width: 46rem;
+  max-height: 17rem;
+  /* Decorative weight, not the subject of the page: the sign-in card has to
+     stay the brightest thing here. */
+  opacity: 0.72;
+}
+
+.bp-guest__halo {
+  fill: none;
+  stroke-dasharray: 3 7;
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.bp-guest__edges line {
+  stroke: var(--bp-border-strong);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.bp-guest__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bp-space-2) var(--bp-space-4);
+  font-size: 0.75rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-guest__legenditem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+}
+
+.bp-guest__swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 3px;
+  /* The pastels are pale by specification; without an outline they vanish
+     against the light theme's white surface. */
+  border: 1px solid var(--bp-border-strong);
+}
+
+.bp-guest__count {
+  color: var(--bp-text);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.bp-guest__foot {
+  margin: 0;
+  max-width: 34rem;
+  text-align: center;
+  color: var(--bp-text-muted);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 720px) {
+  /* The constellation is four clusters wide; below this it is a smear. The
+     legend still carries the layers, which is the part that means anything. */
+  .bp-guest__constellation {
+    display: none;
+  }
 }
 
 .bp-gate__error {

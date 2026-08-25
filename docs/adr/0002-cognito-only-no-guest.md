@@ -1,6 +1,6 @@
 # ADR-0002 — Cognito for everything, no guest tier, one gate
 
-- Status: accepted
+- Status: accepted, amended 2026-08-25 (see *Amendment* below)
 - Date: 2026-08-23
 
 ## Context
@@ -54,3 +54,36 @@ this one changes that one.
 Adding a user to a group does not change their existing tokens. The UI must
 call `fetchAuthSession({ forceRefresh: true })` after a group change, or the
 user will not see the new project until their token expires.
+
+## Amendment — 2026-08-25: a visitor sees a landing page, not a bare form
+
+WP11's design handoff replaces the sign-in form on an empty background with a
+landing page: a heading, a sentence about what the platform is, a drawing of
+the ArchiMate metamodel, and the sign-in card within it.
+
+**This amends the presentation, not the access control.** Everything this ADR
+decided about who may reach what is unchanged, and deliberately so:
+
+- `allowUnauthenticatedIdentities` stays `false`. There is still no guest
+  identity, no demo pool, and no anonymous credential of any kind.
+- Self-signup stays closed. Accounts are still created by an administrator.
+- There is still one gate wrapping every page, and it still renders the
+  landing page for *every* route rather than only for `/`. A visitor typing
+  `/p/<slug>/` sees the landing page, not that project.
+- **No data is fetched before sign-in.** The constellation on the landing page
+  is drawn from `@dlab5/archimate-metamodel`, which is compiled into the
+  bundle. It is the published ArchiMate 3.2 specification — sixty element
+  types and the relationships Appendix B permits between them — and it is
+  identical for every visitor. It reveals no project, no element, no name.
+
+The original wording, *"No guest, landing page is login"*, was a decision about
+access. Reading it as a decision that a visitor must be shown nothing but a
+password box reads more into it than it says, and cost the product the one page
+that can explain what it is. The three-state `loading | demo | authenticated`
+session this ADR rejected is still rejected: there is no `demo` state, no
+demo data, and `AuthGate` still has exactly the states it had before.
+
+What did change in the code: `SignInForm` no longer owns the page. It renders
+inside `GuestLanding`, its `<h1>` became an `<h2>` so the page keeps a single
+heading, and its provisioning note moved to the landing page's footer where it
+is stated once.

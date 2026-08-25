@@ -239,7 +239,9 @@ async function visit(
   for (let attempt = 0; attempt < 40; attempt++) {
     const { result } = await cdp.send(
       "Runtime.evaluate",
-      { expression: `!!document.querySelector(".bp-gate, .bp-shell")`, returnByValue: true },
+      { expression: `!!document.querySelector(".bp-guest, .bp-shell, .bp-unconfigured")`,
+          returnByValue: true,
+        },
       sessionId
     );
     if (result.value) break;
@@ -313,7 +315,14 @@ const PROBE = `
     theme: document.documentElement.getAttribute("data-bp-theme"),
     bodyBackground: style(document.body, "background-color"),
     bodyColor: style(document.body, "color"),
-    hasGate: !!document.querySelector(".bp-gate"),
+    // The card, not the frame: the pre-hydration placeholder carries
+    // .bp-gate too, so matching that would pass before React ran.
+    hasSignIn: !!document.querySelector(".bp-gate__card"),
+    hasGuestLanding: !!document.querySelector(".bp-guest"),
+    constellationLayers: document.querySelectorAll(".bp-guest__legenditem").length,
+    constellationNodes: document.querySelectorAll(
+      ".bp-guest__constellation circle:not(.bp-guest__halo)"
+    ).length,
     hasShell: !!document.querySelector(".bp-shell"),
     railItems: document.querySelectorAll(".bp-rail__item").length,
     railPosition: style(rail, "position"),
@@ -398,7 +407,7 @@ async function signedIn(cdp) {
     const isProject = route.path !== "/";
 
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
-    check(!value.hasGate, `${route.name}: the gate is gone`);
+    check(!value.hasSignIn, `${route.name}: the sign-in form is gone`);
     check(
       isProject ? value.railItems === 5 : value.railItems === 0,
       `${route.name}: ${isProject ? "five rail entries" : "no rail outside a project"}`,
@@ -472,7 +481,8 @@ const main = async () => {
     });
 
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
-    check(value.hasGate, `${route.name}: renders the sign-in gate`);
+    check(value.hasSignIn, `${route.name}: renders the sign-in form`);
+    check(value.hasGuestLanding, `${route.name}: renders the guest landing`);
     check(
       value.railItems === 0 && !value.hasShell,
       `${route.name}: no shell or rail before sign-in`,
@@ -499,6 +509,18 @@ const main = async () => {
       failedRequests.slice(0, 2).join(" | ")
     );
   }
+
+  const landing = await visit(cdp, "/", { evaluate: PROBE, shot: "guest-landing.png" });
+  check(
+    landing.value.constellationLayers >= 4,
+    "the guest landing legends every populated ArchiMate layer",
+    `${landing.value.constellationLayers} layers`
+  );
+  check(
+    landing.value.constellationNodes === 60,
+    "the constellation draws all 60 element types",
+    `${landing.value.constellationNodes} nodes`
+  );
 
   console.log("\nthemes");
   const dark = await visit(cdp, "/", {
@@ -539,7 +561,7 @@ const main = async () => {
     shot: "mobile-roadmap.png",
   });
   check(mobile.value.h1s === 1, "mobile: exactly one <h1>", `found ${mobile.value.h1s}`);
-  check(mobile.value.hasGate, "mobile: the gate renders at 390px");
+  check(mobile.value.hasSignIn, "mobile: the sign-in form renders at 390px");
   check(
     mobile.consoleErrors.length === 0,
     "mobile: console clean",
