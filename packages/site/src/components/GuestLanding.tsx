@@ -88,87 +88,186 @@ const layerFill = (layer: string) => `var(--bp-layer-${layer}, var(--bp-accent))
 /** Outlines and dots: the pastel on dark, the ink on white. */
 const layerLine = (layer: string) => `var(--bp-layer-${layer}-line, var(--bp-accent))`;
 
+/** The screens a signed-in user gets, shown locked so a visitor can see them. */
+const LOCKED = [
+  "Roadmap",
+  "Views",
+  "Radar",
+  "Domains",
+  "Blueprint",
+  "Teams",
+  "Blocks",
+];
+
+const Padlock = () => (
+  <svg
+    className="bp-rail__lock"
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <rect x="4" y="11" width="16" height="9" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </svg>
+);
+
 export function GuestLanding({ children }: { children: React.ReactNode }) {
   return (
-    <main className="bp-guest">
-      <div className="bp-guest__intro">
-        <h1 className="bp-guest__title">
-          D-LAB-5 <span className="bp-guest__titleaccent">Blueprinting</span>
-        </h1>
-        <p className="bp-guest__lede">
-          Engineering governance over one ArchiMate 3.2 semantic model. Technical
-          state, architecture structure and tactical roadmaps read from the same
-          elements, so there are no duplicate diagrams to keep in step.
-        </p>
-      </div>
+    <div className="bp-shell bp-shell--railed bp-shell--guest">
+      <nav className="bp-rail" aria-label="Sign in">
+        <span className="bp-rail__brand bp-rail__brand--static">
+          <span className="bp-mark" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeWidth="2"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 7h7v7H3z" />
+              <path d="M14 10h7v7h-7z" />
+              <path d="M10 10h4" />
+            </svg>
+          </span>
+          <span>
+            blueprinting<span className="bp-rail__brandaccent">.dlab5</span>
+          </span>
+        </span>
 
-      <figure className="bp-guest__figure">
-        <svg
-          className="bp-guest__constellation"
-          viewBox={`0 0 ${CONSTELLATION.width} ${CONSTELLATION.height}`}
-          role="img"
-          aria-label={`The ArchiMate 3.2 metamodel: ${ITEMS.length} element types across ${CONSTELLATION.clusters.length} layers`}
-        >
-          {/* Edges first so nodes sit above them. */}
-          <g className="bp-guest__edges">
-            {CONSTELLATION.edges.map((edge) => (
-              <line
-                key={`${edge.from}-${edge.to}`}
-                x1={edge.x1}
-                y1={edge.y1}
-                x2={edge.x2}
-                y2={edge.y2}
-              />
+        <div className="bp-rail__section">
+          <h2 className="bp-rail__sectionlabel">Access</h2>
+          {children}
+          <p className="bp-rail__note">
+            Accounts are provisioned by the D-LAB-5 admin. There is no
+            self-service sign-up and no anonymous access.
+          </p>
+        </div>
+
+        <div className="bp-rail__section">
+          <h2 className="bp-rail__sectionlabel">Locked</h2>
+          {/* Listed, not linked. A visitor can see what the platform holds
+              without any of it being reachable — these are spans, so there is
+              nothing for a keyboard or a screen reader to try to activate. */}
+          <ul className="bp-rail__items">
+            {LOCKED.map((label) => (
+              <li key={label}>
+                <span className="bp-rail__item bp-rail__item--locked">
+                  {label}
+                  <Padlock />
+                </span>
+              </li>
             ))}
-          </g>
+          </ul>
+        </div>
+      </nav>
 
-          {CONSTELLATION.clusters.map((cluster) => (
-            <g key={cluster.group}>
-              <circle
-                className="bp-guest__halo"
-                cx={cluster.cx}
-                cy={cluster.cy}
-                r={cluster.radius}
-                stroke={layerLine(cluster.group)}
-              />
-              {cluster.nodes.map((node) => (
-                <circle
-                  key={node.id}
-                  cx={node.x}
-                  cy={node.y}
-                  r={node.r}
-                  fill={layerLine(cluster.group)}
-                >
-                  {/* A tooltip rather than a label: sixty labels at this scale
-                      would be unreadable, and the name is still reachable. */}
-                  <title>{ELEMENTS[node.id as ElementTypeId].label}</title>
-                </circle>
-              ))}
-            </g>
-          ))}
-        </svg>
+      <div className="bp-shell__body">
+        <header className="bp-shell__header">
+          <span className="bp-shell__title">Blueprinting</span>
+          <span className="bp-shell__meta">/ internal · admin-provisioned</span>
+          <span className="bp-shell__spacer" />
+          <span className="bp-badge">Guest</span>
+        </header>
 
-        <figcaption className="bp-guest__legend">
-          {CONSTELLATION.clusters.map((cluster) => (
-            <span key={cluster.group} className="bp-guest__legenditem">
-              <span
-                className="bp-guest__swatch"
-                style={{ background: layerFill(cluster.group) }}
-                aria-hidden="true"
-              />
-              {cluster.label}
-              <span className="bp-guest__count">{cluster.nodes.length}</span>
+        <main className="bp-shell__main bp-guest">
+          <h1 className="bp-guest__title">
+            <span className="bp-guest__titlelead">
+              Welcome to{" "}
+              <span className="bp-guest__titleaccent">blueprinting.dlab5.net</span>
             </span>
-          ))}
-        </figcaption>
-      </figure>
+            <span className="bp-guest__titlerest">
+              D-LAB-5&rsquo;s digital twin engineering and lifecycle tool for
+              Digital products and platforms.
+            </span>
+          </h1>
 
-      {children}
+          <figure className="bp-guest__figure">
+            <svg
+              className="bp-guest__constellation"
+              viewBox={`0 0 ${CONSTELLATION.width} ${CONSTELLATION.height}`}
+              role="img"
+              aria-label={`The ArchiMate 3.2 metamodel: ${ITEMS.length} element types across ${CONSTELLATION.clusters.length} layers`}
+            >
+              <defs>
+                {/* The scanner: a soft vertical band that sweeps the drawing,
+                    picking out one column of the metamodel at a time. */}
+                <linearGradient id="bp-scan" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="var(--bp-accent)" stopOpacity="0" />
+                  <stop offset="45%" stopColor="var(--bp-accent)" stopOpacity="0.32" />
+                  <stop offset="62%" stopColor="var(--bp-accent)" stopOpacity="0.95" />
+                  <stop offset="70%" stopColor="var(--bp-accent)" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="var(--bp-accent)" stopOpacity="0" />
+                </linearGradient>
+              </defs>
 
-      <p className="bp-guest__foot">
-        Access is granted per project by a platform administrator. There is no
-        self-service sign-up and no anonymous access.
-      </p>
-    </main>
+              <g className="bp-guest__edges">
+                {CONSTELLATION.edges.map((edge) => (
+                  <line
+                    key={`${edge.from}-${edge.to}`}
+                    x1={edge.x1}
+                    y1={edge.y1}
+                    x2={edge.x2}
+                    y2={edge.y2}
+                  />
+                ))}
+              </g>
+
+              {CONSTELLATION.clusters.map((cluster) => (
+                <g key={cluster.group}>
+                  <circle
+                    className="bp-guest__halo"
+                    cx={cluster.cx}
+                    cy={cluster.cy}
+                    r={cluster.radius}
+                    stroke={layerLine(cluster.group)}
+                  />
+                  {cluster.nodes.map((node) => (
+                    <circle
+                      key={node.id}
+                      cx={node.x}
+                      cy={node.y}
+                      r={node.r}
+                      fill={layerLine(cluster.group)}
+                    >
+                      <title>{ELEMENTS[node.id as ElementTypeId].label}</title>
+                    </circle>
+                  ))}
+                </g>
+              ))}
+
+              <rect
+                className="bp-guest__scanner"
+                x={0}
+                y={0}
+                width={CONSTELLATION.width / 4}
+                height={CONSTELLATION.height}
+                fill="url(#bp-scan)"
+              />
+            </svg>
+
+            <figcaption className="bp-guest__legend">
+              {CONSTELLATION.clusters.map((cluster) => (
+                <span key={cluster.group} className="bp-guest__legenditem">
+                  <span
+                    className="bp-guest__swatch"
+                    style={{ background: layerFill(cluster.group) }}
+                    aria-hidden="true"
+                  />
+                  {cluster.label}
+                  <span className="bp-guest__count">{cluster.nodes.length}</span>
+                </span>
+              ))}
+            </figcaption>
+          </figure>
+        </main>
+      </div>
+    </div>
   );
 }

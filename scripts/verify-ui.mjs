@@ -398,7 +398,13 @@ const PROBE = `
       ".bp-guest__constellation circle:not(.bp-guest__halo)"
     ).length,
     hasShell: !!document.querySelector(".bp-shell"),
-    railItems: document.querySelectorAll(".bp-rail__item").length,
+    // Scoped to the workspace list. A bare .bp-rail__item also matches the
+    // guest's locked entries and the account links.
+    railItems: document.querySelectorAll(
+      ".bp-rail__items--workspace .bp-rail__item"
+    ).length,
+    lockedItems: document.querySelectorAll(".bp-rail__item--locked").length,
+    isGuestShell: !!document.querySelector(".bp-shell--guest"),
     railPosition: style(rail, "position"),
     // Proof the screen drew something from the model rather than an empty
     // frame: any of the real views, or a deliberate empty state.
@@ -423,6 +429,14 @@ const PROBE = `
 
 /** Roadmap, Views, Radar, Domains, Blueprint, Teams, Blocks. */
 const RAIL_ITEMS = 7;
+
+/**
+ * What proves a session exists.
+ *
+ * Not `.bp-shell`: the guest landing is a shell too now, with its own rail,
+ * so waiting on that would pass on a signed-out page.
+ */
+const SIGNED_IN = ".bp-shell:not(.bp-shell--guest)";
 
 const ROUTES = [
   { path: "/", name: "projects list" },
@@ -491,7 +505,7 @@ async function ganttImport(cdp) {
   let result;
   try {
     result = await visit(cdp, "/p/dlab5-blueprint/", {
-      awaitSelector: ".bp-shell",
+      awaitSelector: SIGNED_IN,
       awaitGone: "Loading model",
       then: paste,
       evaluate: READ,
@@ -588,7 +602,7 @@ async function focusView(cdp) {
   let base;
   try {
     base = await visit(cdp, "/p/dlab5-blueprint/views/", {
-      awaitSelector: ".bp-shell",
+      awaitSelector: SIGNED_IN,
       awaitGone: "Loading model",
       // D2 compiles through WASM in a worker; it is far slower than a React
       // render and the page says "Rendering…" until it lands.
@@ -628,7 +642,7 @@ async function focusView(cdp) {
     let result;
     try {
       result = await visit(cdp, "/p/dlab5-blueprint/views/", {
-        awaitSelector: ".bp-shell",
+        awaitSelector: SIGNED_IN,
         awaitGone: "Loading model",
         then: centre(1, hops),
         evaluate: READ,
@@ -729,7 +743,7 @@ async function editor(cdp) {
     let result;
     try {
       result = await visit(cdp, "/p/dlab5-blueprint/", {
-        awaitSelector: ".bp-shell",
+        awaitSelector: SIGNED_IN,
         awaitGone: "Loading model",
         then: select(type),
         evaluate: PROBE_FORM,
@@ -783,7 +797,7 @@ async function editor(cdp) {
   // of them and require at least one real derived date, or the derivation
   // could be returning nothing and every assertion above would still pass.
   const walk = await visit(cdp, "/p/dlab5-blueprint/", {
-    awaitSelector: ".bp-shell",
+    awaitSelector: SIGNED_IN,
     awaitGone: "Loading model",
     then:
       "(async () => { window.__derived = [];" +
@@ -865,7 +879,7 @@ async function signedIn(cdp) {
   try {
     established = await visit(cdp, "/", {
       act: fill,
-      awaitSelector: ".bp-shell",
+      awaitSelector: SIGNED_IN,
       evaluate: PROBE,
       shot: "in_root.png",
     });
@@ -880,7 +894,15 @@ async function signedIn(cdp) {
 
   check(established.value.h1s === 1, "projects list: exactly one <h1>");
   check(!established.value.hasSignIn, "projects list: the sign-in form is gone");
-  check(established.value.railItems === 0, "projects list: no rail outside a project");
+  check(
+    !established.value.isGuestShell,
+    "projects list: the guest shell is gone"
+  );
+  check(
+    established.value.railItems === 0,
+    "projects list: no workspace navigation outside a project",
+    `${established.value.railItems} items`
+  );
 
   for (const route of ROUTES.slice(1)) {
     const shot = `in${route.path.replace(/[^a-z0-9]+/gi, "_") || "_root"}.png`;
@@ -888,7 +910,7 @@ async function signedIn(cdp) {
     try {
       // No `act`: the session is already in localStorage for this origin.
       result = await visit(cdp, route.path, {
-        awaitSelector: ".bp-shell",
+        awaitSelector: SIGNED_IN,
         awaitGone: "Loading model",
         evaluate: PROBE,
         shot,
@@ -942,7 +964,7 @@ async function signedIn(cdp) {
     const mobile = await visit(cdp, "/p/dlab5-blueprint/", {
       width: 390,
       height: 844,
-      awaitSelector: ".bp-shell",
+      awaitSelector: SIGNED_IN,
       awaitGone: "Loading model",
       evaluate: PROBE,
       shot: "in_mobile.png",
@@ -986,9 +1008,18 @@ const main = async () => {
     check(value.hasSignIn, `${route.name}: renders the sign-in form`);
     check(value.hasGuestLanding, `${route.name}: renders the guest landing`);
     check(
-      value.railItems === 0 && !value.hasShell,
-      `${route.name}: no shell or rail before sign-in`,
-      `${value.railItems} rail items`
+      value.isGuestShell,
+      `${route.name}: renders the guest shell, not the app`
+    );
+    check(
+      value.railItems === 0,
+      `${route.name}: no workspace navigation before sign-in`,
+      `${value.railItems} workspace items`
+    );
+    check(
+      value.lockedItems === RAIL_ITEMS,
+      `${route.name}: every screen is listed as locked`,
+      `${value.lockedItems} locked, expected ${RAIL_ITEMS}`
     );
     check(
       value.clickableNonControls === 0,

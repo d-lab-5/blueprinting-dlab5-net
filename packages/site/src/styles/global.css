@@ -68,32 +68,38 @@ a {
 /* -- the guest landing ---------------------------------------------------- */
 
 .bp-guest {
-  min-height: 100%;
   display: grid;
-  /* Every row content-sized, and the whole block centred vertically. A 1fr
-     row for the figure stretches it and opens a gap between the drawing and
-     the sign-in card that reads as a rendering fault. */
-  grid-auto-rows: min-content;
-  justify-items: center;
-  align-content: center;
+  /* The welcome sits at the top; the constellation takes the rest of the
+     height rather than leaving the lower half of the page empty. */
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
   gap: var(--bp-space-6);
-  padding: var(--bp-space-8) var(--bp-space-6);
-  max-width: 64rem;
-  margin: 0 auto;
-}
-
-.bp-guest__intro {
-  text-align: center;
-  display: grid;
-  gap: var(--bp-space-3);
-  max-width: 46rem;
+  min-height: 100%;
 }
 
 .bp-guest__title {
   margin: 0;
-  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  max-width: 48rem;
+  display: grid;
+  gap: var(--bp-space-2);
+  /* A welcome, not a billboard — but the name of the thing still leads, so the
+     two halves are sized differently rather than run together as one long
+     line that starts nowhere. */
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.bp-guest__titlelead {
+  font-size: clamp(1.375rem, 1.1rem + 1.2vw, 2rem);
+  font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 1.15;
+}
+
+.bp-guest__titlerest {
+  font-size: clamp(0.9375rem, 0.9rem + 0.25vw, 1.0625rem);
+  line-height: 1.6;
+  color: var(--bp-text-muted);
 }
 
 .bp-guest__titleaccent {
@@ -111,16 +117,22 @@ a {
   margin: 0;
   width: 100%;
   display: grid;
+  /* Both rows content-sized, and the pair centred in whatever height is left.
+     A 1fr row for the drawing pushed the legend to the very bottom of the
+     page, a long way from the thing it labels. */
+  grid-template-rows: auto auto;
   gap: var(--bp-space-4);
   justify-items: center;
+  align-content: center;
   min-height: 0;
+  position: relative;
 }
 
 .bp-guest__constellation {
   width: 100%;
   height: auto;
-  max-width: 46rem;
-  max-height: 17rem;
+  max-width: 72rem;
+  max-height: 30rem;
   /* Decorative weight, not the subject of the page: the sign-in card has to
      stay the brightest thing here. */
   opacity: 0.72;
@@ -137,6 +149,30 @@ a {
   stroke: var(--bp-border-strong);
   stroke-width: 1;
   opacity: 0.55;
+}
+
+/* The scanner sweeps the metamodel, one column at a time. Decorative, and the
+   first thing to go when someone has asked for less motion. */
+.bp-guest__scanner {
+  animation: bp-scan 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bp-scan {
+  0% {
+    transform: translateX(-14%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 .bp-guest__legend {
@@ -182,6 +218,16 @@ a {
      legend still carries the layers, which is the part that means anything. */
   .bp-guest__constellation {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-guest__scanner {
+    animation: none;
+    /* Parked mid-drawing rather than hidden: it is part of the picture, and
+       removing it entirely leaves an empty band where a reader expects one. */
+    transform: translateX(180%);
+    opacity: 0.5;
   }
 }
 
@@ -1544,4 +1590,291 @@ a {
 
 .bp-import .bp-button {
   justify-self: start;
+}
+
+/* -- rail sections, appearance and account -------------------------------- */
+
+.bp-rail__section {
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.bp-rail__sectionlabel {
+  margin: 0;
+  padding: 0 var(--bp-space-4);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__note,
+.bp-rail__who,
+.bp-rail__empty {
+  margin: 0;
+  padding: 0 var(--bp-space-4);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__who {
+  overflow-wrap: anywhere;
+}
+
+/* A rail entry that is a button must not inherit the browser's button look. */
+.bp-rail__item--button {
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+/* Locked entries are spans: visible, and deliberately not focusable. */
+.bp-rail__item--locked {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bp-rail__lock {
+  margin-left: auto;
+  flex: none;
+}
+
+.bp-rail__brand--static {
+  cursor: default;
+}
+
+/* -- the appearance segmented control ------------------------------------- */
+
+.bp-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 0 var(--bp-space-3);
+  padding: 2px;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-bg-sunken);
+}
+
+.bp-seg__option {
+  border: none;
+  border-radius: calc(var(--bp-radius-sm) - 2px);
+  background: none;
+  color: var(--bp-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--bp-space-2) 0;
+  cursor: pointer;
+}
+
+.bp-seg__option--on {
+  background: var(--bp-surface-raised);
+  color: var(--bp-text);
+}
+
+/* -- header title, meta and the guest badge -------------------------------- */
+
+.bp-shell__title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.bp-shell__meta {
+  color: var(--bp-text-muted);
+  font-size: 0.75rem;
+}
+
+.bp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+}
+
+.bp-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* -- the guest shell ------------------------------------------------------- */
+
+/* Wider than the signed-in rail: this one holds a real form with two fields,
+   not a list of links. */
+.bp-shell--guest .bp-rail {
+  width: 280px;
+}
+
+/* The sign-in form sits inside the rail, so it drops the card treatment it
+   had when it owned the page. */
+.bp-shell--guest .bp-gate__card {
+  max-width: none;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0 var(--bp-space-4);
+  gap: var(--bp-space-3);
+}
+
+.bp-shell--guest .bp-gate__title {
+  font-size: 0.9375rem;
+}
+
+.bp-shell--guest .bp-gate__subtitle {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .bp-shell--guest .bp-rail {
+    width: 100%;
+  }
+}
+
+/* -- the signed-in home ---------------------------------------------------- */
+
+.bp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+  gap: var(--bp-space-6);
+  align-items: center;
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-hero__copy {
+  display: grid;
+  gap: var(--bp-space-4);
+  align-content: start;
+  max-width: 40rem;
+}
+
+.bp-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+}
+
+.bp-hero__eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.bp-hero__title {
+  margin: 0;
+  font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.bp-hero__titleaccent {
+  color: var(--bp-accent);
+}
+
+.bp-hero__lede {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--bp-text-muted);
+  line-height: 1.65;
+}
+
+.bp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-3);
+}
+
+.bp-button--ghost {
+  background: none;
+  color: var(--bp-text);
+  border: 1px solid var(--bp-border-strong);
+}
+
+.bp-button--ghost:hover {
+  background: var(--bp-surface);
+  border-color: var(--bp-text-muted);
+}
+
+.bp-hero__art {
+  width: 100%;
+  height: auto;
+  max-height: 13rem;
+  justify-self: end;
+  opacity: 0.9;
+}
+
+.bp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  overflow: hidden;
+}
+
+.bp-stat {
+  flex: 1 1 8rem;
+  padding: var(--bp-space-3) var(--bp-space-4);
+  border-right: 1px solid var(--bp-border);
+}
+
+.bp-stat:last-child {
+  border-right: 0;
+}
+
+.bp-stat dt {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.bp-stat dd {
+  margin: 3px 0 0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+}
+
+.bp-cards__heading {
+  margin: 0 0 var(--bp-space-4);
+  scroll-margin-top: var(--bp-space-6);
+}
+
+@media (max-width: 900px) {
+  .bp-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--bp-space-5);
+  }
+
+  /* The hexagon is decoration; at this width the copy needs the room. */
+  .bp-hero__art {
+    display: none;
+  }
 }

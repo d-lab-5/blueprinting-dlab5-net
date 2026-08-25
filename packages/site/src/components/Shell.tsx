@@ -139,23 +139,16 @@ function Mark() {
   );
 }
 
-function ThemeToggle() {
-  const [theme, toggle] = useTheme();
-  return (
-    <button
-      type="button"
-      className="bp-linkbutton bp-shell__theme"
-      onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      title={theme === "dark" ? "Light theme" : "Dark theme"}
-    >
-      {theme === "dark" ? "☀" : "☾"}
-    </button>
-  );
-}
 
-/** The switcher at the head of the rail. Loads lazily; the rail works without it. */
-function ProjectSwitcher({ slug }: { slug: string }) {
+/**
+ * Choosing a project.
+ *
+ * A select rather than a list of links: the number of projects is unbounded —
+ * a rail listing forty of them scrolls the appearance and account sections off
+ * the bottom, and the rail stops being navigation. It carries the current
+ * project inside one, and starts unselected at the launcher.
+ */
+function ProjectSwitcher({ slug }: { slug?: string }) {
   const [projects, setProjects] = React.useState<Project[] | null>(null);
 
   React.useEffect(() => {
@@ -164,24 +157,39 @@ function ProjectSwitcher({ slug }: { slug: string }) {
       .catch(() => setProjects([]));
   }, []);
 
+  const empty = projects !== null && projects.length === 0;
+
   return (
     <div className="bp-rail__switcher">
       <label className="bp-rail__switcherlabel" htmlFor="bp-project">
-        Project
+        {slug ? "Project" : "Open a project"}
       </label>
       <select
         id="bp-project"
-        value={slug}
+        value={slug ?? ""}
+        disabled={empty}
         onChange={(e) => {
+          if (!e.target.value) return;
           // A full navigation rather than client routing: every screen reloads
           // its model from the new project anyway, and this keeps the URL and
           // the rail in step without a router dependency.
           window.location.assign(`/p/${e.target.value}/`);
         }}
       >
+        {/* At the launcher nothing is open yet, so the control needs a resting
+            state that is not a project. */}
+        {!slug && (
+          <option value="">
+            {projects === null
+              ? "Loading…"
+              : empty
+                ? "No projects yet"
+                : `Choose one of ${projects.length}…`}
+          </option>
+        )}
         {/* The current project is always an option, even before the list
             arrives, so the control never renders empty or wrong. */}
-        {!projects?.some((p) => p.slug === slug) && (
+        {slug && !projects?.some((p) => p.slug === slug) && (
           <option value={slug}>{slug}</option>
         )}
         {projects?.map((p) => (
@@ -194,9 +202,47 @@ function ProjectSwitcher({ slug }: { slug: string }) {
   );
 }
 
+/** A labelled group of rail entries, as the design has them. */
+function RailSection({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bp-rail__section">
+      <h2 className="bp-rail__sectionlabel">{label}</h2>
+      {children}
+    </div>
+  );
+}
+
+/** Dark/light as a segmented pair rather than one ambiguous icon button. */
+function ThemeSegments() {
+  const [theme, toggle] = useTheme();
+  return (
+    <div className="bp-seg" role="group" aria-label="Appearance">
+      {(["dark", "light"] as const).map((value) => (
+        <button
+          key={value}
+          type="button"
+          className={`bp-seg__option${theme === value ? " bp-seg__option--on" : ""}`}
+          aria-pressed={theme === value}
+          onClick={() => {
+            if (theme !== value) toggle();
+          }}
+        >
+          {value === "dark" ? "☾" : "☀"} {value}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 interface ShellProps {
   children: React.ReactNode;
-  /** Present inside a project; absent at `/`, where there is no rail. */
+  /** Present inside a project; absent at `/`, which is the launcher. */
   project?: { slug: string; active: string };
 }
 
@@ -207,75 +253,111 @@ export function Shell({ children, project }: ShellProps) {
   const items = project ? railItems(project.slug) : [];
 
   return (
-    <div className={`bp-shell${project ? " bp-shell--railed" : ""}`}>
-      {project && (
-        <nav
-          className={`bp-rail${railOpen ? "" : " bp-rail--closed"}`}
-          aria-label="Project views"
-        >
-          <Link className="bp-rail__brand" to="/">
-            <Mark />
-            <span>
-              blueprinting<span className="bp-rail__brandaccent">.dlab5</span>
-            </span>
-          </Link>
+    <div className="bp-shell bp-shell--railed">
+      <nav
+        className={`bp-rail${railOpen ? "" : " bp-rail--closed"}`}
+        aria-label={project ? "Project views" : "Workspace"}
+      >
+        <Link className="bp-rail__brand" to="/">
+          <Mark />
+          <span>
+            blueprinting<span className="bp-rail__brandaccent">.dlab5</span>
+          </span>
+        </Link>
 
-          <ProjectSwitcher slug={project.slug} />
+        {project ? (
+          <>
+            <ProjectSwitcher slug={project.slug} />
+            <RailSection label="Workspace">
+              <ul className="bp-rail__items bp-rail__items--workspace">
+                {items.map((item) => (
+                  <li key={item.key}>
+                    <a
+                      href={item.href}
+                      className={`bp-rail__item${
+                        item.key === project.active ? " bp-rail__item--on" : ""
+                      }`}
+                      aria-current={item.key === project.active ? "page" : undefined}
+                    >
+                      {item.icon}
+                      {item.label}
+                      {item.key === project.active && (
+                        <span className="bp-rail__dot" aria-hidden="true" />
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </RailSection>
+          </>
+        ) : (
+          // At the launcher the rail lists projects rather than views. The
+          // views all act on a project, so showing them here would be six
+          // controls that cannot do anything until one is chosen.
+          // The switcher carries its own label, so wrapping it in a section
+          // would stack "Projects" above "Open a project" saying one thing
+          // twice.
+          <ProjectSwitcher />
+        )}
 
+        <RailSection label="Appearance">
+          <ThemeSegments />
+        </RailSection>
+
+        <RailSection label="Account">
           <ul className="bp-rail__items">
-            {items.map((item) => (
-              <li key={item.key}>
-                <a
-                  href={item.href}
-                  className={`bp-rail__item${
-                    item.key === project.active ? " bp-rail__item--on" : ""
-                  }`}
-                  aria-current={item.key === project.active ? "page" : undefined}
-                >
-                  {item.icon}
-                  {item.label}
-                  {item.key === project.active && (
-                    <span className="bp-rail__dot" aria-hidden="true" />
-                  )}
-                </a>
-              </li>
-            ))}
+            <li>
+              <a
+                className="bp-rail__item"
+                href="https://github.com/d-lab-5/blueprinting-dlab5-net"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {icon(
+                  <path d="M9 19c-4 1.5-4-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.4.4-.5.9-.5 1.5V21" />
+                )}
+                Source
+              </a>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="bp-rail__item bp-rail__item--button"
+                onClick={() => void signOutAndReload()}
+              >
+                {icon(
+                  <>
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <path d="M14 17l5-5-5-5M19 12H9" />
+                  </>
+                )}
+                Sign out
+              </button>
+            </li>
           </ul>
-        </nav>
-      )}
+          <p className="bp-rail__who">
+            {session.email ?? session.username}
+            {session.isAdmin ? " · admin" : ""}
+          </p>
+        </RailSection>
+      </nav>
 
       <div className="bp-shell__body">
         <header className="bp-shell__header">
-          {project ? (
-            <button
-              type="button"
-              className="bp-linkbutton bp-shell__railtoggle"
-              onClick={() => setRailOpen((open) => !open)}
-              aria-label={railOpen ? "Hide menu" : "Show menu"}
-              aria-expanded={railOpen}
-            >
-              ☰
-            </button>
-          ) : (
-            <Link className="bp-shell__brand" to="/">
-              <Mark />
-              D-LAB-5 Blueprinting
-            </Link>
-          )}
-
-          <span className="bp-shell__spacer" />
-          <ThemeToggle />
-          <span className="bp-shell__user">
-            {session.email ?? session.username}
-            {session.isAdmin ? " · admin" : ""}
-          </span>
           <button
-            className="bp-linkbutton"
             type="button"
-            onClick={() => void signOutAndReload()}
+            className="bp-linkbutton bp-shell__railtoggle"
+            onClick={() => setRailOpen((open) => !open)}
+            aria-label={railOpen ? "Hide menu" : "Show menu"}
+            aria-expanded={railOpen}
           >
-            Sign out
+            ☰
           </button>
+          <span className="bp-shell__title">
+            {project ? project.slug : "Blueprinting"}
+          </span>
+          <span className="bp-shell__meta">/ internal · admin-provisioned</span>
+          <span className="bp-shell__spacer" />
         </header>
 
         <main className="bp-shell__main">{children}</main>

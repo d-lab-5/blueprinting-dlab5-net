@@ -145,6 +145,18 @@ These are things that will bite. Each is load-bearing and has cost someone time.
     hand-written for that reason and must be kept in step with
     `data/resource.ts` by hand. Check with:
     `npx tsc --noEmit -p packages/site/tsconfig.json --listFiles | grep -c '@aws-amplify/backend/'` — must be 0.
+14. **A change to `global.css` needs a clean build to appear.** `npm run build`
+    reuses the cached stylesheet and emits the *identical* content hash, so the
+    page renders with the old CSS and the edit looks like it did nothing. This
+    has cost time twice. Before building after a stylesheet change:
+
+    ```bash
+    rm -rf packages/site/.cache packages/site/public && npm run build
+    ```
+
+    Confirm the change actually shipped rather than trusting the build:
+    `grep -ro "bp-your-class{[^}]*}" packages/site/public/*.css`. More than one
+    `styles.*.css` in `public/` is the symptom.
 
 ## House conventions
 
