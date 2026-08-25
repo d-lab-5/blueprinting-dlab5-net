@@ -1,13 +1,16 @@
 import * as React from "react";
 import type { AbModel } from "@dlab5/blueprint-core";
+import { GANTT_TOKENS, token } from "../lib/gantt-palette";
 
 /**
  * A legend for the roadmap.
  *
- * The swatch colours are Mermaid's own dark-theme gantt fills, read out of a
- * rendered diagram rather than guessed. A legend whose colours do not match
- * the chart is worse than no legend, so if the Mermaid theme changes these
- * have to change with it — hence the note beside each value.
+ * The swatch colours come from src/lib/gantt-palette.ts, which is also what
+ * configures Mermaid. They used to be Mermaid's own dark-theme fills copied in
+ * as hex, with a note asking whoever changed the theme to change them too —
+ * and then the light theme arrived and they were wrong in one theme out of
+ * two. A legend whose colours do not match the chart is worse than no legend,
+ * so now neither side owns the palette and they cannot drift.
  *
  * Entries are derived from the model, not fixed. A roadmap with nothing at
  * risk should not have a red "at risk" swatch inviting the reader to hunt for
@@ -18,7 +21,7 @@ interface Entry {
   key: string;
   label: string;
   meaning: string;
-  /** Mermaid dark-theme gantt fill. */
+  /** A CSS custom property reference, resolved by the theme in force. */
   fill: string;
   stroke?: string;
   milestone?: boolean;
@@ -29,33 +32,32 @@ const ENTRIES: Entry[] = [
     key: "done",
     label: "Done",
     meaning: "status: done",
-    fill: "lightgrey",
+    fill: token(GANTT_TOKENS.done),
   },
   {
     key: "active",
     label: "In progress",
     meaning: "status: in-progress",
-    fill: "#81B1DB",
+    fill: token(GANTT_TOKENS.active),
   },
   {
     key: "crit",
     label: "At risk",
     meaning: "status: at-risk",
-    fill: "#E83737",
+    fill: token(GANTT_TOKENS.crit),
   },
   {
     key: "planned",
     label: "Planned",
     meaning: "no status, or status: planned",
-    // Mermaid's default task fill in the dark theme.
-    fill: "hsl(180, 1.6%, 35.4%)",
-    stroke: "#ffffff",
+    fill: token(GANTT_TOKENS.planned),
+    stroke: token("--bp-border-strong"),
   },
   {
     key: "milestone",
     label: "Milestone",
     meaning: "an Implementation Event — a moment, not a duration",
-    fill: "lightgrey",
+    fill: token(GANTT_TOKENS.milestone),
     milestone: true,
   },
 ];

@@ -89,7 +89,13 @@
   --bp-bg: #f1f5f9;
   --bp-bg-sunken: #f8fafc;
   --bp-surface: #ffffff;
-  --bp-surface-raised: #f1f5f9;
+  /* Slate 200, not the page tint. The handed-over value was #f1f5f9, which is
+     --bp-bg exactly, so anything painted "raised" was painted invisible — the
+     roadmap's planned bars vanished into the page. In dark the ladder runs
+     bg → surface → raised, getting lighter; in light it runs the other way,
+     because on a tinted page a card is white and a raised element is what
+     separates itself from the card. */
+  --bp-surface-raised: #e2e8f0;
   --bp-rail: #ffffff;
   --bp-border: #cbd5e1;
   --bp-border-strong: #94a3b8;

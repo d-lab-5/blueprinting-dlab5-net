@@ -218,3 +218,60 @@ test("a sub work package inherits its parent's plateau", () => {
     assert.match(target, new RegExp(name), `${name} sits with its parent`);
   }
 });
+
+test("a task that starts and ends on the same day gets a day, not zero width", () => {
+  // Mermaid draws `2026-08-24, 2026-08-24` as a bar of zero width: the label
+  // floats over the chart with nothing under it, which reads as a broken
+  // render. The platform's own seed model has three such work packages.
+  const model = {
+    projectSlug: "t",
+    elements: [
+      {
+        id: "wp",
+        type: "WorkPackage",
+        name: "One day",
+        properties: {
+          startDate: "2026-08-24",
+          endDate: "2026-08-24",
+          status: "done",
+        },
+      },
+    ],
+    relationships: [],
+  };
+  const script = toMermaidGantt(model);
+  assert.match(script, /One day :done, t_wp, 2026-08-24, 1d/);
+  assert.doesNotMatch(script, /2026-08-24, 2026-08-24/);
+});
+
+test("a same-day ImplementationEvent stays a zero-duration milestone", () => {
+  const model = {
+    projectSlug: "t",
+    elements: [
+      {
+        id: "ev",
+        type: "ImplementationEvent",
+        name: "Cutover",
+        properties: { startDate: "2026-08-24", endDate: "2026-08-24" },
+      },
+    ],
+    relationships: [],
+  };
+  assert.match(toMermaidGantt(model), /Cutover :milestone, t_ev, 2026-08-24, 0d/);
+});
+
+test("a task spanning real dates still uses them", () => {
+  const model = {
+    projectSlug: "t",
+    elements: [
+      {
+        id: "wp",
+        type: "WorkPackage",
+        name: "Two days",
+        properties: { startDate: "2026-08-24", endDate: "2026-08-26" },
+      },
+    ],
+    relationships: [],
+  };
+  assert.match(toMermaidGantt(model), /2026-08-24, 2026-08-26/);
+});

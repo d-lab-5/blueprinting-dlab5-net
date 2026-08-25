@@ -21,12 +21,20 @@ const CENTRE = SIZE / 2;
 /** Leaves room for blip labels at the rim. */
 const RADIUS = CENTRE - 34;
 
-/** Ring colours, dark-theme. Adopt is the most saturated, hold the least. */
+/**
+ * Ring colours, as tokens rather than hex.
+ *
+ * These are the platform's semantic accents, not a palette invented for the
+ * radar: adopt is success, hold is danger, and the two in between are the
+ * accent and the warning. Naming the tokens rather than their values is what
+ * makes the radar follow the theme — the light theme darkens every one of
+ * them for contrast against white, and hard-coded hex would have ignored that.
+ */
 const RING_COLOUR: Record<string, string> = {
-  adopt: "#22c55e",
-  trial: "#38bdf8",
-  assess: "#f59e0b",
-  hold: "#ef4444",
+  adopt: "var(--bp-success)",
+  trial: "var(--bp-accent)",
+  assess: "var(--bp-warning)",
+  hold: "var(--bp-danger)",
 };
 
 const toSvg = (x: number, y: number) => ({

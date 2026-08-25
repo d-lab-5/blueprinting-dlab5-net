@@ -254,8 +254,17 @@ export function toMermaidGantt(
       if (el.type === "ImplementationEvent") tags.push("milestone");
 
       let when: string;
-      if (start && end) {
+      if (start && end && start !== end) {
         when = `${start}, ${end}`;
+      } else if (start && end) {
+        // Same start and end. Mermaid takes that literally and draws a bar of
+        // zero width, leaving the label floating over the chart with nothing
+        // under it — which reads as a rendering fault rather than as a short
+        // task. A work package that began and finished on one day lasted a
+        // day, so that is what is emitted. An ImplementationEvent is a moment
+        // by definition and keeps its zero duration.
+        when =
+          el.type === "ImplementationEvent" ? `${start}, 0d` : `${start}, 1d`;
       } else if (start) {
         when = el.type === "ImplementationEvent"
           ? `${start}, 0d`

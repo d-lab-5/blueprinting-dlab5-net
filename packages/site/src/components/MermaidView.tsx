@@ -1,4 +1,6 @@
 import * as React from "react";
+import { readGanttPalette } from "../lib/gantt-palette";
+import { useTheme } from "./useTheme";
 
 /**
  * Renders a Mermaid diagram.
@@ -22,11 +24,19 @@ interface MermaidViewProps {
   id: string;
 }
 
-let initialised = false;
+/**
+ * Which theme mermaid was last configured for.
+ *
+ * mermaid.initialize is global and cumulative, so it is called once per theme
+ * rather than once per mount — but it MUST be called again when the theme
+ * changes, or a light page keeps rendering the dark chart.
+ */
+let initialisedFor: string | null = null;
 
 export function MermaidView({ script, id }: MermaidViewProps) {
   const [svg, setSvg] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [theme] = useTheme();
 
   React.useEffect(() => {
     let cancelled = false;
@@ -34,10 +44,18 @@ export function MermaidView({ script, id }: MermaidViewProps) {
     (async () => {
       try {
         const mermaid = (await import("mermaid")).default;
-        if (!initialised) {
+        if (initialisedFor !== theme) {
+          const palette = readGanttPalette();
           mermaid.initialize({
             startOnLoad: false,
-            theme: "dark",
+            // "base" is the only built-in theme that honours themeVariables
+            // wholesale; "dark" and "default" override much of what is set
+            // here, which is how the chart used to end up dark on a light page.
+            theme: "base",
+            themeVariables: {
+              darkMode: theme === "dark",
+              ...(palette ?? {}),
+            },
             securityLevel: "strict",
             gantt: {
               useMaxWidth: true,
@@ -47,7 +65,9 @@ export function MermaidView({ script, id }: MermaidViewProps) {
               leftPadding: 160,
             },
           });
-          initialised = true;
+          // Only remember the theme once a real palette was applied, so a
+          // render that happened before the stylesheet landed is redone.
+          initialisedFor = palette ? theme : null;
         }
         // parse() first: render() on invalid source leaves an orphaned error
         // node in the document body that no amount of React re-rendering
@@ -69,7 +89,7 @@ export function MermaidView({ script, id }: MermaidViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [script, id]);
+  }, [script, id, theme]);
 
   if (error) {
     return (
