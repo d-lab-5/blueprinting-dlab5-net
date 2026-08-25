@@ -1,4 +1,5 @@
 import type { AbModel, AbElement } from "../types.js";
+import { derivePlateauDates, isoDate, toScheduleGraph } from "../schedule.js";
 
 /**
  * Turns an ArchiMate Implementation & Migration model into a Mermaid Gantt.
@@ -50,11 +51,6 @@ function taskId(id: string): string {
 }
 
 /** ISO date, or undefined if the property is missing or not a date. */
-function isoDate(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
-}
-
 /**
  * Mermaid's own status tags. `done` and `active` change the bar's fill, which
  * is what makes a roadmap readable at a glance, so they are driven from the
@@ -97,56 +93,42 @@ export function toMermaidGantt(
     return `%% ${label(emptyMessage)}\ngantt\n    title ${label(title)}\n    dateFormat YYYY-MM-DD\n    section ${label(emptyMessage)}\n`;
   }
 
-  /* -- which plateau does each work package bring about? ------------------ */
+  /* -- the scheduling graph ------------------------------------------------ */
 
-  // WorkPackage -realization-> Deliverable -realization-> Plateau
-  const deliverableToPlateau = new Map<string, string>();
-  for (const rel of model.relationships) {
-    if (rel.type !== "realization") continue;
-    const target = byId.get(rel.target);
-    const source = byId.get(rel.source);
-    if (target?.type === "Plateau" && source?.type === "Deliverable") {
-      deliverableToPlateau.set(source.id, target.id);
-    }
-  }
-
-  const plateauOf = new Map<string, string>();
-  for (const rel of model.relationships) {
-    if (rel.type !== "realization") continue;
-    const source = byId.get(rel.source);
-    const target = byId.get(rel.target);
-    if (source?.type !== "WorkPackage") continue;
-    // Directly at a plateau, or via a deliverable.
-    const plateau =
-      target?.type === "Plateau"
-        ? target.id
-        : target?.type === "Deliverable"
-          ? deliverableToPlateau.get(target.id)
-          : undefined;
-    if (plateau) plateauOf.set(source.id, plateau);
-  }
-
-  /* -- triggering, for `after` dependencies ------------------------------- */
-
-  const predecessorOf = new Map<string, string>();
-  for (const rel of model.relationships) {
-    if (rel.type !== "triggering") continue;
-    const source = byId.get(rel.source);
-    const target = byId.get(rel.target);
-    if (!source || !target) continue;
-    // Only the first predecessor is used: Mermaid accepts several, but a task
-    // with one clear antecedent reads better than one with a fan-in.
-    if (!predecessorOf.has(target.id)) predecessorOf.set(target.id, source.id);
-  }
+  // Derived in ../schedule.ts rather than here, because the editor needs the
+  // same answers and two implementations of one rule is how they come to
+  // disagree.
+  const { plateauOf, predecessorOf, parentOf } = toScheduleGraph(model);
 
   /* -- order the sections -------------------------------------------------- */
 
+  // A plateau carries no date of its own: it is reached when the work
+  // realising it finishes, so the order comes from that rather than from a
+  // stored field somebody has to keep in step.
+  const plateauDates = derivePlateauDates(model, {
+    plateauOf,
+    predecessorOf,
+    parentOf,
+  });
+
+  // Ordered by when each plateau is REACHED, not when work towards it starts.
+  // A plateau is a state, and the state exists once the work finishes; a long
+  // work package begun early does not make its plateau an early one. Sorting
+  // by start put P3 ahead of P2 in the platform's own roadmap, because WP11
+  // began a day before WP2 — true, and not what a reader means by the order
+  // of the plateaus. Start breaks a tie, name breaks that.
   const plateaus = model.elements
     .filter((e) => e.type === "Plateau")
     .sort((a, b) => {
-      const da = isoDate(a.properties.startDate) ?? "9999";
-      const db = isoDate(b.properties.startDate) ?? "9999";
-      return da === db ? a.name.localeCompare(b.name) : da.localeCompare(db);
+      const da = plateauDates.get(a.id);
+      const db = plateauDates.get(b.id);
+      const ea = da?.end ?? "9999";
+      const eb = db?.end ?? "9999";
+      if (ea !== eb) return ea.localeCompare(eb);
+      const sa = da?.start ?? "9999";
+      const sb = db?.start ?? "9999";
+      if (sa !== sb) return sa.localeCompare(sb);
+      return a.name.localeCompare(b.name);
     });
 
   const sections: Array<{ id: string; name: string; items: AbElement[] }> =
@@ -160,18 +142,6 @@ export function toMermaidGantt(
       (plateauId && sectionById.get(plateauId)) || sectionById.get(UNPLACED)!;
     section.items.push(el);
   };
-
-  // Which work package contains which, from composition and aggregation. A
-  // sub-package belongs wherever its parent does — breaking WP6 into WP6.1..4
-  // must not scatter them away from WP6.
-  const parentOf = new Map<string, string>();
-  for (const rel of model.relationships) {
-    if (rel.type !== "composition" && rel.type !== "aggregation") continue;
-    const parent = byId.get(rel.source);
-    const child = byId.get(rel.target);
-    if (parent?.type !== "WorkPackage" || child?.type !== "WorkPackage") continue;
-    if (!parentOf.has(child.id)) parentOf.set(child.id, parent.id);
-  }
 
   // A work package with no deliverable of its own inherits a plateau from its
   // parent, or failing that from whatever triggers it. Planned work is usually

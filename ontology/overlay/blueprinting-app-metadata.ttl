@@ -65,6 +65,10 @@ bp:target a owl:AnnotationProperty ;
     rdfs:label "Target"@en ;
     rdfs:comment "On a relationship descriptor: the element the relationship ends at."@en .
 
+bp:appliesTo a owl:AnnotationProperty ;
+    rdfs:label "Applies to"@en ;
+    rdfs:comment "The element types a convention is meaningful on, by local name. A convention without it applies everywhere. This is what stops the editor offering an end date on a Gap: the answer belongs with the term, not in a list inside a form component, so the editor, the Blockly palette and the MCP server all learn it at once." .
+
 # ── Scheduling ──────────────────────────────────────────────
 # ArchiMate has no schedule fields, so these ride on ArchiMate
 # Properties (spec § 2.2), which round-trip into Archi through
@@ -72,14 +76,24 @@ bp:target a owl:AnnotationProperty ;
 
 bp:startDate a owl:AnnotationProperty ;
     rdfs:label "Start date"@en ;
-    rdfs:comment "ISO 8601 date. Read by the Layer 7 Gantt."@en ;
+    rdfs:comment "ISO 8601 date. Read by the Layer 7 Gantt. An ImplementationEvent carries this and no end date: it is a moment, not a duration. A Plateau carries neither — its date is DERIVED from the work packages that realise it, because a state is reached when the work bringing it about finishes, and storing that separately only creates something to contradict." ;
     rdfs:range xsd:date ;
-    bp:propertyKey "startDate" .
+    bp:propertyKey "startDate" ;
+    bp:appliesTo ( "WorkPackage" "ImplementationEvent" ) .
 
 bp:endDate a owl:AnnotationProperty ;
     rdfs:label "End date"@en ;
+    rdfs:comment "ISO 8601 date. Work packages only — see bp:startDate for why an event and a plateau do not have one." ;
     rdfs:range xsd:date ;
-    bp:propertyKey "endDate" .
+    bp:propertyKey "endDate" ;
+    bp:appliesTo ( "WorkPackage" ) .
+
+bp:cost a owl:AnnotationProperty ;
+    rdfs:label "Cost"@en ;
+    rdfs:comment "Forecast cost of a work package, as a bare number. The currency is a property of the project rather than of each element: a mixed-currency roll-up needs conversion rates and a date to convert on, which is a different feature from the one this serves. Like bp:debt it is an estimate, and rolling it up over sub-packages is arithmetic on estimates — useful for comparison, not for a budget." ;
+    rdfs:range xsd:decimal ;
+    bp:propertyKey "cost" ;
+    bp:appliesTo ( "WorkPackage" ) .
 
 bp:status a owl:AnnotationProperty ;
     rdfs:label "Status"@en ;

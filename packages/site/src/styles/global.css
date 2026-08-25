@@ -1450,3 +1450,22 @@ a {
 .bp-orgs__caveat {
   opacity: 0.75;
 }
+
+/* -- derived, non-editable values ----------------------------------------- */
+
+.bp-field--derived {
+  gap: var(--bp-space-1);
+}
+
+.bp-derived {
+  margin: 0;
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border: 1px dashed var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-bg-sunken);
+  font-size: 0.8125rem;
+}
+
+.bp-derived strong {
+  font-variant-numeric: tabular-nums;
+}

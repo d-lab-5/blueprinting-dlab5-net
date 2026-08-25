@@ -285,7 +285,12 @@ function parseMatrix(xml) {
  * -------------------------------------------------------------------------- */
 
 /** `bp:name ( "a" "b" )` — SHACL's list form, as it appears in the overlay. */
-function shaclIn(body, predicate) {
+/**
+ * Reads a parenthesised list of quoted strings, e.g. `sh:in ( "a" "b" )` or
+ * `bp:appliesTo ( "WorkPackage" )`. Named for its first caller; the shape is
+ * plain Turtle collection syntax and is not specific to SHACL.
+ */
+function quotedList(body, predicate) {
   const m = body.match(new RegExp(`${predicate}\\s*\\(([^)]*)\\)`));
   if (!m) return undefined;
   return [...m[1].matchAll(/"([^"]*)"/g)].map((x) => x[1]);
@@ -326,8 +331,9 @@ function parseOverlay(ttl) {
     conventions[name] = {
       term: name,
       propertyKey: key,
-      values: shaclIn(body, "sh:in"),
+      values: quotedList(body, "sh:in"),
       defaultValue: body.match(/sh:defaultValue\s+"([^"]*)"/)?.[1],
+      appliesTo: quotedList(body, "bp:appliesTo"),
       label: oneOf(body, "rdfs:label"),
       comment: oneOf(body, "rdfs:comment"),
     };
@@ -480,6 +486,7 @@ function emitOverlay(conventions, annotations, languageVersion) {
         `    comment: ${lit(c.comment ?? "")},\n` +
         `    values: ${c.values ? lit(c.values) : "null"},\n` +
         `    defaultValue: ${lit(c.defaultValue ?? null)},\n` +
+        `    appliesTo: ${c.appliesTo ? lit(c.appliesTo) : "null"},\n` +
         `  },`
     )
     .join("\n");
@@ -515,6 +522,15 @@ export interface Convention {
   /** Permitted values from sh:in, or null when the value is free text. */
   readonly values: readonly string[] | null;
   readonly defaultValue: string | null;
+  /**
+   * Element types this convention is meaningful on, or null for all of them.
+   *
+   * An editor that offers an end date on a Gap is offering nonsense, and the
+   * answer to which types take which property belongs beside the term in the
+   * ontology rather than in a list inside a form component — so the editor,
+   * the Blockly palette and the MCP server all learn it from one place.
+   */
+  readonly appliesTo: readonly string[] | null;
 }
 
 /**

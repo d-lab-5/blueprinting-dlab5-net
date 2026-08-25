@@ -176,7 +176,7 @@ async function browserWebSocket() {
 async function visit(
   cdp,
   path,
-  { width = 1400, height = 1000, before, act, awaitSelector, awaitGone, evaluate, shot }
+  { width = 1400, height = 1000, before, act, awaitSelector, awaitGone, then, evaluate, shot }
 ) {
   const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" });
   const { sessionId } = await cdp.send("Target.attachToTarget", {
@@ -343,6 +343,20 @@ async function visit(
     await sleep(500);
   }
 
+  // Runs after the page has settled, unlike `act` which runs the moment it
+  // hydrates. Clicking something in a list needs the list to exist first.
+  if (then) {
+    const { exceptionDetails } = await cdp.send(
+      "Runtime.evaluate",
+      { expression: then, awaitPromise: true },
+      sessionId
+    );
+    if (exceptionDetails) {
+      throw new Error(exceptionDetails.exception?.description ?? exceptionDetails.text);
+    }
+    await sleep(400);
+  }
+
   let value;
   if (evaluate) {
     const { result, exceptionDetails } = await cdp.send(
@@ -423,6 +437,143 @@ const ROUTES = [
   { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
   { path: "/p/dlab5-blueprint/blocks/", name: "project · blocks" },
 ];
+
+/**
+ * The roadmap editor, driven by clicking.
+ *
+ * Which fields an element type carries is declared in the overlay ontology, so
+ * a wrong answer here means the ontology and the form have drifted apart —
+ * exactly the drift bp:appliesTo exists to prevent. Loading the page proves
+ * none of it; the fields only appear once something is selected.
+ */
+async function editor(cdp) {
+  console.log("\nroadmap editor");
+
+  /** Selects the first element of `type` in the list. */
+  const select = (type) =>
+    "(async () => {" +
+    "  const items = [...document.querySelectorAll('.bp-editor__item')];" +
+    "  const item = items.find((b) =>" +
+    "    b.querySelector('.bp-editor__item-type')?.textContent.trim() === " +
+    JSON.stringify(type) +
+    "  );" +
+    "  if (item) item.click();" +
+    "  await new Promise((r) => setTimeout(r, 250));" +
+    // Bring the form into shot: the editor sits below the Gantt, so a
+    // screenshot of the viewport top shows the chart and not the thing under
+    // test.
+    "  document.querySelector('.bp-editor__detail')?.scrollIntoView({block:'center'});" +
+    "  await new Promise((r) => setTimeout(r, 150));" +
+    "})()";
+
+  const PROBE_FORM = `
+    const detail = document.querySelector(".bp-editor__detail");
+    return {
+      fields: [...detail.querySelectorAll(".bp-field > span")].map((s) => s.textContent.trim()),
+      headings: [...detail.querySelectorAll(".bp-rels h3")].map((h) => h.textContent.trim()),
+      derived: detail.querySelector(".bp-derived")?.textContent.trim() ?? null,
+      anySelected: !!document.querySelector(".bp-editor__item--selected"),
+    };
+  `;
+
+  const CASES = [
+    ["Work Package", ["Start date", "End date", "Cost", "Status"], []],
+    ["Implementation Event", ["Start date", "Status"], ["End date", "Cost"]],
+    ["Plateau", ["Status"], ["Start date", "End date", "Cost"]],
+    ["Deliverable", ["Status"], ["Start date", "End date", "Cost"]],
+    ["Gap", ["Status"], ["Start date", "End date", "Cost"]],
+  ];
+
+  for (const [type, expect, forbid] of CASES) {
+    let result;
+    try {
+      result = await visit(cdp, "/p/dlab5-blueprint/", {
+        awaitSelector: ".bp-shell",
+        awaitGone: "Loading model",
+        then: select(type),
+        evaluate: PROBE_FORM,
+        shot: `editor_${type.replace(/\W+/g, "_")}.png`,
+      });
+    } catch (error) {
+      check(false, `${type}: selectable in the editor`, error.message);
+      continue;
+    }
+
+    const form = result.value;
+    if (!form.anySelected) {
+      check(false, `${type}: present in the model and selectable`);
+      continue;
+    }
+
+    const missing = expect.filter((f) => !form.fields.includes(f));
+    const present = forbid.filter((f) => form.fields.includes(f));
+
+    check(
+      missing.length === 0,
+      `${type}: offers ${expect.join(", ")}`,
+      missing.length ? `missing ${missing.join(", ")}` : ""
+    );
+    if (forbid.length) {
+      check(
+        present.length === 0,
+        `${type}: no ${forbid.join("/")}`,
+        present.length ? `wrongly offers ${present.join(", ")}` : ""
+      );
+    }
+
+    if (type === "Plateau") {
+      check(
+        form.derived !== null,
+        "Plateau: shows a derived date instead of an editable one",
+        form.derived ? form.derived.slice(0, 60) : "no derived block"
+      );
+    }
+    if (type === "Work Package") {
+      check(
+        form.headings.includes("Incoming relationships"),
+        "the editor shows incoming relationships, not only outgoing",
+        form.headings.join(" | ")
+      );
+    }
+  }
+
+  // The first plateau in the list may be one nothing realises, which shows
+  // "not yet scheduled" — correct, and proof of the empty path only. Walk all
+  // of them and require at least one real derived date, or the derivation
+  // could be returning nothing and every assertion above would still pass.
+  const walk = await visit(cdp, "/p/dlab5-blueprint/", {
+    awaitSelector: ".bp-shell",
+    awaitGone: "Loading model",
+    then:
+      "(async () => { window.__derived = [];" +
+      "  const items = [...document.querySelectorAll('.bp-editor__item')]" +
+      "    .filter((b) => b.querySelector('.bp-editor__item-type')?.textContent.trim() === 'Plateau');" +
+      "  for (const item of items) {" +
+      "    item.click();" +
+      "    await new Promise((r) => setTimeout(r, 200));" +
+      "    const t = document.querySelector('.bp-derived')?.textContent.trim();" +
+      "    if (t) window.__derived.push(t);" +
+      "  } })()",
+    evaluate: "return { texts: window.__derived ?? [] };",
+  }).catch((error) => {
+    check(false, "plateaus: walkable", error.message);
+    return null;
+  });
+
+  if (walk?.value) {
+    const dated = walk.value.texts.filter((t) => /\d{4}-\d{2}-\d{2}/.test(t));
+    check(
+      walk.value.texts.length > 0,
+      "every plateau shows a derived-date block",
+      `${walk.value.texts.length} plateaus`
+    );
+    check(
+      dated.length > 0,
+      "at least one plateau shows a real derived date",
+      dated[0]?.slice(0, 70) ?? "none carried a date"
+    );
+  }
+}
 
 /**
  * The signed-in pass, which is the only way to see the rail at all.
@@ -540,6 +691,8 @@ async function signedIn(cdp) {
       failedRequests.slice(0, 2).join(" | ")
     );
   }
+
+  await editor(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

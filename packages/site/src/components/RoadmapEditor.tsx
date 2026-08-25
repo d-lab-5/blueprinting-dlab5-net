@@ -1,13 +1,15 @@
 import * as React from "react";
 import {
+  CONVENTIONS,
   ELEMENTS,
   allowedRelationships,
+  conventionsFor,
   elementsByLayer,
   isDerived,
 } from "@dlab5/archimate-metamodel";
 import type { ElementTypeId, RelationshipTypeId } from "@dlab5/archimate-metamodel";
 import type { AbElement, AbModel } from "@dlab5/blueprint-core";
-import { uniqueId } from "@dlab5/blueprint-core";
+import { derivePlateauDates, uniqueId } from "@dlab5/blueprint-core";
 
 /**
  * Editing for the Implementation & Migration layer.
@@ -24,7 +26,12 @@ import { uniqueId } from "@dlab5/blueprint-core";
 const LAYER = "implementation" as const;
 
 /** The statuses the Gantt understands. Anything else renders as an untagged bar. */
-const STATUSES = ["", "planned", "in-progress", "done", "at-risk"] as const;
+/**
+ * Status values come from the overlay's sh:in list, not from a copy here.
+ * The ontology is where the permitted set is declared; a second list in a form
+ * component is a second answer waiting to disagree with the first.
+ */
+const STATUSES: readonly string[] = ["", ...(CONVENTIONS.status.values ?? [])];
 
 interface Props {
   model: AbModel;
@@ -39,6 +46,24 @@ export function RoadmapEditor({ model, onChange }: Props) {
     (e) => ELEMENTS[e.type].layer === LAYER
   );
   const selected = layerElements.find((e) => e.id === selectedId) ?? null;
+
+  // Which conventions this element type actually carries. Declared in the
+  // overlay ontology beside each term, so the editor, the Blockly palette and
+  // the MCP server all get the same answer from one place.
+  const applicable = React.useMemo(
+    () =>
+      new Set(
+        selected ? conventionsFor(selected.type).map((c) => c.propertyKey) : []
+      ),
+    [selected]
+  );
+
+  // A plateau stores no date; it is reached when the work realising it
+  // finishes. Computed for every plateau at once rather than per selection,
+  // because the model is already in memory and the map is cheap.
+  const plateauDates = React.useMemo(() => derivePlateauDates(model), [model]);
+  const derived =
+    selected?.type === "Plateau" ? plateauDates.get(selected.id) : undefined;
 
   const setElement = (id: string, patch: Partial<AbElement>) => {
     onChange({
@@ -148,52 +173,101 @@ export function RoadmapEditor({ model, onChange }: Props) {
             </label>
 
             <div className="bp-field-row">
-              <label className="bp-field">
-                <span>Start date</span>
-                <input
-                  type="date"
-                  value={selected.properties.startDate ?? ""}
-                  onChange={(e) =>
-                    setProperty(selected.id, "startDate", e.target.value)
-                  }
-                />
-              </label>
-              <label className="bp-field">
-                <span>End date</span>
-                <input
-                  type="date"
-                  value={selected.properties.endDate ?? ""}
-                  onChange={(e) =>
-                    setProperty(selected.id, "endDate", e.target.value)
-                  }
-                />
-              </label>
-              <label className="bp-field">
-                <span>Status</span>
-                <select
-                  value={selected.properties.status ?? ""}
-                  onChange={(e) =>
-                    setProperty(selected.id, "status", e.target.value)
-                  }
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s || "—"}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {applicable.has("startDate") && (
+                <label className="bp-field">
+                  <span>Start date</span>
+                  <input
+                    type="date"
+                    value={selected.properties.startDate ?? ""}
+                    onChange={(e) =>
+                      setProperty(selected.id, "startDate", e.target.value)
+                    }
+                  />
+                </label>
+              )}
+              {applicable.has("endDate") && (
+                <label className="bp-field">
+                  <span>End date</span>
+                  <input
+                    type="date"
+                    value={selected.properties.endDate ?? ""}
+                    onChange={(e) =>
+                      setProperty(selected.id, "endDate", e.target.value)
+                    }
+                  />
+                </label>
+              )}
+              {applicable.has("cost") && (
+                <label className="bp-field">
+                  <span>Cost</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={selected.properties.cost ?? ""}
+                    onChange={(e) =>
+                      setProperty(selected.id, "cost", e.target.value)
+                    }
+                  />
+                </label>
+              )}
+              {applicable.has("status") && (
+                <label className="bp-field">
+                  <span>Status</span>
+                  <select
+                    value={selected.properties.status ?? ""}
+                    onChange={(e) =>
+                      setProperty(selected.id, "status", e.target.value)
+                    }
+                  >
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s || "—"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
 
+            {selected.type === "Plateau" && (
+              <div className="bp-field bp-field--derived">
+                <span>Reached</span>
+                {derived && derived.from > 0 ? (
+                  <p className="bp-derived">
+                    <strong>{derived.end}</strong>
+                    <span className="bp-muted">
+                      {" "}
+                      · from {derived.from} work package
+                      {derived.from === 1 ? "" : "s"}
+                      {derived.start && derived.start !== derived.end
+                        ? `, starting ${derived.start}`
+                        : ""}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="bp-muted bp-derived">
+                    Not yet scheduled — no work package realising this plateau
+                    carries a date.
+                  </p>
+                )}
+              </div>
+            )}
+
             <p className="bp-muted bp-editor__hint">
-              Dates and status are ArchiMate Properties, which is what
-              round-trips into Archi. ArchiMate has no native schedule fields.
+              These are ArchiMate Properties, which is what round-trips into
+              Archi; ArchiMate has no native schedule fields. Which of them a
+              type carries is declared in the overlay ontology, not here — an
+              Implementation Event is a moment and so has no end date, and a
+              Plateau is a state reached when the work realising it finishes,
+              so its date is derived rather than typed.
             </p>
 
             <RelationshipEditor
               model={model}
               element={selected}
               onChange={onChange}
+              onSelect={setSelectedId}
             />
 
             <button
@@ -216,14 +290,18 @@ function RelationshipEditor({
   model,
   element,
   onChange,
+  onSelect,
 }: {
   model: AbModel;
   element: AbElement;
   onChange: (next: AbModel) => void;
+  /** Jump to another element — an incoming relationship is edited at its source. */
+  onSelect: (id: string) => void;
 }) {
   const [targetId, setTargetId] = React.useState("");
 
   const outgoing = model.relationships.filter((r) => r.source === element.id);
+  const incoming = model.relationships.filter((r) => r.target === element.id);
 
   // Only elements this one can legally connect to at all. Everything else
   // would only be offered so it could be refused.
@@ -286,6 +364,40 @@ function RelationshipEditor({
           );
         })}
       </ul>
+
+      <h3>Incoming relationships</h3>
+
+      {/* Read-only, deliberately. An incoming relationship belongs to the
+          element it starts from — that is where it was created and where its
+          type was chosen against that element's own allowed set. Offering a
+          delete here would let two screens remove the same thing, and it would
+          not be obvious from this one which element had changed. Selecting the
+          source is one click away. */}
+      {incoming.length === 0 && <p className="bp-muted">None.</p>}
+
+      <ul>
+        {incoming.map((rel) => {
+          const from = model.elements.find((e) => e.id === rel.source);
+          return (
+            <li key={rel.id}>
+              <span className="bp-rels__type">{rel.type}</span>
+              <span>{from ? from.name : `? ${rel.source}`}</span>
+              {from && (
+                <button
+                  type="button"
+                  className="bp-linkbutton"
+                  onClick={() => onSelect(from.id)}
+                  aria-label={`Go to ${from.name}`}
+                >
+                  edit
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <h3>Add a relationship</h3>
 
       <div className="bp-rels__add">
         <select value={targetId} onChange={(e) => setTargetId(e.target.value)}>

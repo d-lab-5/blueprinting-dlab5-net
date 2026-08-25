@@ -34,6 +34,8 @@ export {
 } from "./generated/overlay.js";
 export type { Convention, ConventionId } from "./generated/overlay.js";
 
+import { CONVENTIONS } from "./generated/overlay.js";
+import type { Convention } from "./generated/overlay.js";
 import { ELEMENTS, LAYER_ORDER } from "./generated/elements.js";
 import type {
   ElementType,
@@ -59,6 +61,23 @@ export const RELATIONSHIP_TYPE_IDS = Object.keys(
 const RELATIONSHIP_TO_LETTER: Record<string, string> = Object.fromEntries(
   Object.entries(LETTER_TO_RELATIONSHIP).map(([letter, id]) => [id, letter])
 );
+
+/**
+ * The platform conventions meaningful on one element type.
+ *
+ * A convention with no `appliesTo` is universal — `owner` and `debt` say
+ * something about any element — while `endDate` says nothing about a Gap. The
+ * editor, the Blockly palette and the MCP server all ask this rather than each
+ * keeping a list, so adding a term to the overlay reaches all three.
+ */
+export function conventionsFor(element: string): Convention[] {
+  // Widened to Convention deliberately: the generated object literal infers
+  // appliesTo as a tuple of literals, so `.includes(someString)` is a type
+  // error against it. The declared interface is the contract.
+  return (Object.values(CONVENTIONS) as Convention[]).filter(
+    (c) => c.appliesTo === null || c.appliesTo.includes(element)
+  );
+}
 
 /** Element types belonging to one layer, in declaration order. */
 export function elementsByLayer(layer: LayerId): ElementType[] {

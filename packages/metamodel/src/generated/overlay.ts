@@ -22,6 +22,15 @@ export interface Convention {
   /** Permitted values from sh:in, or null when the value is free text. */
   readonly values: readonly string[] | null;
   readonly defaultValue: string | null;
+  /**
+   * Element types this convention is meaningful on, or null for all of them.
+   *
+   * An editor that offers an end date on a Gap is offering nonsense, and the
+   * answer to which types take which property belongs beside the term in the
+   * ontology rather than in a list inside a form component — so the editor,
+   * the Blockly palette and the MCP server all learn it from one place.
+   */
+  readonly appliesTo: readonly string[] | null;
 }
 
 /**
@@ -33,6 +42,15 @@ export interface Convention {
 export const LANGUAGE_VERSION = "3.2";
 
 export const CONVENTIONS = {
+  cost: {
+    term: "cost",
+    propertyKey: "cost",
+    label: "Cost",
+    comment: "Forecast cost of a work package, as a bare number. The currency is a property of the project rather than of each element: a mixed-currency roll-up needs conversion rates and a date to convert on, which is a different feature from the one this serves. Like bp:debt it is an estimate, and rolling it up over sub-packages is arithmetic on estimates — useful for comparison, not for a budget.",
+    values: null,
+    defaultValue: null,
+    appliesTo: ["WorkPackage"],
+  },
   debt: {
     term: "debt",
     propertyKey: "debt",
@@ -40,14 +58,16 @@ export const CONVENTIONS = {
     comment: "A number from 0 to 1, where 0 is clean and 1 is unsustainable. Deliberately coarse and deliberately a judgement: it is an architect's assessment for sorting and colouring, not a measurement, and treating it as one would be false precision.",
     values: null,
     defaultValue: null,
+    appliesTo: null,
   },
   endDate: {
     term: "endDate",
     propertyKey: "endDate",
     label: "End date",
-    comment: "",
+    comment: "ISO 8601 date. Work packages only — see bp:startDate for why an event and a plateau do not have one.",
     values: null,
     defaultValue: null,
+    appliesTo: ["WorkPackage"],
   },
   instances: {
     term: "instances",
@@ -56,6 +76,7 @@ export const CONVENTIONS = {
     comment: "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping.",
     values: null,
     defaultValue: null,
+    appliesTo: null,
   },
   owner: {
     term: "owner",
@@ -64,6 +85,7 @@ export const CONVENTIONS = {
     comment: "The team accountable for this element. A free-text team name rather than a person: people move, and an element with a former employee's name on it is worse than one with none. ArchiMate can model this properly as a BusinessRole with an assignment, and a mature model should; this property is the pragmatic form for a model that has not drawn its organisation yet.",
     values: null,
     defaultValue: null,
+    appliesTo: null,
   },
   radarMoved: {
     term: "radarMoved",
@@ -72,6 +94,7 @@ export const CONVENTIONS = {
     comment: "Movement since the previous radar.",
     values: ["in","out","none"],
     defaultValue: "none",
+    appliesTo: null,
   },
   radarRing: {
     term: "radarRing",
@@ -80,6 +103,7 @@ export const CONVENTIONS = {
     comment: "Adoption status. Presence of this property is what puts an element on the radar.",
     values: ["adopt","trial","assess","hold"],
     defaultValue: null,
+    appliesTo: null,
   },
   reference: {
     term: "reference",
@@ -88,14 +112,16 @@ export const CONVENTIONS = {
     comment: "Where the detail lives: an ADR path, a Claude Code skill name, or a package. ArchiMate says what applies and why; the reference says how.",
     values: null,
     defaultValue: null,
+    appliesTo: null,
   },
   startDate: {
     term: "startDate",
     propertyKey: "startDate",
     label: "Start date",
-    comment: "ISO 8601 date. Read by the Layer 7 Gantt.",
+    comment: "ISO 8601 date. Read by the Layer 7 Gantt. An ImplementationEvent carries this and no end date: it is a moment, not a duration. A Plateau carries neither — its date is DERIVED from the work packages that realise it, because a state is reached when the work bringing it about finishes, and storing that separately only creates something to contradict.",
     values: null,
     defaultValue: null,
+    appliesTo: ["WorkPackage","ImplementationEvent"],
   },
   status: {
     term: "status",
@@ -104,6 +130,7 @@ export const CONVENTIONS = {
     comment: "Drives the Gantt bar style. Anything outside this list renders untagged.",
     values: ["planned","in-progress","done","at-risk","open","closed"],
     defaultValue: null,
+    appliesTo: null,
   },
 } as const satisfies Record<string, Convention>;
 

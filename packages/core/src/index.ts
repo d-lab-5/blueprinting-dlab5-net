@@ -60,6 +60,9 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { derivePlateauDates, isoDate, toScheduleGraph } from "./schedule.js";
+export type { PlateauDate, ScheduleGraph } from "./schedule.js";
+
 export { initialsOf, toOrganisations } from "./organisations.js";
 export type { Organisation, OrganisationSummary } from "./organisations.js";
 
