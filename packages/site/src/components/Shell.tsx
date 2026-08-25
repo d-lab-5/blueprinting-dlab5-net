@@ -101,6 +101,18 @@ export function railItems(slug: string): RailItem[] {
       ),
     },
     {
+      key: "orgs",
+      label: "Teams",
+      href: `/p/${slug}/orgs/`,
+      icon: icon(
+        <>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+          <path d="M16 6.5a3 3 0 0 1 0 5.8M17.5 19a5.4 5.4 0 0 0-1.6-3.8" />
+        </>
+      ),
+    },
+    {
       key: "blocks",
       label: "Blocks",
       href: `/p/${slug}/blocks/`,

@@ -1340,3 +1340,113 @@ a {
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+/* -- teams: the model by owner -------------------------------------------- */
+
+.bp-orgs {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-orgs__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--bp-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bp-orgs__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--bp-space-3);
+  align-items: start;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  padding: var(--bp-space-4);
+}
+
+.bp-orgs__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--bp-surface-raised);
+  border: 1px solid var(--bp-border-strong);
+  color: var(--bp-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.bp-orgs__body {
+  min-width: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-orgs__name {
+  margin: 0;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.bp-orgs__count {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.8125rem;
+}
+
+.bp-orgs__layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1) var(--bp-space-3);
+  list-style: none;
+  margin: var(--bp-space-1) 0 0;
+  padding: 0;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-orgs__layers li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-1);
+}
+
+.bp-orgs__debt {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-orgs__debtvalue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.bp-orgs__debtbar {
+  display: block;
+  width: 4.5rem;
+  height: 3px;
+  border-radius: 1.5px;
+  background: var(--bp-border-strong);
+  overflow: hidden;
+}
+
+.bp-orgs__debtbar > span {
+  display: block;
+  height: 100%;
+}
+
+.bp-orgs__caveat {
+  opacity: 0.75;
+}

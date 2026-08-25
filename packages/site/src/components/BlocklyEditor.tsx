@@ -1,4 +1,6 @@
 import * as React from "react";
+import { GRID_COLOUR, blocklyTheme } from "../lib/blockly-theme";
+import { useTheme } from "./useTheme";
 import type { AbModel } from "@dlab5/blueprint-core";
 
 /**
@@ -58,6 +60,24 @@ export function BlocklyEditor({ model, onChange, onWarnings }: Props) {
   onWarningsRef.current = onWarnings;
 
   const slug = model.projectSlug;
+  const [theme] = useTheme();
+  const blocklyRef = React.useRef<unknown>(null);
+
+  React.useEffect(() => {
+    const Blockly = blocklyRef.current as
+      | { Theme: { defineTheme(n: string, t: Record<string, unknown>): unknown };
+          Themes: Record<string, unknown> }
+      | null;
+    const workspace = workspaceRef.current as
+      | { setTheme?: (t: unknown) => void }
+      | null;
+    if (!Blockly || !workspace?.setTheme) return;
+
+    const next = blocklyTheme(Blockly as never, theme);
+    // The grid keeps its colour: Blockly fixes it at injection and exposes no
+    // way to change it, which is why GRID_COLOUR is chosen to suit both.
+    if (next) workspace.setTheme(next);
+  }, [theme]);
 
   React.useEffect(() => {
     let disposed = false;
@@ -86,11 +106,14 @@ export function BlocklyEditor({ model, onChange, onWarnings }: Props) {
           w.__bpBlocksDefined = true;
         }
 
+        blocklyRef.current = Blockly;
+
         const workspace = Blockly.inject(containerRef.current, {
           toolbox: generated.generateToolbox() as never,
           renderer: "zelos",
-          theme: Blockly.Themes.Zelos,
-          grid: { spacing: 24, length: 3, colour: "#26314a", snap: true },
+          theme: (blocklyTheme(Blockly as never, theme) ??
+            Blockly.Themes.Zelos) as never,
+          grid: { spacing: 24, length: 3, colour: GRID_COLOUR, snap: true },
           zoom: { controls: true, wheel: true, startScale: 0.85 },
           trashcan: true,
           move: { scrollbars: true, drag: true, wheel: false },

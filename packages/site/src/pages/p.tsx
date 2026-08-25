@@ -6,6 +6,7 @@ import { toD2, toMermaidGantt, toMermaidSequence } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
 import { BlueprintCanvas } from "../components/BlueprintCanvas";
 import { Domains } from "../components/Domains";
+import { Organisations } from "../components/Organisations";
 import { Shell } from "../components/Shell";
 import { MermaidView } from "../components/MermaidView";
 import { DiagramViewport } from "../components/DiagramViewport";
@@ -16,7 +17,14 @@ import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 
-type Tab = "roadmap" | "views" | "radar" | "domains" | "blueprint" | "blocks";
+type Tab =
+  | "roadmap"
+  | "views"
+  | "radar"
+  | "domains"
+  | "blueprint"
+  | "orgs"
+  | "blocks";
 
 /**
  * URL section to tab. `model` is kept as an alias for `domains`: the screen
@@ -31,6 +39,7 @@ const SECTIONS: Record<string, Tab> = {
   domains: "domains",
   model: "domains",
   blueprint: "blueprint",
+  orgs: "orgs",
   blocks: "blocks",
 };
 
@@ -113,6 +122,7 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
           )}
           {tab === "domains" && <Domains model={model} />}
           {tab === "blueprint" && <BlueprintCanvas model={model} />}
+          {tab === "orgs" && <Organisations model={model} />}
           {tab === "blocks" && <Blocks model={model} onChange={update} />}
         </>
       )}

@@ -341,8 +341,8 @@ const PROBE = `
   };
 `;
 
-/** Roadmap, Views, Radar, Domains, Blueprint, Blocks. */
-const RAIL_ITEMS = 6;
+/** Roadmap, Views, Radar, Domains, Blueprint, Teams, Blocks. */
+const RAIL_ITEMS = 7;
 
 const ROUTES = [
   { path: "/", name: "projects list" },
@@ -351,6 +351,7 @@ const ROUTES = [
   { path: "/p/dlab5-blueprint/radar/", name: "project · radar" },
   { path: "/p/dlab5-blueprint/domains/", name: "project · domains" },
   { path: "/p/dlab5-blueprint/blueprint/", name: "project · blueprint" },
+  { path: "/p/dlab5-blueprint/orgs/", name: "project · teams" },
   // The old path for the same screen. It is an alias on purpose, so that a
   // link made before the rename still resolves.
   { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
