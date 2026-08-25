@@ -2,7 +2,12 @@ import * as React from "react";
 import type { HeadFC, PageProps } from "gatsby";
 import { ELEMENTS, LAYER_LABELS, LAYER_ORDER } from "@dlab5/archimate-metamodel";
 import type { LayerId } from "@dlab5/archimate-metamodel";
-import { toD2, toMermaidGantt, toMermaidSequence } from "@dlab5/blueprint-core";
+import {
+  neighbourhood,
+  toD2,
+  toMermaidGantt,
+  toMermaidSequence,
+} from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
 import { BlueprintCanvas } from "../components/BlueprintCanvas";
 import { Domains } from "../components/Domains";
@@ -230,6 +235,9 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
  */
 function Views({ model }: { model: AbModel }) {
   const [domains, setDomains] = React.useState<LayerId[] | null>(null);
+  /** Element to centre the structure view on, or null for the whole model. */
+  const [focus, setFocus] = React.useState<string>("");
+  const [depth, setDepth] = React.useState(1);
 
   const present = React.useMemo(() => {
     const seen = new Set<LayerId>();
@@ -239,9 +247,21 @@ function Views({ model }: { model: AbModel }) {
 
   const selected = domains ?? present;
 
+  // Focusing narrows the model itself rather than the diagram, so the layer
+  // filter, the D2 generator and the legend all keep working on it unchanged.
+  const shown = React.useMemo(() => {
+    if (!focus) return model;
+    const near = neighbourhood(model, focus, depth);
+    return {
+      ...model,
+      elements: model.elements.filter((e) => near.distance.has(e.id)),
+      relationships: near.relationships,
+    };
+  }, [model, focus, depth]);
+
   const d2 = React.useMemo(
-    () => toD2(model, { title: model.projectSlug, domains: selected }),
-    [model, selected]
+    () => toD2(shown, { title: shown.projectSlug, domains: selected }),
+    [shown, selected]
   );
   const sequence = React.useMemo(
     () => toMermaidSequence(model, { title: model.projectSlug }),
@@ -265,6 +285,46 @@ function Views({ model }: { model: AbModel }) {
         behaviour, page for passive structure.
       </p>
 
+      <div className="bp-focus">
+        <label className="bp-field">
+          <span>Centre on</span>
+          <select value={focus} onChange={(e) => setFocus(e.target.value)}>
+            <option value="">The whole model</option>
+            {[...model.elements]
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((el) => (
+                <option key={el.id} value={el.id}>
+                  {el.name} ({ELEMENTS[el.type].label})
+                </option>
+              ))}
+          </select>
+        </label>
+
+        {focus && (
+          <>
+            <label className="bp-field">
+              <span>Hops</span>
+              <select
+                value={depth}
+                onChange={(e) => setDepth(Number(e.target.value))}
+              >
+                {[1, 2, 3].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="bp-muted bp-focus__count">
+              {shown.elements.length} of {model.elements.length} elements.
+              Relationships are followed in both directions — what points at an
+              element is as much a part of its neighbourhood as what it points
+              at.
+            </p>
+          </>
+        )}
+      </div>
+
       <div className="bp-domainfilter" role="group" aria-label="Domains shown">
         {present.map((layer) => (
           <button
@@ -285,6 +345,11 @@ function Views({ model }: { model: AbModel }) {
 
       {selected.length === 0 ? (
         <p className="bp-muted">Select at least one domain.</p>
+      ) : shown.elements.length === 0 ? (
+        <p className="bp-muted">
+          Nothing to draw: that element has no connections within {depth} hop
+          {depth === 1 ? "" : "s"} in the domains shown.
+        </p>
       ) : (
         <DiagramViewport>
           <D2View script={d2} />

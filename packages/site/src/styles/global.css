@@ -1469,3 +1469,28 @@ a {
 .bp-derived strong {
   font-variant-numeric: tabular-nums;
 }
+
+/* -- centring the structure view on one element --------------------------- */
+
+.bp-focus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--bp-space-3) var(--bp-space-4);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-focus .bp-field {
+  min-width: 0;
+}
+
+.bp-focus select {
+  max-width: 24rem;
+}
+
+.bp-focus__count {
+  flex: 1 1 16rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}

@@ -439,6 +439,159 @@ const ROUTES = [
 ];
 
 /**
+ * Centring the structure view on one element.
+ *
+ * The control narrows the model before the diagram is generated, so the check
+ * is that the count actually falls and that more hops reach more — a filter
+ * that silently does nothing looks identical to one that works.
+ */
+async function focusView(cdp) {
+  console.log("\nstructure focus");
+
+  const READ = `
+    const select = document.querySelector(".bp-focus select");
+    // Scoped to the diagram container. A bare "svg" selector matches the
+    // rail's icons, so it reported a rendered diagram on a page showing
+    // "[object Object]" — the third false pass from a too-loose selector.
+    const diagram = document.querySelector(".bp-diagram");
+    return {
+      options: select ? select.options.length : 0,
+      count: document.querySelector(".bp-focus__count")?.textContent.trim() ?? null,
+      rendered: !!diagram?.querySelector("svg"),
+      isError: !!document.querySelector(".bp-diagram--error"),
+      errorText: document.querySelector(".bp-diagram--error pre")?.textContent.trim() ?? null,
+      stillRendering: document.body.textContent.includes("Rendering"),
+      // The failure mode this whole exercise uncovered.
+      objectObject: document.body.textContent.includes("[object Object]"),
+    };
+  `;
+
+  /** Picks the nth element in the list and sets the hop count. */
+  const centre = (index, hops) =>
+    "(async () => {" +
+    "  const setter = Object.getOwnPropertyDescriptor(" +
+    "    window.HTMLSelectElement.prototype, 'value').set;" +
+    "  const selects = [...document.querySelectorAll('.bp-focus select')];" +
+    "  const s = selects[0];" +
+    "  setter.call(s, s.options[" + index + "].value);" +
+    "  s.dispatchEvent(new Event('change', { bubbles: true }));" +
+    "  await new Promise((r) => setTimeout(r, 400));" +
+    "  const hopSel = [...document.querySelectorAll('.bp-focus select')][1];" +
+    "  if (hopSel) {" +
+    "    setter.call(hopSel, '" + hops + "');" +
+    "    hopSel.dispatchEvent(new Event('change', { bubbles: true }));" +
+    "    await new Promise((r) => setTimeout(r, 400));" +
+    "  }" +
+    // D2 compiles through WASM, which takes noticeably longer than a React
+    // render. Without this the shot catches "Rendering…" and the assertion
+    // below measures a placeholder.
+    "  for (let i = 0; i < 60; i++) {" +
+    "    if (!document.body.textContent.includes('Rendering')) break;" +
+    "    await new Promise((r) => setTimeout(r, 250));" +
+    "  }" +
+    "  await new Promise((r) => setTimeout(r, 300));" +
+    "})()";
+
+  const parse = (text) => {
+    const m = /(\d+) of (\d+) elements/.exec(text ?? "");
+    return m ? { shown: Number(m[1]), total: Number(m[2]) } : null;
+  };
+
+  let base;
+  try {
+    base = await visit(cdp, "/p/dlab5-blueprint/views/", {
+      awaitSelector: ".bp-shell",
+      awaitGone: "Loading model",
+      // D2 compiles through WASM in a worker; it is far slower than a React
+      // render and the page says "Rendering…" until it lands.
+      then:
+        "(async () => { for (let i = 0; i < 80; i++) {" +
+        "  if (!document.body.textContent.includes('Rendering')) break;" +
+        "  await new Promise((r) => setTimeout(r, 250));" +
+        "} await new Promise((r) => setTimeout(r, 400)); })()",
+      evaluate: READ,
+      shot: "focus_none.png",
+    });
+  } catch (error) {
+    check(false, "structure view loads", error.message);
+    return;
+  }
+
+  check(
+    base.value.options > 1,
+    "every element is offered as a focus",
+    `${base.value.options} options`
+  );
+  check(base.value.count === null, "no count until something is centred on");
+  check(
+    base.value.rendered && !base.value.objectObject && !base.value.isError,
+    "the whole-model structure diagram draws",
+    base.value.objectObject
+      ? "rendered [object Object]"
+      : base.value.isError
+        ? `error: ${base.value.errorText?.slice(0, 90)}`
+        : base.value.stillRendering
+          ? "stuck on Rendering…"
+          : ""
+  );
+
+  const readings = {};
+  for (const hops of [1, 3]) {
+    let result;
+    try {
+      result = await visit(cdp, "/p/dlab5-blueprint/views/", {
+        awaitSelector: ".bp-shell",
+        awaitGone: "Loading model",
+        then: centre(1, hops),
+        evaluate: READ,
+        shot: `focus_depth${hops}.png`,
+      });
+    } catch (error) {
+      check(false, `centring at ${hops} hop(s)`, error.message);
+      continue;
+    }
+    readings[hops] = parse(result.value.count);
+    check(
+      readings[hops] !== null,
+      `centring at ${hops} hop(s) reports a count`,
+      (result.value.count ?? "no count shown").slice(0, 40)
+    );
+    // The point of narrowing is a diagram you can read. One that never
+    // finishes compiling is worse than the full model.
+    const v = result.value;
+    const drew = v.rendered && !v.stillRendering && !v.isError && !v.objectObject;
+    check(
+      drew,
+      `centring at ${hops} hop(s) still draws a diagram`,
+      // Only describe the failure. A detail string built unconditionally
+      // prints "no svg" beside a PASS, which reads as a contradiction.
+      drew
+        ? ""
+        : v.objectObject
+          ? "rendered [object Object]"
+          : v.isError
+            ? `error: ${v.errorText?.slice(0, 90)}`
+            : v.stillRendering
+              ? "stuck on Rendering…"
+              : "no svg inside .bp-diagram"
+    );
+  }
+
+  if (readings[1] && readings[3]) {
+    check(
+      readings[1].shown < readings[1].total,
+      "centring actually narrows the model",
+      `${readings[1].shown} of ${readings[1].total}`
+    );
+    check(
+      readings[3].shown >= readings[1].shown,
+      "more hops reach at least as much",
+      `1 hop: ${readings[1].shown}, 3 hops: ${readings[3].shown}`
+    );
+  }
+}
+
+/**
  * The roadmap editor, driven by clicking.
  *
  * Which fields an element type carries is declared in the overlay ontology, so
@@ -693,6 +846,7 @@ async function signedIn(cdp) {
   }
 
   await editor(cdp);
+  await focusView(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

@@ -16,6 +16,7 @@ import {
 } from "@dlab5/archimate-metamodel";
 import {
   hasErrors,
+  neighbourhood,
   toMermaidGantt,
   toRadar,
   uniqueId,
@@ -265,26 +266,20 @@ const queryElements: Tool = {
     // that nothing could traverse. Direction-agnostic on purpose — a reader
     // asking what belongs to a pattern does not care which way the
     // aggregation points.
+    //
+    // The walk itself lives in core, shared with the browser's neighbourhood
+    // view. An agent asking "what depends on this?" and a person clicking an
+    // element are asking the same question; the answer should not depend on
+    // which one asked.
     let reachable: Set<string> | null = null;
     if (relatedTo) {
       const start = String(relatedTo);
       if (!model.elements.some((e) => e.id === start)) {
         return `No element with id "${start}" in ${project}.`;
       }
-      const hops = Math.max(1, Math.min(5, Number(depth) || 1));
-      reachable = new Set([start]);
-      for (let i = 0; i < hops; i++) {
-        // Collected first, merged after. Adding to `reachable` inside the loop
-        // lets a newly-found element be followed in the same pass, which turns
-        // one hop into a transitive closure — the Gatsby pattern reached the
-        // Blockly pattern through the goal they share.
-        const found = new Set<string>();
-        for (const r of model.relationships) {
-          if (reachable.has(r.source)) found.add(r.target);
-          if (reachable.has(r.target)) found.add(r.source);
-        }
-        for (const id of found) reachable.add(id);
-      }
+      const found = neighbourhood(model, start, Number(depth) || 1);
+      reachable = new Set(found.distance.keys());
+      // The start is the thing asked about, not an answer to it.
       reachable.delete(start);
     }
 

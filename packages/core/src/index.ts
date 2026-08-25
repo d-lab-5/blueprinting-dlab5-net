@@ -60,6 +60,9 @@ export type { D2Options } from "./diagrams/d2.js";
 export { toMermaidSequence } from "./diagrams/sequence.js";
 export type { SequenceOptions } from "./diagrams/sequence.js";
 
+export { MAX_DEPTH, neighbourhood } from "./neighbourhood.js";
+export type { Neighbourhood } from "./neighbourhood.js";
+
 export { derivePlateauDates, isoDate, toScheduleGraph } from "./schedule.js";
 export type { PlateauDate, ScheduleGraph } from "./schedule.js";
 
