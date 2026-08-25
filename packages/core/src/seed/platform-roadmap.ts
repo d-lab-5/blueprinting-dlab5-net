@@ -178,6 +178,23 @@ export const PLATFORM_ROADMAP: AbModel = {
       name: "WP10 Body of knowledge and plugins",
       properties: { status: "planned" },
     },
+    {
+      id: "wp11",
+      type: "WorkPackage",
+      name: "WP11 Designed UX",
+      documentation:
+        "The five screens grew one at a time as work packages landed and were " +
+        "never designed as a set. A Claude Design handoff replaced the tab bar " +
+        "with a rail, added a light theme, a guest landing page, the hexagon " +
+        "domain navigator, the banded blueprint canvas and the Teams screen. " +
+        "It also brought the first headless-browser checks: every UI change " +
+        "before it shipped with its rendering unverified.",
+      properties: {
+        startDate: "2026-08-23",
+        endDate: "2026-08-25",
+        status: "done",
+      },
+    },
 
     /* -- deliverables ------------------------------------------------------ */
     {
@@ -203,6 +220,14 @@ export const PLATFORM_ROADMAP: AbModel = {
       id: "d-store",
       type: "Deliverable",
       name: "Model store with ETag-guarded writes",
+      properties: { status: "done" },
+    },
+    {
+      id: "d-designed-ux",
+      type: "Deliverable",
+      name: "Designed shell and six screens",
+      documentation:
+        "Rail, light theme, guest landing, domains, blueprint canvas, teams.",
       properties: { status: "done" },
     },
     {
@@ -260,6 +285,7 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-wp3-core", type: "realization", source: "wp3", target: "d-core", properties: {} },
     { id: "r-wp3-store", type: "realization", source: "wp3", target: "d-store", properties: {} },
     { id: "r-wp4-gantt", type: "realization", source: "wp4", target: "d-gantt", properties: {} },
+    { id: "r-wp11-ux", type: "realization", source: "wp11", target: "d-designed-ux", properties: {} },
 
     /* Deliverables bring about plateaus. Note the direction: ArchiMate has
        the deliverable realising the state, not the state composing it. */
@@ -268,6 +294,7 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-core-p2", type: "realization", source: "d-core", target: "p2", properties: {} },
     { id: "r-store-p2", type: "realization", source: "d-store", target: "p2", properties: {} },
     { id: "r-gantt-p3", type: "realization", source: "d-gantt", target: "p3", properties: {} },
+    { id: "r-ux-p3", type: "realization", source: "d-designed-ux", target: "p3", properties: {} },
 
     /* Sequencing. This is what a Gantt's "after" dependencies come from. */
     { id: "r-wp1-wp2", type: "triggering", source: "wp1", target: "wp2", properties: {} },
@@ -279,6 +306,7 @@ export const PLATFORM_ROADMAP: AbModel = {
     { id: "r-wp3-wp8", type: "triggering", source: "wp3", target: "wp8", properties: {} },
     { id: "r-wp4-wp9", type: "triggering", source: "wp4", target: "wp9", properties: {} },
     { id: "r-wp8-wp10", type: "triggering", source: "wp8", target: "wp10", properties: {} },
+    { id: "r-wp9-wp11", type: "triggering", source: "wp9", target: "wp11", properties: {} },
 
     /* Milestones. */
     { id: "r-wp1-green", type: "triggering", source: "wp1", target: "e-stage-green", properties: {} },
