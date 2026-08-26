@@ -300,6 +300,14 @@ function Views({ model }: { model: AbModel }) {
   /** Element to centre the structure view on, or null for the whole model. */
   const [focus, setFocus] = React.useState<string>("");
   const [depth, setDepth] = React.useState(1);
+  /**
+   * One view at a time.
+   *
+   * Structure and behaviour answer different questions and are read at
+   * different moments. Stacking them meant every visit rendered both — two
+   * WASM compiles, and a page you scroll past half of.
+   */
+  const [kind, setKind] = React.useState<"structure" | "behaviour">("structure");
 
   const present = React.useMemo(() => {
     const seen = new Set<LayerId>();
@@ -340,7 +348,27 @@ function Views({ model }: { model: AbModel }) {
 
   return (
     <>
-      <h2>Structure</h2>
+      <div className="bp-viewpicker" role="group" aria-label="View">
+        {(
+          [
+            ["structure", "Structure"],
+            ["behaviour", "Behaviour"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={`bp-chip${kind === value ? " bp-chip--on" : ""}`}
+            aria-pressed={kind === value}
+            onClick={() => setKind(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {kind === "structure" && (
+        <>
       <p className="bp-lede">
         Domains are containers in the standard ArchiMate colours, and a shape
         follows the element&rsquo;s aspect: hexagon for motivation, rounded for
@@ -417,16 +445,21 @@ function Views({ model }: { model: AbModel }) {
           <D2View script={d2} />
         </DiagramViewport>
       )}
+        </>
+      )}
 
-      <h2>Behaviour</h2>
-      <p className="bp-lede">
-        Who does what, and what happens next. Participants come from the
-        assignment relationship — ArchiMate already records who performs each
-        step, which is why this can be derived rather than drawn.
-      </p>
-      <DiagramViewport>
-        <MermaidView script={sequence} id={`seq-${model.projectSlug}`} />
-      </DiagramViewport>
+      {kind === "behaviour" && (
+        <>
+          <p className="bp-lede">
+            Who does what, and what happens next. Participants come from the
+            assignment relationship — ArchiMate already records who performs
+            each step, which is why this can be derived rather than drawn.
+          </p>
+          <DiagramViewport>
+            <MermaidView script={sequence} id={`seq-${model.projectSlug}`} />
+          </DiagramViewport>
+        </>
+      )}
     </>
   );
 }

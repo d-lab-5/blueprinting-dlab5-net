@@ -454,6 +454,117 @@ const ROUTES = [
 ];
 
 /**
+ * Zoom, fit, pan and full screen.
+ *
+ * Every one of these was reported broken or missing by a reader, and none of
+ * them is visible to a build. Fit in particular has failed twice in ways that
+ * looked fine: once clamped by the minimum zoom so it did not fit, once short
+ * by the text baseline an inline-block reserves under its content.
+ */
+async function viewport(cdp) {
+  console.log("\nviewport");
+
+  const MEASURE = `
+    const frame = document.querySelector(".bp-viewport__frame");
+    const stage = document.querySelector(".bp-viewport__stage");
+    const svg = stage?.querySelector("svg");
+    const style = frame ? getComputedStyle(frame) : null;
+    return {
+      present: !!frame,
+      overflow: style?.overflowX ?? null,
+      scrollableAt100: frame ? frame.scrollWidth > frame.clientWidth + 2 : false,
+      buttons: [...document.querySelectorAll(".bp-viewport__controls button")]
+        .map((b) => b.textContent.trim()),
+      fitted: window.__fitted ?? null,
+      drag: window.__drag ?? null,
+    };
+  `;
+
+  const EXERCISE =
+    "(async () => {" +
+    "  const frame = document.querySelector('.bp-viewport__frame');" +
+    "  const click = (label) => [...document.querySelectorAll('.bp-viewport__controls button')]" +
+    "    .find((b) => b.textContent.trim() === label)?.click();" +
+    // Pan by scrolling, which must work at 100% — the thing a CSS transform
+    // inside a clipped frame could never do.
+    "  frame.scrollLeft = 120;" +
+    "  window.__drag = { movedAt100: frame.scrollLeft > 0 };" +
+    "  click('Fit');" +
+    "  await new Promise((r) => setTimeout(r, 1400));" +
+    "  window.__fitted = {" +
+    "    zoom: document.querySelector('.bp-viewport__level').textContent.trim()," +
+    "    overflowsX: frame.scrollWidth > frame.clientWidth + 2," +
+    "    overflowsY: frame.scrollHeight > frame.clientHeight + 2," +
+    "  };" +
+    "})()";
+
+  let result;
+  try {
+    result = await visit(cdp, "/p/dlab5-blueprint/views/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      then:
+        "(async () => { for (let i = 0; i < 80; i++) {" +
+        "  if (!document.body.textContent.includes('Rendering')) break;" +
+        "  await new Promise((r) => setTimeout(r, 250));" +
+        "} await new Promise((r) => setTimeout(r, 600)); })()".replace(/\}\)\(\)$/, "})()") +
+        "",
+      evaluate: MEASURE,
+      shot: "viewport_before.png",
+    });
+  } catch (error) {
+    check(false, "the viewport renders", error.message);
+    return;
+  }
+
+  const v = result.value;
+  check(v.present, "the diagram sits in a viewport");
+  check(
+    v.overflow === "auto" || v.overflow === "scroll",
+    "the frame scrolls rather than clipping",
+    `overflow-x: ${v.overflow}`
+  );
+  for (const label of ["Fit", "Full screen"]) {
+    check(v.buttons.includes(label), `the controls offer ${label}`, v.buttons.join(" "));
+  }
+
+  // Now exercise it.
+  let after;
+  try {
+    after = await visit(cdp, "/p/dlab5-blueprint/views/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      then:
+        "(async () => { for (let i = 0; i < 80; i++) {" +
+        "  if (!document.body.textContent.includes('Rendering')) break;" +
+        "  await new Promise((r) => setTimeout(r, 250));" +
+        "} await new Promise((r) => setTimeout(r, 600));" +
+        "  await (" + EXERCISE + "); })()",
+      evaluate: MEASURE,
+      shot: "viewport_fitted.png",
+    });
+  } catch (error) {
+    check(false, "the viewport can be driven", error.message);
+    return;
+  }
+
+  const a = after.value;
+  check(
+    a.drag?.movedAt100 === true,
+    "the diagram pans at 100%, without zooming in first",
+    a.drag ? JSON.stringify(a.drag) : "no reading"
+  );
+  check(a.fitted !== null, "Fit responds", a.fitted ? "" : "no reading");
+  if (a.fitted) {
+    check(
+      !a.fitted.overflowsX && !a.fitted.overflowsY,
+      "Fit actually fits, on both axes",
+      `zoom ${a.fitted.zoom}, overflow x:${a.fitted.overflowsX} y:${a.fitted.overflowsY}`
+    );
+  }
+}
+
+/**
  * The findings panel.
  *
  * The practice checks are warnings about a model that is otherwise valid, so
@@ -1029,6 +1140,7 @@ async function signedIn(cdp) {
   await focusView(cdp);
   await ganttImport(cdp);
   await findingsPanel(cdp);
+  await viewport(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

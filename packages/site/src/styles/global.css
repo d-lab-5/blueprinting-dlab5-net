@@ -910,12 +910,21 @@ a {
 }
 
 .bp-viewport__frame {
-  /* Tall enough for a real roadmap without swallowing the page. Overflow is
-     hidden rather than scrolled because panning is the gesture here; a
-     scrollbar and a drag-pan fight each other. */
+  /* Tall enough for a real roadmap without swallowing the page. */
   height: min(70vh, 34rem);
-  overflow: hidden;
-  touch-action: none;
+  /* A real scroll container, not a clipped box. Panning is the frame's own
+     scroll position, so scrollbars come for free, the wheel and the keyboard
+     work as they do everywhere else, and a diagram can be moved at any zoom
+     rather than only above 100% — which is what a CSS translate inside a
+     hidden overflow could never do. */
+  overflow: auto;
+  cursor: grab;
+  /* pan-x/pan-y rather than none: a touch drag should scroll this frame. */
+  touch-action: pan-x pan-y;
+}
+
+.bp-viewport__frame:active {
+  cursor: grabbing;
 }
 
 .bp-viewport__frame:active {
@@ -923,10 +932,42 @@ a {
 }
 
 .bp-viewport__stage {
-  transform-origin: 0 0;
-  /* No will-change. Promoting this to a compositor layer is exactly what made
-     zooming blurry: the layer is rasterised once at its original size and then
-     stretched. The stage only translates now, which is cheap regardless. */
+  /* Shrink-wraps the diagram so the frame has something wider than itself to
+     scroll to. Without this the stage fills the frame and the SVG is clipped
+     rather than reachable. */
+  display: inline-block;
+  /* An inline-block reserves room for a text baseline under its content, so
+     the stage measured ~40px taller than the diagram inside it and anything
+     fitting to the frame height came out short. */
+  font-size: 0;
+  line-height: 0;
+  min-width: min-content;
+  padding: var(--bp-space-3);
+  /* No transform and no will-change. Promoting this to a compositor layer is
+     what made zooming blurry: the layer is rasterised once at its original
+     size and then stretched. */
+}
+
+/* -- full screen ----------------------------------------------------------- */
+
+.bp-viewport--full {
+  border: 0;
+  border-radius: 0;
+  background: var(--bp-bg);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+/* The frame takes the whole screen less the control strip, rather than
+   staying 34rem tall with black space under it. */
+.bp-viewport--full .bp-viewport__frame {
+  height: auto;
+  min-height: 0;
+}
+
+/* Block, so it does not sit on a baseline of its own inside the stage. */
+.bp-viewport__stage > * {
+  display: block;
 }
 
 /* The viewport owns the chrome now, so the diagram inside is bare. */
@@ -1893,4 +1934,25 @@ a {
   font-size: 0.6875rem;
   color: var(--bp-text-muted);
   font-family: var(--bp-font-mono);
+}
+
+/* -- choosing which view to read ------------------------------------------ */
+
+.bp-viewpicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+  margin-bottom: var(--bp-space-4);
+}
+
+/* -- viewport: fit and full screen ---------------------------------------- */
+
+.bp-viewport__controls {
+  flex-wrap: wrap;
+}
+
+.bp-viewport__hint {
+  margin-left: auto;
+  color: var(--bp-text-muted);
+  font-size: 0.6875rem;
 }
