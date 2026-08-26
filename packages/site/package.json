@@ -1,0 +1,33 @@
+{
+  "name": "@dlab5/blueprint-site",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "develop": "gatsby develop -H 0.0.0.0",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
+  },
+  "dependencies": {
+    "@dlab5/archimate-metamodel": "^0.1.0",
+    "@dlab5/blueprint-blockly": "^0.1.0",
+    "@dlab5/blueprint-core": "^0.1.0",
+    "@terrastruct/d2": "^0.1.33",
+    "aws-amplify": "^6.15.0",
+    "blockly": "^13.2.1",
+    "gatsby": "^5.16.0",
+    "graphql": "^16.14.2",
+    "mermaid": "^11.17.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

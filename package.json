@@ -1,0 +1,38 @@
+{
+  "name": "blueprinting-dlab5-net",
+  "private": true,
+  "description": "D-LAB-5 Blueprinting Platform — engineering governance over an ArchiMate 3.2 semantic model",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:metamodel && npm run build:core && npm run build:exchange && npm run build:blockly && npm run build:mcp && npm run build:web",
+    "build:metamodel": "npm run build -w @dlab5/archimate-metamodel",
+    "build:core": "npm run build -w @dlab5/blueprint-core",
+    "build:exchange": "npm run build -w @dlab5/archimate-exchange",
+    "build:blockly": "npm run build -w @dlab5/blueprint-blockly",
+    "build:mcp": "npm run build -w @dlab5/archimate-mcp",
+    "build:web": "npm run build -w @dlab5/blueprint-site",
+    "gen:metamodel": "node scripts/gen-metamodel.mjs",
+    "seed": "node scripts/seed.mjs",
+    "export": "node scripts/export.mjs",
+    "verify:archi": "node scripts/verify-archi-roundtrip.mjs",
+    "verify:views": "node scripts/verify-views.mjs",
+    "verify:ui": "node scripts/verify-ui.mjs",
+    "verify:auth": "node scripts/verify-auth.mjs",
+    "verify:model-store": "node scripts/verify-model-store.mjs",
+    "verify:mcp": "node scripts/verify-mcp.mjs",
+    "dev:web": "npm run develop -w @dlab5/blueprint-site",
+    "start:web": "npm run serve -w @dlab5/blueprint-site",
+    "clean:web": "npm run clean -w @dlab5/blueprint-site",
+    "test": "npm run test --workspaces --if-present",
+    "backend:install": "npm --prefix backend install",
+    "backend:sandbox": "npm --prefix backend run sandbox",
+    "backend:sync-outputs": "npm --prefix backend run sync-outputs",
+    "backend:typecheck": "npm --prefix backend run typecheck"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

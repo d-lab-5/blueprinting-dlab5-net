@@ -1,0 +1,29 @@
+{
+  "name": "@dlab5/archimate-exchange",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "ArchiMate Model Exchange File Format — export to and import from Archi",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test __tests__/*.test.mjs"
+  },
+  "dependencies": {
+    "@dlab5/archimate-metamodel": "^0.1.0",
+    "@dlab5/blueprint-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

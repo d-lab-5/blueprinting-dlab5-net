@@ -1,0 +1,1958 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#___gatsby,
+#gatsby-focus-wrapper {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bp-bg);
+  color: var(--bp-text);
+  font-family: var(--bp-font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: var(--bp-font-mono);
+  font-size: 0.9em;
+  background: var(--bp-bg-sunken);
+  padding: 0.1em 0.35em;
+  border-radius: var(--bp-radius-sm);
+}
+
+a {
+  color: var(--bp-accent);
+}
+
+/* -- the sign-in / notice screen ----------------------------------------- */
+
+.bp-gate {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--bp-space-6);
+}
+
+.bp-gate__card {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  box-shadow: var(--bp-shadow);
+  padding: var(--bp-space-8);
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-gate__title {
+  margin: 0;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
+}
+
+.bp-gate__subtitle {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+/* -- the guest landing ---------------------------------------------------- */
+
+.bp-guest {
+  display: grid;
+  /* The welcome sits at the top; the constellation takes the rest of the
+     height rather than leaving the lower half of the page empty. */
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  gap: var(--bp-space-6);
+  min-height: 100%;
+}
+
+.bp-guest__title {
+  margin: 0;
+  max-width: 48rem;
+  display: grid;
+  gap: var(--bp-space-2);
+  /* A welcome, not a billboard — but the name of the thing still leads, so the
+     two halves are sized differently rather than run together as one long
+     line that starts nowhere. */
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.bp-guest__titlelead {
+  font-size: clamp(1.375rem, 1.1rem + 1.2vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.bp-guest__titlerest {
+  font-size: clamp(0.9375rem, 0.9rem + 0.25vw, 1.0625rem);
+  line-height: 1.6;
+  color: var(--bp-text-muted);
+}
+
+.bp-guest__titleaccent {
+  color: var(--bp-accent);
+}
+
+.bp-guest__lede {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.bp-guest__figure {
+  margin: 0;
+  width: 100%;
+  display: grid;
+  /* Both rows content-sized, and the pair centred in whatever height is left.
+     A 1fr row for the drawing pushed the legend to the very bottom of the
+     page, a long way from the thing it labels. */
+  grid-template-rows: auto auto;
+  gap: var(--bp-space-4);
+  justify-items: center;
+  align-content: center;
+  min-height: 0;
+  position: relative;
+}
+
+.bp-guest__constellation {
+  width: 100%;
+  height: auto;
+  max-width: 72rem;
+  max-height: 30rem;
+  /* Decorative weight, not the subject of the page: the sign-in card has to
+     stay the brightest thing here. */
+  opacity: 0.72;
+}
+
+.bp-guest__halo {
+  fill: none;
+  stroke-dasharray: 3 7;
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.bp-guest__edges line {
+  stroke: var(--bp-border-strong);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+/* The scanner sweeps the metamodel, one column at a time. Decorative, and the
+   first thing to go when someone has asked for less motion. */
+.bp-guest__scanner {
+  animation: bp-scan 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bp-scan {
+  0% {
+    transform: translateX(-14%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.bp-guest__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bp-space-2) var(--bp-space-4);
+  font-size: 0.75rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-guest__legenditem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+}
+
+.bp-guest__swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 3px;
+  /* The pastels are pale by specification; without an outline they vanish
+     against the light theme's white surface. */
+  border: 1px solid var(--bp-border-strong);
+}
+
+.bp-guest__count {
+  color: var(--bp-text);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.bp-guest__foot {
+  margin: 0;
+  max-width: 34rem;
+  text-align: center;
+  color: var(--bp-text-muted);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 720px) {
+  /* The constellation is four clusters wide; below this it is a smear. The
+     legend still carries the layers, which is the part that means anything. */
+  .bp-guest__constellation {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-guest__scanner {
+    animation: none;
+    /* Parked mid-drawing rather than hidden: it is part of the picture, and
+       removing it entirely leaves an empty band where a reader expects one. */
+    transform: translateX(180%);
+    opacity: 0.5;
+  }
+}
+
+.bp-gate__error {
+  margin: 0;
+  color: var(--bp-danger);
+  font-size: 0.875rem;
+}
+
+/* -- form primitives ------------------------------------------------------ */
+
+.bp-field {
+  display: grid;
+  gap: var(--bp-space-1);
+  font-size: 0.875rem;
+}
+
+.bp-field > span {
+  color: var(--bp-text-muted);
+}
+
+.bp-field input {
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-field input:focus-visible {
+  outline: 2px solid var(--bp-accent);
+  outline-offset: 1px;
+}
+
+.bp-button {
+  background: var(--bp-accent-strong);
+  border: 0;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-inverse);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: var(--bp-space-3) var(--bp-space-4);
+}
+
+.bp-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* -- app shell ------------------------------------------------------------ */
+
+.bp-shell {
+  min-height: 100%;
+}
+
+/* Inside a project the rail is a column beside the content. At `/` there is
+   no rail, so the shell is a single column and this never applies. */
+.bp-shell--railed {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.bp-shell__body {
+  min-width: 0;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.bp-shell__header {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-3) var(--bp-space-6);
+  background: var(--bp-bg-sunken);
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.bp-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--bp-text);
+  text-decoration: none;
+}
+
+.bp-mark {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--bp-accent), var(--bp-accent-strong));
+  color: var(--bp-text-inverse);
+}
+
+.bp-shell__spacer {
+  flex: 1;
+}
+
+.bp-shell__user {
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+.bp-shell__theme,
+.bp-shell__railtoggle {
+  min-width: 2rem;
+  line-height: 1;
+}
+
+.bp-shell__main {
+  padding: var(--bp-space-8) var(--bp-space-6);
+  max-width: 84rem;
+  width: 100%;
+  margin-inline: auto;
+}
+
+/* -- rail ------------------------------------------------------------------ */
+
+.bp-rail {
+  width: 232px;
+  flex: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-4) 0;
+  background: var(--bp-rail);
+  border-right: 1px solid var(--bp-border);
+  transition: width 180ms ease;
+}
+
+/* Collapsed to nothing rather than to icons: at this width an icon rail would
+   need its own labelling story, and the toggle is one click away. */
+.bp-rail--closed {
+  width: 0;
+  padding-inline: 0;
+  overflow: hidden;
+  border-right-width: 0;
+}
+
+.bp-rail__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  padding: 0 var(--bp-space-4) var(--bp-space-3);
+  border-bottom: 1px solid var(--bp-border);
+  color: var(--bp-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bp-rail__brandaccent {
+  color: var(--bp-accent);
+}
+
+.bp-rail__switcher {
+  display: grid;
+  gap: var(--bp-space-1);
+  padding: 0 var(--bp-space-4);
+}
+
+.bp-rail__switcherlabel {
+  font-family: var(--bp-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__switcher select {
+  width: 100%;
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-2);
+}
+
+.bp-rail__items {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--bp-space-3);
+  display: grid;
+  gap: 2px;
+}
+
+.bp-rail__item {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font-size: 0.8rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bp-rail__item:hover {
+  background: var(--bp-surface);
+  border-color: var(--bp-border);
+}
+
+.bp-rail__item--on {
+  background: var(--bp-surface);
+  border-color: var(--bp-border-strong);
+}
+
+.bp-rail__dot {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--bp-accent);
+}
+
+@media (max-width: 52rem) {
+  .bp-shell--railed {
+    grid-template-columns: 1fr;
+  }
+
+  .bp-rail {
+    position: static;
+    height: auto;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--bp-border);
+  }
+
+  .bp-rail__items {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+.bp-linkbutton {
+  background: none;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-linkbutton:hover {
+  color: var(--bp-text);
+  border-color: var(--bp-text-muted);
+}
+
+/* -- project list and model view ------------------------------------------ */
+
+.bp-lede,
+.bp-muted {
+  color: var(--bp-text-muted);
+}
+
+.bp-error {
+  color: var(--bp-danger);
+}
+
+.bp-crumb {
+  margin: 0 0 var(--bp-space-2);
+  font-size: 0.875rem;
+}
+
+.bp-empty {
+  border: 1px dashed var(--bp-border-strong);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-6);
+}
+
+.bp-empty p {
+  margin: 0 0 var(--bp-space-2);
+}
+
+.bp-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.bp-card {
+  display: grid;
+  gap: var(--bp-space-1);
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.bp-card:hover {
+  border-color: var(--bp-accent);
+}
+
+.bp-card__title {
+  font-weight: 600;
+}
+
+.bp-card__body,
+.bp-card__meta {
+  color: var(--bp-text-muted);
+  font-size: 0.875rem;
+}
+
+.bp-layer h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  font-size: 1rem;
+  margin-bottom: var(--bp-space-2);
+}
+
+/* The swatch is the standard ArchiMate layer colour, so a reader who knows
+   Archi recognises the layer before reading the heading. */
+.bp-layer__swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.bp-elements {
+  list-style: none;
+  margin: 0 0 var(--bp-space-6);
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-elements li {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  background: var(--bp-surface);
+  border-radius: var(--bp-radius-sm);
+  font-size: 0.875rem;
+}
+
+.bp-element__type {
+  color: var(--bp-text-muted);
+}
+
+.bp-element__props {
+  grid-column: 2;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.8rem;
+}
+
+.bp-findings {
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-findings h2 {
+  font-size: 1rem;
+}
+
+.bp-findings ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-finding {
+  display: flex;
+  gap: var(--bp-space-3);
+  align-items: baseline;
+  font-size: 0.875rem;
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-surface);
+}
+
+.bp-finding__severity {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  min-width: 4.5rem;
+}
+
+.bp-finding--error {
+  border-left: 3px solid var(--bp-danger);
+}
+
+.bp-finding--error .bp-finding__severity {
+  color: var(--bp-danger);
+}
+
+.bp-finding--warning {
+  border-left: 3px solid var(--bp-warning);
+}
+
+.bp-finding--warning .bp-finding__severity {
+  color: var(--bp-warning);
+}
+
+/* -- tabs, save bar, diagram, editor -------------------------------------- */
+
+.bp-pagehead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bp-space-6);
+  flex-wrap: wrap;
+}
+
+.bp-tabs {
+  display: flex;
+  gap: var(--bp-space-1);
+}
+
+.bp-tab {
+  padding: var(--bp-space-1) var(--bp-space-3);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.bp-tab--on {
+  background: var(--bp-surface);
+  color: var(--bp-text);
+}
+
+.bp-savebar {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  flex-wrap: wrap;
+  margin: var(--bp-space-4) 0;
+  font-size: 0.875rem;
+}
+
+.bp-ok {
+  color: var(--bp-success);
+}
+
+.bp-diagram {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  /* A roadmap outgrows its column long before it outgrows the year. Scrolling
+     the diagram beats scrolling the page sideways. */
+  overflow-x: auto;
+}
+
+.bp-diagram svg {
+  max-width: none;
+}
+
+.bp-diagram--error pre {
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-findings summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--bp-text-muted);
+  margin-bottom: var(--bp-space-2);
+}
+
+/* -- editor ---------------------------------------------------------------- */
+
+.bp-editor {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .bp-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bp-editor__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-editor__elements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bp-editor__item {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: var(--bp-space-2);
+  width: 100%;
+  text-align: left;
+  background: var(--bp-surface);
+  border: 1px solid transparent;
+  border-radius: var(--bp-radius-sm);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-editor__item:hover {
+  border-color: var(--bp-border-strong);
+}
+
+.bp-editor__item--selected {
+  border-color: var(--bp-accent);
+}
+
+.bp-editor__item-type {
+  color: var(--bp-text-muted);
+}
+
+.bp-editor__detail {
+  display: grid;
+  gap: var(--bp-space-3);
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+}
+
+.bp-editor__hint {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.bp-field-row {
+  display: flex;
+  gap: var(--bp-space-3);
+  flex-wrap: wrap;
+}
+
+.bp-field textarea,
+.bp-field select {
+  background: var(--bp-bg-sunken);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text);
+  font: inherit;
+  padding: var(--bp-space-2) var(--bp-space-3);
+}
+
+.bp-linkbutton--danger {
+  justify-self: start;
+  color: var(--bp-danger);
+  border-color: var(--bp-danger);
+}
+
+.bp-rels h3 {
+  font-size: 0.9rem;
+  margin: var(--bp-space-2) 0;
+}
+
+.bp-rels ul {
+  list-style: none;
+  margin: 0 0 var(--bp-space-3);
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bp-rels li {
+  display: grid;
+  grid-template-columns: 8rem 1fr auto;
+  gap: var(--bp-space-2);
+  align-items: center;
+  font-size: 0.85rem;
+  background: var(--bp-bg-sunken);
+  border-radius: var(--bp-radius-sm);
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-rels__type {
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.8rem;
+}
+
+.bp-rels__add {
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.bp-rels__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1);
+}
+
+/* -- new project ----------------------------------------------------------- */
+
+.bp-newproject__open {
+  margin-bottom: var(--bp-space-4);
+}
+
+.bp-newproject {
+  display: grid;
+  gap: var(--bp-space-3);
+  max-width: 34rem;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-newproject h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bp-newproject__actions {
+  display: flex;
+  gap: var(--bp-space-3);
+  align-items: center;
+}
+
+/* -- diagram viewport ------------------------------------------------------ */
+
+.bp-viewport {
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  overflow: hidden;
+}
+
+.bp-viewport__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-1);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-bottom: 1px solid var(--bp-border);
+}
+
+.bp-viewport__level {
+  min-width: 4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-viewport__hint {
+  margin-left: auto;
+  color: var(--bp-text-muted);
+  font-size: 0.75rem;
+}
+
+.bp-viewport__frame {
+  /* Tall enough for a real roadmap without swallowing the page. */
+  height: min(70vh, 34rem);
+  /* A real scroll container, not a clipped box. Panning is the frame's own
+     scroll position, so scrollbars come for free, the wheel and the keyboard
+     work as they do everywhere else, and a diagram can be moved at any zoom
+     rather than only above 100% — which is what a CSS translate inside a
+     hidden overflow could never do. */
+  overflow: auto;
+  cursor: grab;
+  /* pan-x/pan-y rather than none: a touch drag should scroll this frame. */
+  touch-action: pan-x pan-y;
+}
+
+.bp-viewport__frame:active {
+  cursor: grabbing;
+}
+
+.bp-viewport__frame:active {
+  cursor: grabbing !important;
+}
+
+.bp-viewport__stage {
+  /* Shrink-wraps the diagram so the frame has something wider than itself to
+     scroll to. Without this the stage fills the frame and the SVG is clipped
+     rather than reachable. */
+  display: inline-block;
+  /* An inline-block reserves room for a text baseline under its content, so
+     the stage measured ~40px taller than the diagram inside it and anything
+     fitting to the frame height came out short. */
+  font-size: 0;
+  line-height: 0;
+  min-width: min-content;
+  padding: var(--bp-space-3);
+  /* No transform and no will-change. Promoting this to a compositor layer is
+     what made zooming blurry: the layer is rasterised once at its original
+     size and then stretched. */
+}
+
+/* -- full screen ----------------------------------------------------------- */
+
+.bp-viewport--full {
+  border: 0;
+  border-radius: 0;
+  background: var(--bp-bg);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+/* The frame takes the whole screen less the control strip, rather than
+   staying 34rem tall with black space under it. */
+.bp-viewport--full .bp-viewport__frame {
+  height: auto;
+  min-height: 0;
+}
+
+/* Block, so it does not sit on a baseline of its own inside the stage. */
+.bp-viewport__stage > * {
+  display: block;
+}
+
+/* The viewport owns the chrome now, so the diagram inside is bare. */
+.bp-viewport .bp-diagram {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+
+/* -- gantt legend ---------------------------------------------------------- */
+
+.bp-legend {
+  margin: var(--bp-space-3) 0 var(--bp-space-6);
+  font-size: 0.8rem;
+}
+
+.bp-legend__items {
+  list-style: none;
+  margin: 0 0 var(--bp-space-2);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2) var(--bp-space-6);
+}
+
+.bp-legend__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bp-space-2);
+}
+
+.bp-legend__swatch {
+  width: 1.4rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  flex: none;
+  align-self: center;
+}
+
+/* Mermaid draws a milestone as a rotated square, so the legend does too. */
+.bp-legend__swatch--milestone {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+
+.bp-legend__label {
+  color: var(--bp-text);
+}
+
+.bp-legend__meaning {
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+  font-size: 0.72rem;
+}
+
+.bp-legend__note {
+  margin: 0;
+  color: var(--bp-text-muted);
+  max-width: 60ch;
+  line-height: 1.5;
+}
+
+/* -- blockly editor -------------------------------------------------------- */
+
+.bp-blockly {
+  position: relative;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  overflow: hidden;
+}
+
+.bp-blockly__canvas {
+  /* Tall enough to work in without swallowing the page. Blockly measures its
+     container on inject, so this must be a real height, not a percentage. */
+  height: min(72vh, 40rem);
+  width: 100%;
+}
+
+.bp-blockly__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  z-index: 1;
+}
+
+.bp-blockly__warnings {
+  list-style: none;
+  margin: 0 0 var(--bp-space-3);
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border-left: 3px solid var(--bp-warning);
+  background: var(--bp-surface);
+  border-radius: var(--bp-radius-sm);
+  font-size: 0.8rem;
+  color: var(--bp-text-muted);
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+/* Blockly injects its own light chrome; nudge the canvas to the app's ground
+   so it does not sit as a white slab in a dark page. */
+.bp-blockly .injectionDiv,
+.bp-blockly .blocklyMainBackground {
+  background: var(--bp-bg-sunken);
+}
+
+/* -- domain filter --------------------------------------------------------- */
+
+.bp-domainfilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  background: none;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 999px;
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-3);
+}
+
+.bp-chip--on {
+  color: var(--bp-text);
+  border-color: var(--bp-accent);
+  background: var(--bp-surface);
+}
+
+/* -- technology radar ------------------------------------------------------ */
+
+.bp-radar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+@media (max-width: 60rem) {
+  .bp-radar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bp-radar__chart svg {
+  width: 100%;
+  height: auto;
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+}
+
+.bp-radar__ringlabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.bp-radar__quadrantlabel {
+  font-size: 12px;
+  fill: var(--bp-text-muted);
+}
+
+.bp-radar__blip {
+  cursor: pointer;
+}
+
+.bp-radar__blip:hover circle,
+.bp-radar__blip:hover polygon {
+  filter: brightness(1.25);
+}
+
+.bp-radar__blip:focus-visible {
+  outline: 2px solid var(--bp-accent);
+}
+
+.bp-radar__blipnumber {
+  font-size: 10px;
+  font-weight: 600;
+  fill: #0f172a;
+  pointer-events: none;
+}
+
+.bp-radar__side {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-radar__quadrant h3,
+.bp-radar__detail h3 {
+  font-size: 0.9rem;
+  margin: 0 0 var(--bp-space-2);
+}
+
+.bp-radar__quadrant ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.bp-radar__entry {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--bp-radius-sm);
+  color: var(--bp-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--bp-space-1) var(--bp-space-2);
+}
+
+.bp-radar__entry:hover {
+  background: var(--bp-surface);
+  color: var(--bp-text);
+}
+
+.bp-radar__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: none;
+}
+
+.bp-radar__num {
+  font-variant-numeric: tabular-nums;
+  min-width: 1.4rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-radar__detail {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  padding: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-2);
+  font-size: 0.875rem;
+}
+
+.bp-radar__meta {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.8rem;
+}
+
+/* -- motion ---------------------------------------------------------------- */
+
+/*
+ * Anything that moves on its own stops when the reader has asked for that.
+ * Transitions on a deliberate action — a rail opening because a button was
+ * pressed — are left alone; it is unattended motion that causes trouble.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -- domains: the hexagon navigator --------------------------------------- */
+
+.bp-domains {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+  gap: var(--bp-space-6);
+  align-items: start;
+}
+
+.bp-domains__figure svg {
+  width: 100%;
+  height: auto;
+  max-height: 32rem;
+}
+
+.bp-domains__cell {
+  transition: opacity 120ms ease;
+}
+
+.bp-domains__cell[role="button"] {
+  cursor: pointer;
+}
+
+.bp-domains__cell[role="button"]:hover path {
+  fill-opacity: 0.38;
+}
+
+/* The focus ring has to sit on the group, not the path: an SVG path takes no
+   outline, so keyboard focus would otherwise be invisible. */
+.bp-domains__cell:focus-visible {
+  outline: 2px solid var(--bp-accent);
+  outline-offset: 2px;
+}
+
+.bp-domains__label,
+.bp-domains__count {
+  fill: var(--bp-text);
+  font: 600 12px system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.bp-domains__count {
+  fill: var(--bp-text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.bp-domains__cell--empty .bp-domains__label,
+.bp-domains__cell--empty .bp-domains__count {
+  opacity: 0.45;
+}
+
+.bp-domains__side {
+  display: grid;
+  gap: var(--bp-space-4);
+  align-content: start;
+  position: sticky;
+  top: var(--bp-space-4);
+}
+
+.bp-domains__sidetitle {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .bp-domains {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bp-domains__side {
+    position: static;
+  }
+}
+
+/* -- the banded blueprint canvas ------------------------------------------ */
+
+.bp-canvas {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-canvas__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-4);
+  font-size: 0.8125rem;
+}
+
+.bp-canvas__main {
+  min-width: 0;
+}
+
+.bp-canvas__svg {
+  width: 100%;
+  height: auto;
+}
+
+.bp-canvas__band {
+  fill: var(--bp-text-muted);
+  font: 600 10px system-ui, sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.bp-canvas__bandcount {
+  fill: var(--bp-text-muted);
+  font: 500 11px system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.bp-canvas__edges line {
+  stroke: var(--bp-border-strong);
+}
+
+.bp-canvas__node {
+  cursor: pointer;
+}
+
+.bp-canvas__node:focus-visible {
+  outline: 2px solid var(--bp-accent);
+  outline-offset: 2px;
+}
+
+.bp-canvas__node:hover rect:first-of-type {
+  fill-opacity: 0.2;
+}
+
+.bp-canvas__type {
+  fill: var(--bp-text-muted);
+  font: 500 9px system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.bp-canvas__name {
+  fill: var(--bp-text);
+  font: 600 12px system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.bp-canvas__debttrack {
+  fill: var(--bp-border-strong);
+  opacity: 0.5;
+}
+
+.bp-canvas__detail {
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  padding: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.bp-canvas__detail h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bp-canvas__props {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--bp-space-1) var(--bp-space-3);
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.bp-canvas__props dt {
+  color: var(--bp-text-muted);
+}
+
+.bp-canvas__props dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* -- teams: the model by owner -------------------------------------------- */
+
+.bp-orgs {
+  display: grid;
+  gap: var(--bp-space-4);
+}
+
+.bp-orgs__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--bp-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bp-orgs__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--bp-space-3);
+  align-items: start;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  padding: var(--bp-space-4);
+}
+
+.bp-orgs__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--bp-surface-raised);
+  border: 1px solid var(--bp-border-strong);
+  color: var(--bp-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.bp-orgs__body {
+  min-width: 0;
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-orgs__name {
+  margin: 0;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.bp-orgs__count {
+  margin: 0;
+  color: var(--bp-text-muted);
+  font-size: 0.8125rem;
+}
+
+.bp-orgs__layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-1) var(--bp-space-3);
+  list-style: none;
+  margin: var(--bp-space-1) 0 0;
+  padding: 0;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-orgs__layers li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-1);
+}
+
+.bp-orgs__debt {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-orgs__debtvalue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.bp-orgs__debtbar {
+  display: block;
+  width: 4.5rem;
+  height: 3px;
+  border-radius: 1.5px;
+  background: var(--bp-border-strong);
+  overflow: hidden;
+}
+
+.bp-orgs__debtbar > span {
+  display: block;
+  height: 100%;
+}
+
+.bp-orgs__caveat {
+  opacity: 0.75;
+}
+
+/* -- derived, non-editable values ----------------------------------------- */
+
+.bp-field--derived {
+  gap: var(--bp-space-1);
+}
+
+.bp-derived {
+  margin: 0;
+  padding: var(--bp-space-2) var(--bp-space-3);
+  border: 1px dashed var(--bp-border-strong);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-bg-sunken);
+  font-size: 0.8125rem;
+}
+
+.bp-derived strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -- centring the structure view on one element --------------------------- */
+
+.bp-focus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--bp-space-3) var(--bp-space-4);
+  margin-bottom: var(--bp-space-3);
+}
+
+.bp-focus .bp-field {
+  min-width: 0;
+}
+
+.bp-focus select {
+  max-width: 24rem;
+}
+
+.bp-focus__count {
+  flex: 1 1 16rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* -- importing a Mermaid Gantt -------------------------------------------- */
+
+.bp-import {
+  margin-top: var(--bp-space-5);
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  padding: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-3);
+}
+
+.bp-import > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.bp-import__note {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.bp-import textarea {
+  font-family: var(--bp-font-mono);
+  font-size: 0.8125rem;
+}
+
+.bp-import__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bp-import__skipped {
+  font-size: 0.75rem;
+}
+
+.bp-import__skipped ul {
+  margin: var(--bp-space-2) 0 0;
+  padding-left: var(--bp-space-4);
+  display: grid;
+  gap: var(--bp-space-1);
+}
+
+.bp-import .bp-button {
+  justify-self: start;
+}
+
+/* -- rail sections, appearance and account -------------------------------- */
+
+.bp-rail__section {
+  display: grid;
+  gap: var(--bp-space-2);
+}
+
+.bp-rail__sectionlabel {
+  margin: 0;
+  padding: 0 var(--bp-space-4);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__note,
+.bp-rail__who,
+.bp-rail__empty {
+  margin: 0;
+  padding: 0 var(--bp-space-4);
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  color: var(--bp-text-muted);
+}
+
+.bp-rail__who {
+  overflow-wrap: anywhere;
+}
+
+/* A rail entry that is a button must not inherit the browser's button look. */
+.bp-rail__item--button {
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+/* Locked entries are spans: visible, and deliberately not focusable. */
+.bp-rail__item--locked {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bp-rail__lock {
+  margin-left: auto;
+  flex: none;
+}
+
+.bp-rail__brand--static {
+  cursor: default;
+}
+
+/* -- the appearance segmented control ------------------------------------- */
+
+.bp-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 0 var(--bp-space-3);
+  padding: 2px;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-bg-sunken);
+}
+
+.bp-seg__option {
+  border: none;
+  border-radius: calc(var(--bp-radius-sm) - 2px);
+  background: none;
+  color: var(--bp-text-muted);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--bp-space-2) 0;
+  cursor: pointer;
+}
+
+.bp-seg__option--on {
+  background: var(--bp-surface-raised);
+  color: var(--bp-text);
+}
+
+/* -- header title, meta and the guest badge -------------------------------- */
+
+.bp-shell__title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.bp-shell__meta {
+  color: var(--bp-text-muted);
+  font-size: 0.75rem;
+}
+
+.bp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+}
+
+.bp-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* -- the guest shell ------------------------------------------------------- */
+
+/* Wider than the signed-in rail: this one holds a real form with two fields,
+   not a list of links. */
+.bp-shell--guest .bp-rail {
+  width: 280px;
+}
+
+/* The sign-in form sits inside the rail, so it drops the card treatment it
+   had when it owned the page. */
+.bp-shell--guest .bp-gate__card {
+  max-width: none;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0 var(--bp-space-4);
+  gap: var(--bp-space-3);
+}
+
+.bp-shell--guest .bp-gate__title {
+  font-size: 0.9375rem;
+}
+
+.bp-shell--guest .bp-gate__subtitle {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .bp-shell--guest .bp-rail {
+    width: 100%;
+  }
+}
+
+/* -- the signed-in home ---------------------------------------------------- */
+
+.bp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+  gap: var(--bp-space-6);
+  align-items: center;
+  margin-bottom: var(--bp-space-6);
+}
+
+.bp-hero__copy {
+  display: grid;
+  gap: var(--bp-space-4);
+  align-content: start;
+  max-width: 40rem;
+}
+
+.bp-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-2);
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bp-accent);
+}
+
+.bp-hero__eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.bp-hero__title {
+  margin: 0;
+  font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.bp-hero__titleaccent {
+  color: var(--bp-accent);
+}
+
+.bp-hero__lede {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--bp-text-muted);
+  line-height: 1.65;
+}
+
+.bp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-3);
+}
+
+.bp-button--ghost {
+  background: none;
+  color: var(--bp-text);
+  border: 1px solid var(--bp-border-strong);
+}
+
+.bp-button--ghost:hover {
+  background: var(--bp-surface);
+  border-color: var(--bp-text-muted);
+}
+
+.bp-hero__art {
+  width: 100%;
+  height: auto;
+  max-height: 13rem;
+  justify-self: end;
+  opacity: 0.9;
+}
+
+.bp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  border: 1px solid var(--bp-border);
+  border-radius: var(--bp-radius);
+  background: var(--bp-surface);
+  overflow: hidden;
+}
+
+.bp-stat {
+  flex: 1 1 8rem;
+  padding: var(--bp-space-3) var(--bp-space-4);
+  border-right: 1px solid var(--bp-border);
+}
+
+.bp-stat:last-child {
+  border-right: 0;
+}
+
+.bp-stat dt {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.bp-stat dd {
+  margin: 3px 0 0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+}
+
+.bp-cards__heading {
+  margin: 0 0 var(--bp-space-4);
+  scroll-margin-top: var(--bp-space-6);
+}
+
+@media (max-width: 900px) {
+  .bp-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--bp-space-5);
+  }
+
+  /* The hexagon is decoration; at this width the copy needs the room. */
+  .bp-hero__art {
+    display: none;
+  }
+}
+
+/* -- a finding's citation -------------------------------------------------- */
+
+.bp-finding__message {
+  min-width: 0;
+}
+
+/* Set below the message rather than beside it: the message is the finding,
+   the citation is provenance, and a reader should be able to skip it. */
+.bp-finding__source {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6875rem;
+  color: var(--bp-text-muted);
+  font-family: var(--bp-font-mono);
+}
+
+/* -- choosing which view to read ------------------------------------------ */
+
+.bp-viewpicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+  margin-bottom: var(--bp-space-4);
+}
+
+/* -- viewport: fit and full screen ---------------------------------------- */
+
+.bp-viewport__controls {
+  flex-wrap: wrap;
+}
+
+.bp-viewport__hint {
+  margin-left: auto;
+  color: var(--bp-text-muted);
+  font-size: 0.6875rem;
+}

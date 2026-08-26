@@ -1,0 +1,148 @@
+/*
+ * D-LAB-5 Blueprinting — design tokens.
+ *
+ * Convention borrowed from digitalhome-cloud-darkfactory's dhc-tokens.css:
+ * everything is a CSS custom property on :root, component classes are
+ * .bp-{component}__{part}--{modifier}, and the palette is dark-first.
+ *
+ * Two themes. Dark is the default on :root; light is an override keyed on
+ * [data-bp-theme="light"], set on a wrapper element by Shell. Every token is
+ * defined in BOTH — a component must never read one that exists in only one
+ * theme, because the failure is invisible until someone toggles.
+ *
+ * The layer colours are NOT free choices. They are the standard ArchiMate
+ * pastels that Archi, the specification's own figures and every ArchiMate
+ * reader already associate with each layer, so a Blockly block, a D2 node and
+ * a legend swatch all agree with what someone sees in Archi. `--ink` is the
+ * text colour to use ON that pastel; the pastels are light, so it is dark.
+ */
+
+:root {
+  /* -- surfaces ---------------------------------------------------------- */
+  --bp-bg: #0f172a;
+  --bp-bg-sunken: #020617;
+  --bp-surface: #1e293b;
+  --bp-surface-raised: #334155;
+  /* The rail sits deeper than a card so the content area reads as the
+     foreground. In light it is the opposite — white against a tinted page. */
+  --bp-rail: #0b1120;
+  --bp-border: #334155;
+  --bp-border-strong: #475569;
+
+  /* -- text -------------------------------------------------------------- */
+  --bp-text: #e5e7eb;
+  --bp-text-muted: #94a3b8;
+  --bp-text-inverse: #0f172a;
+
+  /* -- accents ----------------------------------------------------------- */
+  --bp-accent: #38bdf8;
+  --bp-accent-strong: #0ea5e9;
+  --bp-success: #22c55e;
+  --bp-warning: #f59e0b;
+  --bp-danger: #ef4444;
+
+  /* -- ArchiMate 3.2 layers ---------------------------------------------- */
+  --bp-layer-motivation: #ccccff;
+  --bp-layer-motivation-ink: #2a2a5c;
+  --bp-layer-strategy: #f5deaa;
+  --bp-layer-strategy-ink: #5c4a1f;
+  --bp-layer-business: #ffffb5;
+  --bp-layer-business-ink: #5c5c1f;
+  --bp-layer-application: #b5ffff;
+  --bp-layer-application-ink: #1f5c5c;
+  --bp-layer-technology: #c9e7b7;
+  --bp-layer-technology-ink: #2f5c1f;
+  --bp-layer-physical: #c9e7b7;
+  --bp-layer-physical-ink: #2f5c1f;
+  --bp-layer-implementation: #ffe0e0;
+  --bp-layer-implementation-ink: #5c2a2a;
+  /* "Common" in ArchiMate 4, "composite" here: Grouping, Location, Junction.
+     It was missing entirely, so every screen drawing that layer — the hexagon,
+     the canvas, the guest constellation — asked for an undefined property and
+     got an invalid colour. #e8e8e8 is not a new choice: d2.ts and the Blockly
+     palette both already carry it, and CLAUDE.md requires the three to agree. */
+  --bp-layer-composite: #e8e8e8;
+  --bp-layer-composite-ink: #4a4a4a;
+
+  /* The colour to draw a layer's OUTLINE and its label in.
+     On the dark ground the pastel itself reads; on white it does not — a
+     #ffffb5 stroke on #ffffff is invisible, which washed the whole hexagon
+     out. In light these flip to the ink, which is what --ink is for. The
+     FILL stays the pastel in both, because that is the colour CLAUDE.md
+     fixes and a reader recognises from Archi. */
+  --bp-layer-motivation-line: var(--bp-layer-motivation);
+  --bp-layer-strategy-line: var(--bp-layer-strategy);
+  --bp-layer-business-line: var(--bp-layer-business);
+  --bp-layer-application-line: var(--bp-layer-application);
+  --bp-layer-technology-line: var(--bp-layer-technology);
+  --bp-layer-physical-line: var(--bp-layer-physical);
+  --bp-layer-implementation-line: var(--bp-layer-implementation);
+  --bp-layer-composite-line: var(--bp-layer-composite);
+
+  /* -- type -------------------------------------------------------------- */
+  --bp-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bp-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* -- space and shape --------------------------------------------------- */
+  --bp-space-1: 0.25rem;
+  --bp-space-2: 0.5rem;
+  --bp-space-3: 0.75rem;
+  --bp-space-4: 1rem;
+  --bp-space-6: 1.5rem;
+  --bp-space-8: 2rem;
+  --bp-radius: 0.5rem;
+  --bp-radius-sm: 0.25rem;
+  --bp-shadow: 0 10px 30px rgb(2 6 23 / 0.5);
+}
+
+/*
+ * Light theme.
+ *
+ * Values from the Claude Design handoff, which derived them from this file
+ * rather than the other way round — the dark palette above is what the design
+ * adopted verbatim.
+ *
+ * The ArchiMate layer pastels are deliberately NOT redefined. They are light
+ * by nature and paired with a dark `--ink`, so they read on either ground, and
+ * changing them per theme would break the one thing CLAUDE.md says must not
+ * be a free choice.
+ */
+[data-bp-theme="light"] {
+  --bp-bg: #f1f5f9;
+  --bp-bg-sunken: #f8fafc;
+  --bp-surface: #ffffff;
+  /* Slate 200, not the page tint. The handed-over value was #f1f5f9, which is
+     --bp-bg exactly, so anything painted "raised" was painted invisible — the
+     roadmap's planned bars vanished into the page. In dark the ladder runs
+     bg → surface → raised, getting lighter; in light it runs the other way,
+     because on a tinted page a card is white and a raised element is what
+     separates itself from the card. */
+  --bp-surface-raised: #e2e8f0;
+
+  /* Outlines and layer labels take the ink here; the pastel fills stay put. */
+  --bp-layer-motivation-line: var(--bp-layer-motivation-ink);
+  --bp-layer-strategy-line: var(--bp-layer-strategy-ink);
+  --bp-layer-business-line: var(--bp-layer-business-ink);
+  --bp-layer-application-line: var(--bp-layer-application-ink);
+  --bp-layer-technology-line: var(--bp-layer-technology-ink);
+  --bp-layer-physical-line: var(--bp-layer-physical-ink);
+  --bp-layer-implementation-line: var(--bp-layer-implementation-ink);
+  --bp-layer-composite-line: var(--bp-layer-composite-ink);
+  --bp-rail: #ffffff;
+  --bp-border: #cbd5e1;
+  --bp-border-strong: #94a3b8;
+
+  --bp-text: #0f172a;
+  --bp-text-muted: #334155;
+  --bp-text-inverse: #ffffff;
+
+  /* Darkened from the dark-theme accents: #38bdf8 on white is about 1.9:1,
+     nowhere near the 4.5:1 that body text needs. */
+  --bp-accent: #0369a1;
+  --bp-accent-strong: #075985;
+  --bp-success: #15803d;
+  --bp-warning: #b45309;
+  --bp-danger: #b91c1c;
+
+  --bp-shadow: 0 10px 30px rgb(15 23 42 / 0.12);
+}

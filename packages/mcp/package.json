@@ -1,0 +1,24 @@
+{
+  "name": "@dlab5/archimate-mcp",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "MCP server exposing an ArchiMate 3.2 model, and the specification itself, to LLM agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": { "archimate-mcp": "dist/index.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test __tests__/*.test.mjs"
+  },
+  "dependencies": {
+    "@dlab5/archimate-exchange": "^0.1.0",
+    "@dlab5/archimate-metamodel": "^0.1.0",
+    "@dlab5/blueprint-core": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "aws-amplify": "^6.15.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": { "typescript": "^5.6.0", "@types/node": "^22.7.0" }
+}

@@ -1,0 +1,247 @@
+@prefix sh:        <http://www.w3.org/ns/shacl#> .
+@prefix archimate: <https://purl.org/archimate#> .
+@prefix bp:        <https://blueprinting.dlab5.net/ns#> .
+@prefix dcterms:   <http://purl.org/dc/terms/> .
+@prefix owl:       <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# D-LAB-5 Blueprinting — App Metadata overlay
+#
+# Application-layer annotations over the ArchiMate ontology.
+# This file is NOT part of the ArchiMate language. It carries
+# no domain semantics; it records the conventions THIS platform
+# layers on top of the specification.
+#
+# The pattern is lifted from digitalhome-cloud-core's
+# schema/tbox/dhc-app-metadata.ttl, which does the same thing
+# over Brick / REC / s223: annotate classes of a vendored,
+# untouched upstream ontology from a separate file.
+#
+# Three reasons it matters here:
+#
+#   1. ontology/upstream/ stays byte-identical to what The Open
+#      Group's ontology publishes. Re-pinning is a clean swap.
+#   2. Conventions like the radar rings stop being hard-coded in
+#      TypeScript and become data the generator reads, so there
+#      is one place they are declared and one place they change.
+#   3. It is what makes more than one ArchiMate version possible
+#      at once — see § Spec versions at the end.
+#
+# Consumed by scripts/gen-metamodel.mjs.
+# ============================================================
+
+<https://blueprinting.dlab5.net/ns/app-metadata>
+    a owl:Ontology ;
+    rdfs:label "D-LAB-5 Blueprinting App Metadata"@en ;
+    dcterms:creator "D-LAB-5" ;
+    dcterms:description "Platform conventions over the ArchiMate ontology. Annotations only; no language semantics."@en ;
+    dcterms:license <https://opensource.org/licenses/MIT> ;
+    owl:versionInfo "1.0.0" ;
+
+    # Which version of the language the pinned upstream ontology expresses.
+    #
+    # Declared here rather than read from upstream: that file's owl:versionInfo
+    # says "Beta", which describes the ontology's own maturity, not the
+    # specification version it covers. Every model this platform writes is
+    # stamped with this, so an export can always name what it conforms to.
+    bp:languageVersion "3.2" .
+
+# ────────────────────────────────────────────────────────────
+# § Annotation property definitions
+# ────────────────────────────────────────────────────────────
+
+bp:relationshipType a owl:AnnotationProperty ;
+    rdfs:label "Relationship type"@en ;
+    rdfs:comment "On a relationship descriptor: which ArchiMate relationship the descriptor describes. Needed because the ontology models relationships as object properties, which cannot carry an identifier. See ADR-0005."@en ;
+    rdfs:range archimate:Relationship .
+
+bp:source a owl:AnnotationProperty ;
+    rdfs:label "Source"@en ;
+    rdfs:comment "On a relationship descriptor: the element the relationship starts at."@en .
+
+bp:target a owl:AnnotationProperty ;
+    rdfs:label "Target"@en ;
+    rdfs:comment "On a relationship descriptor: the element the relationship ends at."@en .
+
+bp:appliesTo a owl:AnnotationProperty ;
+    rdfs:label "Applies to"@en ;
+    rdfs:comment "The element types a convention is meaningful on, by local name. A convention without it applies everywhere. This is what stops the editor offering an end date on a Gap: the answer belongs with the term, not in a list inside a form component, so the editor, the Blockly palette and the MCP server all learn it at once." .
+
+# ── Scheduling ──────────────────────────────────────────────
+# ArchiMate has no schedule fields, so these ride on ArchiMate
+# Properties (spec § 2.2), which round-trip into Archi through
+# the Open Exchange format.
+
+bp:startDate a owl:AnnotationProperty ;
+    rdfs:label "Start date"@en ;
+    rdfs:comment "ISO 8601 date. Read by the Layer 7 Gantt. An ImplementationEvent carries this and no end date: it is a moment, not a duration. A Plateau carries neither — its date is DERIVED from the work packages that realise it, because a state is reached when the work bringing it about finishes, and storing that separately only creates something to contradict." ;
+    rdfs:range xsd:date ;
+    bp:propertyKey "startDate" ;
+    bp:appliesTo ( "WorkPackage" "ImplementationEvent" ) .
+
+bp:endDate a owl:AnnotationProperty ;
+    rdfs:label "End date"@en ;
+    rdfs:comment "ISO 8601 date. Work packages only — see bp:startDate for why an event and a plateau do not have one." ;
+    rdfs:range xsd:date ;
+    bp:propertyKey "endDate" ;
+    bp:appliesTo ( "WorkPackage" ) .
+
+bp:cost a owl:AnnotationProperty ;
+    rdfs:label "Cost"@en ;
+    rdfs:comment "Forecast cost of a work package, as a bare number. The currency is a property of the project rather than of each element: a mixed-currency roll-up needs conversion rates and a date to convert on, which is a different feature from the one this serves. Like bp:debt it is an estimate, and rolling it up over sub-packages is arithmetic on estimates — useful for comparison, not for a budget." ;
+    rdfs:range xsd:decimal ;
+    bp:propertyKey "cost" ;
+    bp:appliesTo ( "WorkPackage" ) .
+
+bp:status a owl:AnnotationProperty ;
+    rdfs:label "Status"@en ;
+    rdfs:comment "Drives the Gantt bar style. Anything outside this list renders untagged."@en ;
+    bp:propertyKey "status" ;
+    sh:in ( "planned" "in-progress" "done" "at-risk" "open" "closed" ) .
+
+# ── Pattern library ─────────────────────────────────────────
+# The engineering pattern library models a practice in ArchiMate's
+# Motivation layer — Principle, Constraint, Assessment — and the
+# architecture it constrains in the core layers. These two
+# properties are the link out to the material ArchiMate cannot
+# hold: the runbook, the ADR, the code.
+
+bp:reference a owl:AnnotationProperty ;
+    rdfs:label "Reference"@en ;
+    rdfs:comment "Where the detail lives: an ADR path, a Claude Code skill name, or a package. ArchiMate says what applies and why; the reference says how."@en ;
+    bp:propertyKey "reference" .
+
+bp:instances a owl:AnnotationProperty ;
+    rdfs:label "Instances"@en ;
+    rdfs:comment "The repositories that prove a pattern. Promotion requires a second instance — one instance is a decision, not a pattern — and keeping the evidence in the data is what stops that bar quietly slipping."@en ;
+    bp:propertyKey "instances" .
+
+# ── Ownership and technical debt ────────────────────────────
+# Two properties the WP11 design assumes and the model did not
+# have. Neither belongs in ArchiMate: the language describes
+# what an architecture IS, and both of these are facts about how
+# an organisation currently runs it. That is exactly the split
+# this overlay exists to hold.
+
+bp:owner a owl:AnnotationProperty ;
+    rdfs:label "Owner"@en ;
+    rdfs:comment "The team accountable for this element. A free-text team name rather than a person: people move, and an element with a former employee's name on it is worse than one with none. ArchiMate can model this properly as a BusinessRole with an assignment, and a mature model should; this property is the pragmatic form for a model that has not drawn its organisation yet."@en ;
+    bp:propertyKey "owner" .
+
+bp:debt a owl:AnnotationProperty ;
+    rdfs:label "Technical debt"@en ;
+    rdfs:comment "A number from 0 to 1, where 0 is clean and 1 is unsustainable. Deliberately coarse and deliberately a judgement: it is an architect's assessment for sorting and colouring, not a measurement, and treating it as one would be false precision."@en ;
+    rdfs:range xsd:decimal ;
+    bp:propertyKey "debt" .
+
+# ── Technology Radar ────────────────────────────────────────
+# Quadrants are archimate:Grouping elements aggregating their
+# members, because the element type cannot carry the quadrant:
+# Thoughtworks puts both "Languages & Frameworks" and "Tools"
+# on ApplicationComponent. Rings are Properties.
+
+bp:radarRing a owl:AnnotationProperty ;
+    rdfs:label "Radar ring"@en ;
+    rdfs:comment "Adoption status. Presence of this property is what puts an element on the radar."@en ;
+    bp:propertyKey "radarRing" ;
+    sh:in ( "adopt" "trial" "assess" "hold" ) .
+
+bp:radarMoved a owl:AnnotationProperty ;
+    rdfs:label "Radar movement"@en ;
+    rdfs:comment "Movement since the previous radar."@en ;
+    bp:propertyKey "radarMoved" ;
+    sh:defaultValue "none" ;
+    sh:in ( "in" "out" "none" ) .
+
+bp:radarEligible a owl:AnnotationProperty ;
+    rdfs:label "Eligible for the radar"@en ;
+    rdfs:comment "True on element types that name something a team can adopt or hold. A Plateau or a Gap is neither."@en ;
+    rdfs:range xsd:boolean .
+
+bp:propertyKey a owl:AnnotationProperty ;
+    rdfs:label "ArchiMate Property key"@en ;
+    rdfs:comment "The key this annotation uses when stored as an ArchiMate Property on an element."@en .
+
+bp:specVersion a owl:AnnotationProperty ;
+    rdfs:label "ArchiMate specification version"@en ;
+    rdfs:comment "Which versions of the language a term belongs to. Absent means every version the platform knows."@en .
+
+# ────────────────────────────────────────────────────────────
+# § Radar-eligible element types
+#
+# The list that was hard-coded in packages/core/src/radar.ts.
+# Declared here so the metamodel generator emits it and there
+# is exactly one place it is stated.
+# ────────────────────────────────────────────────────────────
+
+archimate:ApplicationComponent bp:radarEligible true ;
+    rdfs:label "Anwendungskomponente"@de, "Composant applicatif"@fr .
+
+archimate:Node bp:radarEligible true ;
+    rdfs:label "Knoten"@de, "Nœud"@fr .
+
+archimate:SystemSoftware bp:radarEligible true ;
+    rdfs:label "Systemsoftware"@de, "Logiciel système"@fr .
+
+archimate:TechnologyService bp:radarEligible true .
+
+archimate:BusinessProcess bp:radarEligible true ;
+    rdfs:label "Geschäftsprozess"@de, "Processus métier"@fr .
+
+archimate:Capability bp:radarEligible true ;
+    rdfs:label "Fähigkeit"@de, "Capacité"@fr .
+
+archimate:CourseOfAction bp:radarEligible true .
+
+# ────────────────────────────────────────────────────────────
+# § Scheduling-capable element types
+#
+# What the Layer 7 Gantt reads. Kept as data rather than as a
+# switch statement in the generator.
+# ────────────────────────────────────────────────────────────
+
+archimate:WorkPackage bp:schedulable true ;
+    rdfs:label "Arbeitspaket"@de, "Lot de travaux"@fr .
+
+archimate:ImplementationEvent bp:schedulable true ;
+    rdfs:label "Implementierungsereignis"@de, "Événement de mise en œuvre"@fr .
+
+archimate:Plateau bp:schedulable true ;
+    rdfs:label "Plateau"@de, "Palier"@fr .
+
+bp:schedulable a owl:AnnotationProperty ;
+    rdfs:label "Carries a schedule"@en ;
+    rdfs:comment "True on element types the Gantt places on a timeline."@en ;
+    rdfs:range xsd:boolean .
+
+# ────────────────────────────────────────────────────────────
+# § Spec versions
+#
+# Nothing above names a version, which means "every version the
+# platform knows" — today only 3.2.
+#
+# When a second version of the language has to coexist with it,
+# the shape is already here rather than needing a redesign:
+#
+#   - ontology/upstream/ gains a directory per version, each a
+#     byte-identical copy of what that version publishes.
+#   - This overlay stays ONE file. A term that differs between
+#     versions carries bp:specVersion; a term that does not —
+#     which is most of them, since the radar and scheduling
+#     conventions are ours, not the language's — stays as is.
+#   - The generator emits one metamodel per version, and the
+#     conventions declared here apply to each.
+#   - A project's .ttl records the version it conforms to, so
+#     two projects on different versions coexist in one
+#     platform rather than forcing a big-bang migration.
+#
+# Example of what a version-specific term would look like:
+#
+#   archimate:SomeNewElement bp:radarEligible true ;
+#       bp:specVersion "4.0" .
+#
+# This section is deliberately a plan and not an implementation.
+# See docs/adr/0007 for what is and is not settled.
+# ────────────────────────────────────────────────────────────
