@@ -56,14 +56,14 @@ export function NewProjectForm({
         className="bp-button bp-newproject__open"
         onClick={() => setOpen(true)}
       >
-        New project
+        New product
       </button>
     );
   }
 
   return (
     <form className="bp-newproject" onSubmit={submit}>
-      <h2>New project</h2>
+      <h2>New product</h2>
 
       <label className="bp-field">
         <span>Name</span>
@@ -100,7 +100,7 @@ export function NewProjectForm({
 
       <p className="bp-muted bp-editor__hint">
         This also creates the Cognito group <code>bp-{effectiveSlug || "…"}</code>{" "}
-        and adds you to it. Everyone else who needs the project has to be added
+        and adds you to it. Everyone else who needs the product has to be added
         to that group.
       </p>
 
@@ -112,7 +112,7 @@ export function NewProjectForm({
 
       <div className="bp-newproject__actions">
         <button className="bp-button" type="submit" disabled={busy || !name}>
-          {busy ? "Creating…" : "Create project"}
+          {busy ? "Creating…" : "Create product"}
         </button>
         <button
           type="button"

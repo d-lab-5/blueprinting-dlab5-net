@@ -176,7 +176,7 @@ function ProjectSwitcher({ slug }: { slug?: string }) {
   return (
     <div className="bp-rail__switcher">
       <label className="bp-rail__switcherlabel" htmlFor="bp-project">
-        {slug ? "Project" : "Open a project"}
+        {slug ? "Product" : "Open a product"}
       </label>
       <select
         id="bp-project"
@@ -197,7 +197,7 @@ function ProjectSwitcher({ slug }: { slug?: string }) {
             {projects === null
               ? "Loading…"
               : empty
-                ? "No projects yet"
+                ? "No products yet"
                 : `Choose one of ${projects.length}…`}
           </option>
         )}
@@ -270,7 +270,7 @@ export function Shell({ children, project }: ShellProps) {
     <div className="bp-shell bp-shell--railed">
       <nav
         className={`bp-rail${railOpen ? "" : " bp-rail--closed"}`}
-        aria-label={project ? "Project views" : "Workspace"}
+        aria-label={project ? "Product views" : "Workspace"}
       >
         <Link className="bp-rail__brand" to="/">
           <Mark />
@@ -305,12 +305,11 @@ export function Shell({ children, project }: ShellProps) {
             </RailSection>
           </>
         ) : (
-          // At the launcher the rail lists projects rather than views. The
-          // views all act on a project, so showing them here would be six
-          // controls that cannot do anything until one is chosen.
-          // The switcher carries its own label, so wrapping it in a section
-          // would stack "Projects" above "Open a project" saying one thing
-          // twice.
+          // At the launcher the rail lists products rather than views. The
+          // views all act on a product, so showing them here would be six
+          // controls that cannot do anything until one is chosen. The
+          // switcher carries its own label, so a section wrapper would say
+          // the same word twice.
           <ProjectSwitcher />
         )}
 

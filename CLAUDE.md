@@ -178,6 +178,13 @@ These are things that will bite. Each is load-bearing and has cost someone time.
   choices** — they are the standard pastels Archi uses, so a Blockly block, a
   D2 node and a legend swatch all agree with what a reader sees in Archi.
 - One shell component. The DHC Portal ended up with two and the seam still shows.
+- **A blueprint belongs to a *Product*, and the code calls it a `Project`.**
+  The interface says Product everywhere a person reads it; the schema, the
+  GraphQL API, the MCP tool names, the `/p/<slug>/` route and the `bp-<slug>`
+  Cognito groups all still say project. That split is deliberate — renaming
+  the data model would be a migration across six live groups and every stored
+  row, for a word. Do not "fix" one side to match the other without doing all
+  of it.
 - Record decisions as ADRs in `docs/adr/`, numbered, with the *consequences*
   section actually filled in.
 - Commits: see the `git-commit` skill. `stage` is the integration branch; `main`

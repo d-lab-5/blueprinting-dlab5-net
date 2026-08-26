@@ -70,7 +70,7 @@ export function BlueprintCanvas({ model }: { model: AbModel }) {
   if (model.elements.length === 0) {
     return (
       <div className="bp-empty">
-        <p>This project has no model yet.</p>
+        <p>This product has no model yet.</p>
         <p className="bp-muted">
           Add elements on the Roadmap tab, or seed one with{" "}
           <code>npm run seed</code>.

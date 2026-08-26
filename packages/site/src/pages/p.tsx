@@ -79,9 +79,9 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   if (!slug) {
     return (
       <Shell>
-        <h1>No project selected</h1>
+        <h1>No product selected</h1>
         <p>
-          <a href="/">Back to projects</a>
+          <a href="/">Back to products</a>
         </p>
       </Shell>
     );
@@ -266,7 +266,7 @@ function Releases({ model, slug }: { model: AbModel; slug: string }) {
   if (plateaus === 0) {
     return (
       <div className="bp-empty">
-        <p>This project has no plateaus.</p>
+        <p>This product has no plateaus.</p>
         <p className="bp-muted">
           A plateau is a stable, frozen baseline — the state the architecture
           reaches when a batch of work lands. Add one on the Roadmap tab and
@@ -493,4 +493,4 @@ function Blocks({
 
 export default ProjectPage;
 
-export const Head: HeadFC = () => <title>Project — D-LAB-5 Blueprinting</title>;
+export const Head: HeadFC = () => <title>Product — D-LAB-5 Blueprinting</title>;

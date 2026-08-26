@@ -10,11 +10,17 @@
  * Usage:
  *   BP_USER=… BP_PASSWORD=… node scripts/seed.mjs \
  *     [--project <slug>] [--from <ttl>] [--name <name>] [--description <text>]
- *     [--group <cognito-group>]
+ *     [--group <cognito-group>] [--merge]
  *
  * `--from` seeds any project from committed Turtle rather than from the
  * built-in roadmap — which is how the engineering pattern library, and any
  * other model kept in git, gets into the platform.
+ *
+ * `--merge` ADDS to whatever is already there instead of replacing it, which
+ * is what you want when a committed model documents one part of a larger
+ * project — an architecture model going into the product's own blueprint, say.
+ * Elements and relationships whose ids already exist are left alone, so
+ * re-running is idempotent and never clobbers an edit made in the app.
  *
  * Targets whichever backend backend/amplify_outputs.json points at. For the
  * deployed branch, regenerate it first:
@@ -67,6 +73,7 @@ const arg = (name) => {
 };
 
 const from = arg("--from");
+const merge = process.argv.includes("--merge");
 const source = from
   ? parseAbox(readFileSync(resolve(process.cwd(), from), "utf8"), "seed")
   : PLATFORM_ROADMAP;
@@ -127,10 +134,31 @@ try {
     "read"
   );
 
+  let toWrite = model;
+  if (merge && current.exists && current.url) {
+    // Read what is there and add to it. The ETag from this read is the one
+    // the save below is conditioned on, so a concurrent edit between the two
+    // fails the write rather than silently overwriting.
+    const existing = parseAbox(await (await fetch(current.url)).text(), slug);
+    const haveElement = new Set(existing.elements.map((e) => e.id));
+    const haveRel = new Set(existing.relationships.map((r) => r.id));
+    const newElements = model.elements.filter((e) => !haveElement.has(e.id));
+    const newRels = model.relationships.filter((r) => !haveRel.has(r.id));
+    toWrite = {
+      ...existing,
+      elements: [...existing.elements, ...newElements],
+      relationships: [...existing.relationships, ...newRels],
+    };
+    console.log(
+      `merging into ${existing.elements.length} existing elements: ` +
+        `${newElements.length} new, ${model.elements.length - newElements.length} already present`
+    );
+  }
+
   const saved = unwrap(
     await client.mutations.saveModel({
       projectSlug: slug,
-      turtle: await serializeAbox(model),
+      turtle: await serializeAbox(toWrite),
       etag: current.exists ? current.etag : undefined,
       expectAbsent: current.exists ? undefined : true,
     }),
@@ -138,8 +166,8 @@ try {
   );
 
   console.log(
-    `seeded ${model.elements.length} elements and ` +
-      `${model.relationships.length} relationships` +
+    `${merge ? "model now holds" : "seeded"} ${toWrite.elements.length} elements and ` +
+      `${toWrite.relationships.length} relationships` +
       (from ? ` from ${from}` : "")
   );
   console.log(`  key  ${saved.key}`);
