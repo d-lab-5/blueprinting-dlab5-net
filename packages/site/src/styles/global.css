@@ -935,12 +935,17 @@ a {
   /* Shrink-wraps the diagram so the frame has something wider than itself to
      scroll to. Without this the stage fills the frame and the SVG is clipped
      rather than reachable. */
-  display: inline-block;
-  /* An inline-block reserves room for a text baseline under its content, so
-     the stage measured ~40px taller than the diagram inside it and anything
-     fitting to the frame height came out short. */
-  font-size: 0;
-  line-height: 0;
+  /* A block that shrink-wraps, NOT an inline-block.
+     An inline-block sits on the frame's text baseline, which reserves a few
+     pixels of descender space beneath it — the stage measured 544 while the
+     frame's scrollHeight was 550, so Fit "fitted" and the frame still
+     scrolled. width:max-content keeps the shrink-wrap that makes horizontal
+     scrolling work, without joining a line box.
+     Suppressing font-size here instead would have hidden the "Rendering…"
+     message, which lives inside the stage. */
+  display: block;
+  width: max-content;
+  max-width: none;
   min-width: min-content;
   padding: var(--bp-space-3);
   /* No transform and no will-change. Promoting this to a compositor layer is
@@ -1124,9 +1129,11 @@ a {
 .bp-radar__chart svg {
   width: 100%;
   height: auto;
-  background: var(--bp-surface);
-  border: 1px solid var(--bp-border);
-  border-radius: var(--bp-radius);
+  /* No border or background of its own: the viewport around it draws the
+     frame now, and two nested borders read as a mistake. The viewport also
+     sets width and height in pixels when zooming, which overrides the 100%
+     above — that is what keeps the vectors sharp instead of stretching a
+     bitmap. */
 }
 
 .bp-radar__ringlabel {

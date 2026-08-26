@@ -454,6 +454,112 @@ const ROUTES = [
 ];
 
 /**
+ * The radar: filters, hover information, and its own viewport.
+ *
+ * A radar gets unreadable fast, so the filters are the feature. The one
+ * property worth asserting hardest is that filtering removes BLIPS and never
+ * sectors — a figure whose shape changes as you filter cannot be compared
+ * against itself.
+ */
+async function radar(cdp) {
+  console.log("\nradar");
+
+  const READ = `
+    const chips = [...document.querySelectorAll(".bp-radar__filterrow .bp-chip")];
+    return {
+      entries: document.querySelectorAll(".bp-radar__blip").length,
+      sectors: document.querySelectorAll(".bp-radar__quadrantlabel").length,
+      count: document.querySelector(".bp-radar__count")?.textContent.trim() ?? null,
+      chips: chips.map((c) => c.textContent.trim()),
+      // Hovering a numbered blip should say what it is without a click.
+      titled: document.querySelectorAll(".bp-radar__blip title").length,
+      firstTitle: document.querySelector(".bp-radar__blip title")?.textContent.trim() ?? null,
+      viewportButtons: [...document.querySelectorAll(".bp-viewport__controls button")]
+        .map((b) => b.textContent.trim()),
+      labelsInside: [...document.querySelectorAll(".bp-radar__quadrantlabel")].every((t) => {
+        const svg = document.querySelector(".bp-radar__chart svg").getBoundingClientRect();
+        const r = t.getBoundingClientRect();
+        return r.left >= svg.left - 1 && r.right <= svg.right + 1;
+      }),
+      after: window.__afterFilter ?? null,
+    };
+  `;
+
+  const FILTER =
+    "(async () => {" +
+    "  const chip = (t) => [...document.querySelectorAll('.bp-radar__filterrow .bp-chip')]" +
+    "    .find((b) => b.textContent.trim().toLowerCase().startsWith(t));" +
+    "  const sectors = () => document.querySelectorAll('.bp-radar__quadrantlabel').length;" +
+    "  const before = { blips: document.querySelectorAll('.bp-radar__blip').length, sectors: sectors() };" +
+    "  chip('adopt')?.click();" +
+    "  await new Promise((r) => setTimeout(r, 500));" +
+    "  window.__afterFilter = { before, blips: document.querySelectorAll('.bp-radar__blip').length," +
+    "    sectors: sectors()," +
+    "    count: document.querySelector('.bp-radar__count')?.textContent.trim() ?? null };" +
+    "})()";
+
+  let result;
+  try {
+    result = await visit(cdp, "/p/dlab5-blueprint/radar/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      then: FILTER,
+      evaluate: READ,
+      shot: "radar.png",
+    });
+  } catch (error) {
+    check(false, "the radar renders", error.message);
+    return;
+  }
+
+  const v = result.value;
+  check(v.entries > 0 || v.after?.before.blips > 0, "the radar draws entries");
+  // Read AFTER the filter ran, so it compares against what is drawn now —
+  // not against the pre-filter count, which is a different number and was
+  // this check's first mistake.
+  check(
+    v.titled === v.entries && v.entries > 0,
+    "every blip drawn carries hover information",
+    `${v.titled} titled of ${v.entries} drawn`
+  );
+  check(
+    /^\d+\. \S/.test(v.firstTitle ?? ""),
+    "the hover text names the entry",
+    (v.firstTitle ?? "").split("\n")[0]
+  );
+  check(
+    v.labelsInside,
+    "quadrant labels sit inside the drawing",
+    "a label at due left or right must not be clipped"
+  );
+  for (const label of ["Fit", "Full screen"]) {
+    check(
+      v.viewportButtons.includes(label),
+      `the radar offers ${label}`,
+      v.viewportButtons.join(" ")
+    );
+  }
+
+  if (v.after) {
+    check(
+      v.after.blips < v.after.before.blips,
+      "a ring filter removes entries",
+      `${v.after.before.blips} -> ${v.after.blips}`
+    );
+    check(
+      v.after.sectors === v.after.before.sectors,
+      "filtering never changes the radar's shape",
+      `${v.after.before.sectors} sectors before, ${v.after.sectors} after`
+    );
+    check(
+      /of \d+ shown/.test(v.after.count ?? ""),
+      "it says how much is hidden",
+      v.after.count ?? ""
+    );
+  }
+}
+
+/**
  * Zoom, fit, pan and full screen.
  *
  * Every one of these was reported broken or missing by a reader, and none of
@@ -1141,6 +1247,7 @@ async function signedIn(cdp) {
   await ganttImport(cdp);
   await findingsPanel(cdp);
   await viewport(cdp);
+  await radar(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

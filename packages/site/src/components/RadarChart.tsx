@@ -2,6 +2,7 @@ import * as React from "react";
 import { toRadar, toRadarLayout, validateRadar } from "@dlab5/blueprint-core";
 import type { AbModel, RadarBlip } from "@dlab5/blueprint-core";
 import { ELEMENTS } from "@dlab5/archimate-metamodel";
+import { DiagramViewport } from "./DiagramViewport";
 
 /**
  * The Technology Radar, drawn from the model.
@@ -196,6 +197,10 @@ export function RadarChart({ model }: { model: AbModel }) {
       </div>
 
       <div className="bp-radar__chart">
+        {/* The same viewport the other diagrams use, so zoom, fit, scroll and
+            full screen behave identically here. A radar with forty entries is
+            exactly the case full screen exists for. */}
+        <DiagramViewport>
         <svg
           viewBox={`0 0 ${WIDTH} ${SIZE}`}
           role="img"
@@ -280,6 +285,16 @@ export function RadarChart({ model }: { model: AbModel }) {
                 }}
                 aria-label={`${blip.label}, ${blip.ring}, ${blip.quadrant}`}
               >
+                {/* A blip is a number until you hover it. The title carries
+                    what the side list would tell you, so the chart can be read
+                    without clicking through every point. */}
+                <title>
+                  {`${blip.number}. ${blip.label}\n${blip.ring.toUpperCase()} · ${blip.quadrant} · ${
+                    ELEMENTS[blip.type].label
+                  }${blip.moved !== "none" ? `\nmoved ${blip.moved}` : ""}${
+                    blip.description ? `\n\n${blip.description}` : ""
+                  }`}
+                </title>
                 {/* Movement is drawn as a triangle, as Thoughtworks does:
                     a blip that has moved says more than one that has not. */}
                 {blip.moved === "none" ? (
@@ -312,6 +327,7 @@ export function RadarChart({ model }: { model: AbModel }) {
             );
           })}
         </svg>
+        </DiagramViewport>
       </div>
 
       <div className="bp-radar__side">
