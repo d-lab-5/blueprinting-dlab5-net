@@ -1956,3 +1956,34 @@ a {
   color: var(--bp-text-muted);
   font-size: 0.6875rem;
 }
+
+/* -- radar filters --------------------------------------------------------- */
+
+.bp-radar__filters {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--bp-space-3) var(--bp-space-4);
+  margin-bottom: var(--bp-space-4);
+}
+
+.bp-radar__filterrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+}
+
+.bp-radar__search {
+  min-width: 12rem;
+}
+
+.bp-radar__search input {
+  font-size: 0.8125rem;
+}
+
+.bp-radar__count {
+  margin: 0 0 var(--bp-space-2) auto;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}

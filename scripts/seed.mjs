@@ -144,6 +144,33 @@ try {
     const haveRel = new Set(existing.relationships.map((r) => r.id));
     const newElements = model.elements.filter((e) => !haveElement.has(e.id));
     const newRels = model.relationships.filter((r) => !haveRel.has(r.id));
+
+    // --merge ADDS. It never rewrites an element that is already there, so a
+    // committed file whose element has since gained a property does NOT push
+    // that property into the model — the id matches, so the whole element is
+    // skipped. That is deliberate: overwriting would silently discard edits
+    // made in the app. But it is invisible unless said out loud, so it is.
+    const existingById = new Map(existing.elements.map((e) => [e.id, e]));
+    const differing = model.elements.filter((e) => {
+      const there = existingById.get(e.id);
+      return (
+        there &&
+        JSON.stringify({ n: there.name, p: there.properties, d: there.documentation }) !==
+          JSON.stringify({ n: e.name, p: e.properties, d: e.documentation })
+      );
+    });
+    if (differing.length) {
+      console.log(
+        `  ${differing.length} element(s) already present but DIFFERENT — left untouched:`
+      );
+      for (const e of differing) console.log(`    ${e.id} (${e.name})`);
+      console.log(
+        "    --merge never overwrites. Change these in the app, or through the"
+      );
+      console.log(
+        "    MCP server's set_element_properties, which is built for it."
+      );
+    }
     toWrite = {
       ...existing,
       elements: [...existing.elements, ...newElements],

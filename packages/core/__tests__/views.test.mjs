@@ -211,3 +211,56 @@ test("a cycle does not lose steps or hang", async () => {
   assert.equal(src.split("\n").filter((l) => l.includes("->>")).length, 2);
   assert.equal(await parsesAsMermaid(src), null);
 });
+
+test("`from` draws only the flow it reaches, not the whole model", async () => {
+  // Two unrelated chains in one model, which is what happens when a product's
+  // roadmap and its runtime sequence live in the same ABox.
+  const model = {
+    projectSlug: "t",
+    elements: [
+      { id: "actorA", type: "ApplicationComponent", name: "A", properties: {} },
+      { id: "actorB", type: "ApplicationComponent", name: "B", properties: {} },
+      { id: "a1", type: "ApplicationProcess", name: "A one", properties: {} },
+      { id: "a2", type: "ApplicationProcess", name: "A two", properties: {} },
+      { id: "b1", type: "ApplicationProcess", name: "B one", properties: {} },
+      { id: "b2", type: "ApplicationProcess", name: "B two", properties: {} },
+    ],
+    relationships: [
+      { id: "x1", type: "assignment", source: "actorA", target: "a1", properties: {} },
+      { id: "x2", type: "assignment", source: "actorA", target: "a2", properties: {} },
+      { id: "x3", type: "assignment", source: "actorB", target: "b1", properties: {} },
+      { id: "x4", type: "assignment", source: "actorB", target: "b2", properties: {} },
+      { id: "t1", type: "triggering", source: "a1", target: "a2", properties: {} },
+      { id: "t2", type: "triggering", source: "b1", target: "b2", properties: {} },
+    ],
+  };
+
+  const everything = toMermaidSequence(model);
+  assert.match(everything, /A two/);
+  assert.match(everything, /B two/, "with no start, both flows are drawn");
+
+  const justA = toMermaidSequence(model, { from: "a1" });
+  assert.match(justA, /A two/);
+  assert.doesNotMatch(justA, /B two/, "the other flow must not be appended");
+});
+
+test("without `from`, a cycle still leaves nothing undrawn", () => {
+  const model = {
+    projectSlug: "t",
+    elements: [
+      { id: "c", type: "ApplicationComponent", name: "C", properties: {} },
+      { id: "p1", type: "ApplicationProcess", name: "One", properties: {} },
+      { id: "p2", type: "ApplicationProcess", name: "Two", properties: {} },
+    ],
+    relationships: [
+      { id: "a1", type: "assignment", source: "c", target: "p1", properties: {} },
+      { id: "a2", type: "assignment", source: "c", target: "p2", properties: {} },
+      // A cycle: neither step is a root, so the walk finds no entry point.
+      { id: "t1", type: "triggering", source: "p1", target: "p2", properties: {} },
+      { id: "t2", type: "triggering", source: "p2", target: "p1", properties: {} },
+    ],
+  };
+  const out = toMermaidSequence(model);
+  assert.match(out, /One/);
+  assert.match(out, /Two/);
+});

@@ -308,6 +308,8 @@ function Views({ model }: { model: AbModel }) {
    * WASM compiles, and a page you scroll past half of.
    */
   const [kind, setKind] = React.useState<"structure" | "behaviour">("structure");
+  /** Which flow the sequence draws. Empty means every flow in the model. */
+  const [flow, setFlow] = React.useState("");
 
   const present = React.useMemo(() => {
     const seen = new Set<LayerId>();
@@ -334,9 +336,28 @@ function Views({ model }: { model: AbModel }) {
     [shown, selected]
   );
   const sequence = React.useMemo(
-    () => toMermaidSequence(model, { title: model.projectSlug }),
-    [model]
+    () => toMermaidSequence(model, { title: model.projectSlug, from: flow || undefined }),
+    [model, flow]
   );
+
+  /**
+   * Behaviours that start something — the sensible places to begin reading.
+   *
+   * A product's ABox holds more than one flow once it documents both a roadmap
+   * and a runtime sequence, and drawing them together is unreadable. These are
+   * the entry points: a behaviour that triggers something and is triggered by
+   * nothing.
+   */
+  const starts = React.useMemo(() => {
+    const triggers = model.relationships.filter(
+      (r) => r.type === "triggering" || r.type === "flow"
+    );
+    const sources = new Set(triggers.map((r) => r.source));
+    const targets = new Set(triggers.map((r) => r.target));
+    return model.elements
+      .filter((e) => sources.has(e.id) && !targets.has(e.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [model]);
 
   const toggle = (layer: LayerId) =>
     setDomains((current) => {
@@ -455,6 +476,28 @@ function Views({ model }: { model: AbModel }) {
             assignment relationship — ArchiMate already records who performs
             each step, which is why this can be derived rather than drawn.
           </p>
+
+          {starts.length > 1 && (
+            <div className="bp-focus">
+              <label className="bp-field">
+                <span>Start from</span>
+                <select value={flow} onChange={(e) => setFlow(e.target.value)}>
+                  <option value="">Every flow in this product</option>
+                  {starts.map((el) => (
+                    <option key={el.id} value={el.id}>
+                      {el.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="bp-muted bp-focus__count">
+                {flow
+                  ? "Only what this step reaches is drawn."
+                  : `${starts.length} flows begin in this model. Drawing them together is rarely readable.`}
+              </p>
+            </div>
+          )}
+
           <DiagramViewport>
             <MermaidView script={sequence} id={`seq-${model.projectSlug}`} />
           </DiagramViewport>
