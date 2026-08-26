@@ -200,3 +200,10 @@ packages/site/src/gatsby-types.d.ts
 # XSD fetched on demand by the exchange tests. Belongs to The Open Group;
 # cached rather than vendored.
 .xsd-cache/
+
+# -- Python ----------------------------------------------------------------
+# scripts/verify-mcp-client.py speaks MCP to the server as a foreign client.
+# Its virtualenv is a local build artefact, never committed.
+.venv/
+__pycache__/
+*.py[cod]

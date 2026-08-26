@@ -54,7 +54,17 @@ BP_USER=… BP_PASSWORD=… npm run seed                 # the platform's own ro
 BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef]
 
 npm run verify:archi                # round-trip through Archi itself
+
+npm run setup:python                # once: a venv for the MCP client check
+npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
+
+`verify:mcp-client` is the only thing that exercises the MCP **protocol**.
+Everything else calls `tool.run(args)` directly, which skips the stdio framing,
+the registration and the zod-to-JSON-Schema conversion. It is Python against
+the official SDK deliberately: a second implementation in another language
+cannot share our misunderstandings. Without credentials it verifies the
+degraded, metamodel-only path, which is a feature rather than a lesser run.
 
 `verify:archi` drives a real Archi installation: it imports our Open Exchange
 export, re-exports it, and compares. Schema validity says a document matches

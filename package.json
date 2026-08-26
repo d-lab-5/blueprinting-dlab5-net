@@ -23,6 +23,8 @@
     "verify:auth": "node scripts/verify-auth.mjs",
     "verify:model-store": "node scripts/verify-model-store.mjs",
     "verify:mcp": "node scripts/verify-mcp.mjs",
+    "verify:mcp-client": "./.venv/bin/python scripts/verify-mcp-client.py",
+    "setup:python": "python3 -m venv .venv && ./.venv/bin/pip install --quiet mcp",
     "dev:web": "npm run develop -w @dlab5/blueprint-site",
     "start:web": "npm run serve -w @dlab5/blueprint-site",
     "clean:web": "npm run clean -w @dlab5/blueprint-site",
