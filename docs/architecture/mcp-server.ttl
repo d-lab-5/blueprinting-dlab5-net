@@ -1,0 +1,244 @@
+@prefix archimate: <https://purl.org/archimate#>.
+@prefix bp: <https://blueprinting.dlab5.net/ns#>.
+
+<https://blueprinting.dlab5.net/i/mcp-server/model> bp:languageVersion "3.2".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent> a archimate:ApplicationComponent;
+    archimate:identifier "agent";
+    archimate:name "LLM agent";
+    archimate:documentation "The consumer. Claude Code registers the server with `claude mcp add archimate`; any MCP client would do.".
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/appsync> a archimate:TechnologyService;
+    archimate:identifier "appsync";
+    archimate:name "AWS AppSync GraphQL API";
+    archimate:documentation "The data plane. The per-project authorization check lives behind it, in the storage proxy.".
+<https://blueprinting.dlab5.net/i/mcp-server/Artifact/artifact-server> a archimate:Artifact;
+    archimate:identifier "artifact-server";
+    archimate:name "dist/index.js";
+    archimate:documentation "The built server, run as `node dist/index.js`.";
+    archimate:hasProperty _:p-e-artifact-server-0.
+_:p-e-artifact-server-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp/package.json".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/backend-client> a archimate:ApplicationComponent;
+    archimate:identifier "backend-client";
+    archimate:name "Backend client";
+    archimate:documentation "Signs in to Cognito and talks to AppSync. Isolated so the metamodel half of the server has no dependency on it at all.";
+    archimate:hasProperty _:p-e-backend-client-0.
+_:p-e-backend-client-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp/src/backend.ts".
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/cognito> a archimate:TechnologyService;
+    archimate:identifier "cognito";
+    archimate:name "Amazon Cognito user pool";
+    archimate:documentation "Issues the token whose cognito:groups decide which projects the caller can open.".
+<https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-abox> a archimate:DataObject;
+    archimate:identifier "data-abox";
+    archimate:name "Project ABox";
+    archimate:documentation "Turtle in S3, written whole under an ETag precondition. DynamoDB holds only the pointer row.";
+    archimate:hasProperty _:p-e-data-abox-0.
+_:p-e-data-abox-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "docs/adr/0003".
+<https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-metamodel> a archimate:DataObject;
+    archimate:identifier "data-metamodel";
+    archimate:name "ArchiMate 3.2 metamodel";
+    archimate:documentation "Generated from the pinned ontology. The only place the specification enters the codebase.";
+    archimate:hasProperty _:p-e-data-metamodel-0.
+_:p-e-data-metamodel-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/metamodel/src/generated".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec> a archimate:ApplicationFunction;
+    archimate:identifier "fn-answer-spec";
+    archimate:name "Answer a question about ArchiMate";
+    archimate:documentation "Reads the generated metamodel: element types, permitted relationships, whether a relation is direct or derived, and the platform's own overlay conventions.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate> a archimate:ApplicationFunction;
+    archimate:identifier "fn-authenticate";
+    archimate:name "Authenticate and reach the backend";
+    archimate:documentation "Cognito sign-in, then AppSync calls carrying the caller's own groups. The server holds no privilege of its own.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model> a archimate:ApplicationFunction;
+    archimate:identifier "fn-work-model";
+    archimate:name "Read and change a project model";
+    archimate:documentation "Loads the ABox, applies an edit, validates it, and writes it back under the ETag it read.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> a archimate:ApplicationComponent;
+    archimate:identifier "mcp-server";
+    archimate:name "MCP server (@dlab5/archimate-mcp)";
+    archimate:documentation "Sixteen tools over stdio. Runs beside the agent that uses it, so there is no endpoint to secure and no token to park anywhere.";
+    archimate:hasProperty _:p-e-mcp-server-0.
+_:p-e-mcp-server-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/metamodel-tools> a archimate:ApplicationComponent;
+    archimate:identifier "metamodel-tools";
+    archimate:name "Metamodel tools";
+    archimate:documentation "Five tools answering questions about ArchiMate 3.2 itself. They need no credentials, because what ArchiMate permits is not anybody's private data.";
+    archimate:hasProperty _:p-e-metamodel-tools-0.
+_:p-e-metamodel-tools-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp/src/tools.ts".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/model-tools> a archimate:ApplicationComponent;
+    archimate:identifier "model-tools";
+    archimate:name "Model tools";
+    archimate:documentation "Eleven tools reading and writing a project. Available only when the server holds credentials; absent, not merely failing, when it does not.";
+    archimate:hasProperty _:p-e-model-tools-0.
+_:p-e-model-tools-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp/src/tools.ts".
+<https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs> a archimate:SystemSoftware;
+    archimate:identifier "nodejs";
+    archimate:name "Node.js 22";
+    archimate:documentation "The runtime. Pinned in .nvmrc.".
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/stdio> a archimate:TechnologyService;
+    archimate:identifier "stdio";
+    archimate:name "Standard input and output streams";
+    archimate:documentation "The transport. stdout carries JSON-RPC and nothing else — diagnostics go to stderr, because anything else on stdout corrupts the session.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-model> a archimate:ApplicationService;
+    archimate:identifier "svc-model";
+    archimate:name "Project model service";
+    archimate:documentation "Read and write access to one project's ABox, bounded by the caller's Cognito groups.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-spec> a archimate:ApplicationService;
+    archimate:identifier "svc-spec";
+    archimate:name "ArchiMate specification service";
+    archimate:documentation "What an agent can ask with no account at all. The reason the server still starts without credentials.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface> a archimate:ApplicationInterface;
+    archimate:identifier "tool-interface";
+    archimate:name "MCP tool interface (stdio, JSON-RPC)";
+    archimate:documentation "The protocol surface: initialize, tools/list, tools/call. stdio rather than HTTP — the server is a child process of its client.";
+    archimate:hasProperty _:p-e-tool-interface-0.
+_:p-e-tool-interface-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "packages/mcp/src/index.ts".
+<https://blueprinting.dlab5.net/i/mcp-server/Node/workstation> a archimate:Node;
+    archimate:identifier "workstation";
+    archimate:name "Agent workstation";
+    archimate:documentation "Wherever the agent runs. The server is a child process on the same machine, which is what makes stdio sufficient.".
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> archimate:composition <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/metamodel-tools>.
+<https://blueprinting.dlab5.net/i/mcp-server/composition/r1> a archimate:Relationship;
+    archimate:identifier "r1";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/metamodel-tools>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec> archimate:access <https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-metamodel>.
+<https://blueprinting.dlab5.net/i/mcp-server/access/r10> a archimate:Relationship;
+    archimate:identifier "r10";
+    bp:relationshipType archimate:access;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-metamodel>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model> archimate:access <https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/mcp-server/access/r11> a archimate:Relationship;
+    archimate:identifier "r11";
+    bp:relationshipType archimate:access;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r12> a archimate:Relationship;
+    archimate:identifier "r12";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-spec> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r13> a archimate:Relationship;
+    archimate:identifier "r13";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-spec>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-model> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r14> a archimate:Relationship;
+    archimate:identifier "r14";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-model>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/agent>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r15> a archimate:Relationship;
+    archimate:identifier "r15";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/Node/workstation> archimate:composition <https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs>.
+<https://blueprinting.dlab5.net/i/mcp-server/composition/r16> a archimate:Relationship;
+    archimate:identifier "r16";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/Node/workstation>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs>.
+<https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs> archimate:assignment <https://blueprinting.dlab5.net/i/mcp-server/Artifact/artifact-server>.
+<https://blueprinting.dlab5.net/i/mcp-server/assignment/r17> a archimate:Relationship;
+    archimate:identifier "r17";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/Artifact/artifact-server>.
+<https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs> archimate:assignment <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/stdio>.
+<https://blueprinting.dlab5.net/i/mcp-server/assignment/r18> a archimate:Relationship;
+    archimate:identifier "r18";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/SystemSoftware/nodejs>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/stdio>.
+<https://blueprinting.dlab5.net/i/mcp-server/Artifact/artifact-server> archimate:realization <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>.
+<https://blueprinting.dlab5.net/i/mcp-server/realization/r19> a archimate:Relationship;
+    archimate:identifier "r19";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/Artifact/artifact-server>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> archimate:composition <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/model-tools>.
+<https://blueprinting.dlab5.net/i/mcp-server/composition/r2> a archimate:Relationship;
+    archimate:identifier "r2";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/model-tools>.
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/cognito> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r20> a archimate:Relationship;
+    archimate:identifier "r20";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/cognito>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate>.
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/appsync> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r21> a archimate:Relationship;
+    archimate:identifier "r21";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/appsync>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/stdio> archimate:serving <https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface>.
+<https://blueprinting.dlab5.net/i/mcp-server/serving/r22> a archimate:Relationship;
+    archimate:identifier "r22";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/stdio>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> archimate:composition <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/backend-client>.
+<https://blueprinting.dlab5.net/i/mcp-server/composition/r3> a archimate:Relationship;
+    archimate:identifier "r3";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/backend-client>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> archimate:composition <https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface>.
+<https://blueprinting.dlab5.net/i/mcp-server/composition/r4> a archimate:Relationship;
+    archimate:identifier "r4";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationInterface/tool-interface>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/metamodel-tools> archimate:assignment <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec>.
+<https://blueprinting.dlab5.net/i/mcp-server/assignment/r5> a archimate:Relationship;
+    archimate:identifier "r5";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/metamodel-tools>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/model-tools> archimate:assignment <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/assignment/r6> a archimate:Relationship;
+    archimate:identifier "r6";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/model-tools>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/backend-client> archimate:assignment <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate>.
+<https://blueprinting.dlab5.net/i/mcp-server/assignment/r7> a archimate:Relationship;
+    archimate:identifier "r7";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/backend-client>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-authenticate>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec> archimate:realization <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-spec>.
+<https://blueprinting.dlab5.net/i/mcp-server/realization/r8> a archimate:Relationship;
+    archimate:identifier "r8";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-answer-spec>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-spec>.
+<https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model> archimate:realization <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-model>.
+<https://blueprinting.dlab5.net/i/mcp-server/realization/r9> a archimate:Relationship;
+    archimate:identifier "r9";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/mcp-server/ApplicationFunction/fn-work-model>;
+    bp:target <https://blueprinting.dlab5.net/i/mcp-server/ApplicationService/svc-model>.
