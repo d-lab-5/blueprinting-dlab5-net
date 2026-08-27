@@ -7,6 +7,7 @@ import { storage } from "./storage/resource";
 import { modelStorageProxy } from "./functions/modelStorageProxy/resource";
 import { projectAdmin } from "./functions/projectAdmin/resource";
 import { projectRename } from "./functions/projectRename/resource";
+import { documentStore } from "./functions/documentStore/resource";
 
 const backend = defineBackend({
   auth,
@@ -15,6 +16,7 @@ const backend = defineBackend({
   modelStorageProxy,
   projectAdmin,
   projectRename,
+  documentStore,
 });
 
 /* ------------------------------------------------------------------------ *
@@ -172,5 +174,48 @@ projectRenameLambda.addToRolePolicy(
 );
 
 backend.projectRename.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
+
+/* ------------------------------------------------------------------------ *
+ * documentStore.
+ *
+ * Source documents held beside a product's model. Two mutations share the
+ * function, which is safe only because their arguments differ — see its
+ * handler.
+ * ------------------------------------------------------------------------ */
+
+const documentTable = backend.data.resources.tables["Document"];
+const documentLambda = backend.documentStore.resources.lambda;
+
+// Read-only on Project, exactly like modelStorageProxy: it decides whether a
+// caller may touch a product's documents and never edits the product itself.
+documentLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:GetItem"],
+    resources: [projectTable.tableArn],
+  })
+);
+
+documentLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:GetItem", "dynamodb:PutItem"],
+    resources: [documentTable.tableArn],
+  })
+);
+
+// Scoped to the documents/ sub-prefix, so this function cannot read or write a
+// product's model even though both live under projects/.
+documentLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["s3:GetObject", "s3:PutObject"],
+    resources: [`${bucket.bucketArn}/projects/*/documents/*`],
+  })
+);
+
+backend.documentStore.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
+backend.documentStore.addEnvironment("DOCUMENT_TABLE_NAME", documentTable.tableName);
+backend.documentStore.addEnvironment("MODEL_BUCKET_NAME", bucket.bucketName);
 
 export default backend;

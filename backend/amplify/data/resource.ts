@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
 import { projectAdmin } from "../functions/projectAdmin/resource";
 import { projectRename } from "../functions/projectRename/resource";
+import { documentStore } from "../functions/documentStore/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -79,6 +80,52 @@ const schema = a.schema({
       /** Copied from the project so group authorization applies here too. */
       group: a.string().required(),
     })
+    .secondaryIndexes((index) => [index("projectSlug")])
+    .authorization((allow) => [
+      allow.group("bp-admins"),
+      allow.groupDefinedIn("group"),
+    ]),
+
+  /**
+   * A source document held for the record: a report, a plan, an ADR.
+   *
+   * Intake reads annotated markdown into the model (ADR-0011), but the
+   * document itself is evidence rather than architecture, so it is stored
+   * beside the model rather than in it. The prose lives in S3; this row is the
+   * index — what exists, what it is called, and crucially how far it may
+   * travel.
+   *
+   * `classification` is the load-bearing field:
+   *
+   *   confidential  never leaves this system in a shareable form. Excluded
+   *                 from the transfer bundle; retrievable only as a local
+   *                 download by someone who asks for it explicitly.
+   *   shared        working material — technical architecture, mappings,
+   *                 workflow. Travels in the bundle with the model.
+   *
+   * **The default is confidential**, and that direction is deliberate. Sharing
+   * is opt-in, so a document nobody classified stays put; the other way round,
+   * one forgotten field puts commercial terms in a file destined for a public
+   * repository.
+   */
+  Document: a
+    .model({
+      docId: a.id().required(),
+      projectSlug: a.string().required(),
+      title: a.string().required(),
+      classification: a.enum(["confidential", "shared"]),
+      /** `projects/<product>/documents/<docId>/source.md` — never rewritten. */
+      sourceKey: a.string().required(),
+      /** The annotated working copy, once someone has made one. */
+      annotatedKey: a.string(),
+      /** Of the source, so a re-upload of the same bytes is recognisable. */
+      sha256: a.string(),
+      bytes: a.integer(),
+      uploadedAt: a.datetime(),
+      /** Copied from the product so group authorization applies here too. */
+      group: a.string().required(),
+    })
+    .identifier(["docId"])
     .secondaryIndexes((index) => [index("projectSlug")])
     .authorization((allow) => [
       allow.group("bp-admins"),
@@ -175,6 +222,48 @@ const schema = a.schema({
     .returns(a.ref("CreatedProject"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(projectRename)),
+
+  /** What documentStore hands back for both reads and writes. */
+  DocumentAccess: a.customType({
+    docId: a.string().required(),
+    key: a.string().required(),
+    /** Pre-signed GET. Absent on writes and when the document is not there. */
+    url: a.string(),
+    exists: a.boolean().required(),
+    classification: a.string().required(),
+  }),
+
+  /**
+   * Stores a document, or its annotated working copy.
+   *
+   * `classification` defaults to confidential inside the function, not here:
+   * an omitted argument must mean "do not share", and a default in the schema
+   * would be easy to read as advisory.
+   */
+  saveDocument: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+      markdown: a.string().required(),
+      title: a.string(),
+      classification: a.string(),
+      kind: a.string(),
+    })
+    .returns(a.ref("DocumentAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentStore)),
+
+  requestDocumentReadUrl: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+      kind: a.string(),
+    })
+    .returns(a.ref("DocumentAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentStore)),
 
   saveModel: a
     .mutation()

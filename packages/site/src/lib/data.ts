@@ -24,6 +24,35 @@ export interface Project {
   lockedAt?: string | null;
 }
 
+export type Classification = "confidential" | "shared";
+
+/**
+ * A source document held beside the model.
+ *
+ * `classification` decides how far it travels: `shared` documents go with the
+ * model in a transfer bundle, `confidential` ones never do and come out only
+ * as a local download. Anything unclassified is confidential.
+ */
+export interface BpDocument {
+  docId: string;
+  projectSlug: string;
+  title: string;
+  classification: Classification;
+  sourceKey: string;
+  annotatedKey?: string | null;
+  bytes?: number | null;
+  uploadedAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface DocumentAccess {
+  docId: string;
+  key: string;
+  url?: string | null;
+  exists: boolean;
+  classification: string;
+}
+
 export interface ModelAccess {
   url?: string | null;
   etag?: string | null;
@@ -47,6 +76,69 @@ const LIST_PROJECTS = /* GraphQL */ `
         lockedBy
         lockedAt
       }
+    }
+  }
+`;
+
+const LIST_DOCUMENTS = /* GraphQL */ `
+  query ListDocuments($projectSlug: String!) {
+    listDocumentByProjectSlug(projectSlug: $projectSlug) {
+      items {
+        docId
+        projectSlug
+        title
+        classification
+        sourceKey
+        annotatedKey
+        bytes
+        uploadedAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+const SAVE_DOCUMENT = /* GraphQL */ `
+  mutation SaveDocument(
+    $projectSlug: String!
+    $docId: String!
+    $markdown: String!
+    $title: String
+    $classification: String
+    $kind: String
+  ) {
+    saveDocument(
+      projectSlug: $projectSlug
+      docId: $docId
+      markdown: $markdown
+      title: $title
+      classification: $classification
+      kind: $kind
+    ) {
+      docId
+      key
+      exists
+      classification
+    }
+  }
+`;
+
+const READ_DOCUMENT = /* GraphQL */ `
+  mutation RequestDocumentReadUrl(
+    $projectSlug: String!
+    $docId: String!
+    $kind: String
+  ) {
+    requestDocumentReadUrl(
+      projectSlug: $projectSlug
+      docId: $docId
+      kind: $kind
+    ) {
+      docId
+      key
+      url
+      exists
+      classification
     }
   }
 `;
@@ -227,6 +319,61 @@ export async function renameProject(input: {
     },
   })) as GraphQLResult<{ renameProject: Project }>;
   return unwrap(result).renameProject;
+}
+
+/** Every document held for a product. */
+export async function listDocuments(projectSlug: string): Promise<BpDocument[]> {
+  const result = (await client().graphql({
+    query: LIST_DOCUMENTS,
+    variables: { projectSlug },
+  })) as GraphQLResult<{ listDocumentByProjectSlug: { items: BpDocument[] } }>;
+  return unwrap(result).listDocumentByProjectSlug.items;
+}
+
+/**
+ * Stores a document, or its annotated working copy.
+ *
+ * `classification` is omitted rather than defaulted here: the function treats
+ * an omitted value as "leave as it is" on an update and as confidential on a
+ * first write, and a default in the browser would quietly override that.
+ */
+export async function saveDocument(input: {
+  projectSlug: string;
+  docId: string;
+  markdown: string;
+  title?: string;
+  classification?: Classification;
+  kind?: "source" | "annotated";
+}): Promise<DocumentAccess> {
+  const result = (await client().graphql({
+    query: SAVE_DOCUMENT,
+    variables: {
+      projectSlug: input.projectSlug,
+      docId: input.docId,
+      markdown: input.markdown,
+      title: input.title ?? null,
+      classification: input.classification ?? null,
+      kind: input.kind ?? "source",
+    },
+  })) as GraphQLResult<{ saveDocument: DocumentAccess }>;
+  return unwrap(result).saveDocument;
+}
+
+/** The markdown itself, through a short-lived pre-signed URL. */
+export async function loadDocument(
+  projectSlug: string,
+  docId: string,
+  kind: "source" | "annotated" = "source"
+): Promise<{ markdown: string | null; access: DocumentAccess }> {
+  const result = (await client().graphql({
+    query: READ_DOCUMENT,
+    variables: { projectSlug, docId, kind },
+  })) as GraphQLResult<{ requestDocumentReadUrl: DocumentAccess }>;
+  const access = unwrap(result).requestDocumentReadUrl;
+  if (!access.exists || !access.url) return { markdown: null, access };
+  const response = await fetch(access.url);
+  if (!response.ok) return { markdown: null, access };
+  return { markdown: await response.text(), access };
 }
 
 export async function loadModel(

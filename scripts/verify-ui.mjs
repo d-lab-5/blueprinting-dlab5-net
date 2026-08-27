@@ -463,6 +463,9 @@ const ROUTES = [
   // link made before the rename still resolves.
   { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
   { path: "/p/dlab5-blueprint/blocks/", name: "project · blocks" },
+  // The Tools section. Import needs no backend beyond the model; documents and
+  // export are added once documentStore is deployed.
+  { path: "/p/dlab5-blueprint/import/", name: "project · import" },
 ];
 
 /**
@@ -856,37 +859,41 @@ async function ganttImport(cdp) {
 
   const paste =
     "(async () => {" +
-    "  document.querySelector('.bp-import')?.setAttribute('open','');" +
+    "  document.querySelector('.bp-import--gantt')?.setAttribute('open','');" +
     "  await new Promise((r) => setTimeout(r, 150));" +
-    "  const area = document.querySelector('.bp-import textarea');" +
+    "  const area = document.querySelector('.bp-import--gantt textarea');" +
     "  const setter = Object.getOwnPropertyDescriptor(" +
     "    window.HTMLTextAreaElement.prototype, 'value').set;" +
     "  setter.call(area, " + JSON.stringify(CHART) + ");" +
     "  area.dispatchEvent(new Event('input', { bubbles: true }));" +
     "  await new Promise((r) => setTimeout(r, 400));" +
-    "  window.__before = document.querySelectorAll('.bp-editor__item').length;" +
+    "  window.__beforeDirty = !!document.querySelector('.bp-savebar .bp-muted');" +
     // Read the preview BEFORE applying: applying clears the textarea, which
     // correctly tears the preview down, so reading afterwards finds nothing.
-    "  window.__preview = document.querySelector('.bp-import__summary')?.textContent.trim() ?? null;" +
-    "  window.__skipped = document.querySelector('.bp-import__skipped summary')?.textContent.trim() ?? null;" +
-    "  document.querySelector('.bp-import .bp-button')?.click();" +
+    "  window.__preview = document.querySelector('.bp-import--gantt .bp-import__summary')?.textContent.trim() ?? null;" +
+    "  window.__skipped = document.querySelector('.bp-import--gantt .bp-import__skipped summary')?.textContent.trim() ?? null;" +
+    "  document.querySelector('.bp-import--gantt .bp-button')?.click();" +
     "  await new Promise((r) => setTimeout(r, 600));" +
     "})()";
 
   const READ = `
     return {
-      before: window.__before ?? null,
-      after: document.querySelectorAll(".bp-editor__item").length,
+      beforeDirty: window.__beforeDirty ?? null,
+      // The importers moved to Tools, so the roadmap editor's list is not on
+      // this screen any more. What shows the apply reached the model from here
+      // is the save bar: nothing else on the page changes.
+      afterDirty: [...document.querySelectorAll(".bp-savebar .bp-muted")]
+        .some((n) => n.textContent.includes("Unsaved")),
       summary: window.__preview ?? null,
       skipped: window.__skipped ?? null,
       // Applying should reset the panel, so the preview is gone now.
-      previewCleared: !document.querySelector(".bp-import__summary"),
+      previewCleared: !document.querySelector(".bp-import--gantt .bp-import__summary"),
     };
   `;
 
   let result;
   try {
-    result = await visit(cdp, "/p/dlab5-blueprint/", {
+    result = await visit(cdp, "/p/dlab5-blueprint/import/", {
       awaitSelector: SIGNED_IN,
       awaitGone: "Loading model",
       then: paste,
@@ -915,9 +922,9 @@ async function ganttImport(cdp) {
     v.skipped ?? "nothing reported"
   );
   check(
-    v.before !== null && v.after === v.before + 4,
-    "applying adds exactly the parsed elements",
-    `${v.before} -> ${v.after}, expected +4`
+    v.beforeDirty === false && v.afterDirty === true,
+    "applying reaches the model, which the save bar then reports as unsaved",
+    `dirty before ${v.beforeDirty}, after ${v.afterDirty}`
   );
   check(v.previewCleared, "applying clears the paste box, so it cannot be applied twice");
 }

@@ -154,6 +154,58 @@ function Mark() {
 }
 
 
+
+/**
+ * Tools, kept apart from the views on purpose.
+ *
+ * The Workspace section answers "what does the architecture look like"; these
+ * answer "how do things get in and out of it". Mixing them made the rail a
+ * list of eleven things with no shape, and put a Gantt import inside the
+ * Roadmap screen where nobody looking for an importer would think to check.
+ */
+export function toolItems(slug: string): RailItem[] {
+  return [
+    {
+      key: "documents",
+      label: "Documents",
+      href: `/p/${slug}/documents/`,
+      // Pages, one behind the other: a record, not a view.
+      icon: icon(
+        <>
+          <path d="M9 4h7l4 4v9a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+          <path d="M16 4v4h4" />
+          <path d="M5 8v11a1 1 0 0 0 1 1h9" />
+        </>
+      ),
+    },
+    {
+      key: "import",
+      label: "Import",
+      href: `/p/${slug}/import/`,
+      // An arrow entering a tray.
+      icon: icon(
+        <>
+          <path d="M12 3v10" />
+          <path d="m8 9 4 4 4-4" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </>
+      ),
+    },
+    {
+      key: "export",
+      label: "Export",
+      href: `/p/${slug}/export/`,
+      icon: icon(
+        <>
+          <path d="M12 13V3" />
+          <path d="m8 7 4-4 4 4" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </>
+      ),
+    },
+  ];
+}
+
 /**
  * Choosing a project.
  *
@@ -266,6 +318,7 @@ export function Shell({ children, project }: ShellProps) {
   const [railOpen, setRailOpen] = React.useState(true);
 
   const items = project ? railItems(project.slug) : [];
+  const tools = project ? toolItems(project.slug) : [];
 
   return (
     <div className="bp-shell bp-shell--railed">
@@ -286,6 +339,27 @@ export function Shell({ children, project }: ShellProps) {
             <RailSection label="Workspace">
               <ul className="bp-rail__items bp-rail__items--workspace">
                 {items.map((item) => (
+                  <li key={item.key}>
+                    <a
+                      href={item.href}
+                      className={`bp-rail__item${
+                        item.key === project.active ? " bp-rail__item--on" : ""
+                      }`}
+                      aria-current={item.key === project.active ? "page" : undefined}
+                    >
+                      {item.icon}
+                      {item.label}
+                      {item.key === project.active && (
+                        <span className="bp-rail__dot" aria-hidden="true" />
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </RailSection>
+            <RailSection label="Tools">
+              <ul className="bp-rail__items bp-rail__items--tools">
+                {tools.map((item) => (
                   <li key={item.key}>
                     <a
                       href={item.href}

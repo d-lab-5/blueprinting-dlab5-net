@@ -76,7 +76,7 @@ export function GanttImport({
   };
 
   return (
-    <details className="bp-import">
+    <details className="bp-import bp-import--gantt">
       <summary>Import a Mermaid Gantt</summary>
 
       <p className="bp-muted bp-import__note">

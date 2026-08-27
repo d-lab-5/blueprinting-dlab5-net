@@ -25,6 +25,9 @@ import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 import { useProject } from "../hooks/useProject";
 import { ProductSettings } from "../components/ProductSettings";
+import { MarkdownImport } from "../components/MarkdownImport";
+import { Documents } from "../components/Documents";
+import { ExportTools } from "../components/ExportTools";
 import { useSession } from "../components/AuthGate";
 
 type Tab =
@@ -35,7 +38,10 @@ type Tab =
   | "domains"
   | "blueprint"
   | "orgs"
-  | "blocks";
+  | "blocks"
+  | "documents"
+  | "import"
+  | "export";
 
 /**
  * URL section to tab. `model` is kept as an alias for `domains`: the screen
@@ -53,6 +59,9 @@ const SECTIONS: Record<string, Tab> = {
   blueprint: "blueprint",
   orgs: "orgs",
   blocks: "blocks",
+  documents: "documents",
+  import: "import",
+  export: "export",
 };
 
 /**
@@ -118,6 +127,12 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
       )}
       {loading && <p className="bp-muted">Loading model…</p>}
 
+      {/* Outside the model gate on purpose. A product created this morning has
+          no blueprint yet, and the report that will become one has to be able
+          to land somewhere before there is anything to import it into. */}
+      {tab === "documents" && <Documents slug={slug} />}
+      {tab === "export" && <ExportTools slug={slug} name={heading} />}
+
       {model && (
         <>
           <SaveBar
@@ -135,9 +150,15 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
               <Roadmap model={model} slug={slug} title={heading} />
               <h2>Edit</h2>
               <RoadmapEditor model={model} onChange={update} />
+            </>
+          )}
+          {tab === "import" && (
+            <>
+              <MarkdownImport model={model} onChange={update} />
               <GanttImport model={model} onChange={update} />
             </>
           )}
+
           {tab === "releases" && <Releases model={model} slug={slug} title={heading} />}
           {tab === "views" && <Views model={model} title={heading} />}
           {tab === "radar" && (

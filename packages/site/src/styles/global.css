@@ -503,6 +503,190 @@ a {
   color: var(--bp-text-muted);
 }
 
+/* ── Tools: documents, import, export ──────────────────────────────── */
+
+.bp-documents__upload {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 46rem;
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-documents__index {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 60rem;
+}
+
+.bp-documents__index th,
+.bp-documents__index td {
+  text-align: left;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--bp-border);
+  vertical-align: top;
+}
+
+.bp-documents__index th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bp-text-muted);
+}
+
+.bp-documents__id {
+  font-size: 0.8rem;
+}
+
+/* Confidential is the loud one on purpose: it is the state that carries a
+   consequence, and the one somebody needs to notice before they act. */
+.bp-tag {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.bp-tag--confidential {
+  background: color-mix(in srgb, var(--bp-danger, #b91c1c) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-danger, #b91c1c) 45%, transparent);
+}
+
+.bp-tag--shared {
+  background: color-mix(in srgb, var(--bp-text-muted) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-text-muted) 35%, transparent);
+}
+
+.bp-documents__text,
+.bp-print__body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-height: 30rem;
+  overflow: auto;
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  background: var(--bp-surface);
+}
+
+.bp-import__source {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.bp-import__plan {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  max-width: 60rem;
+}
+
+.bp-import__summary {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.bp-import__changes {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bp-import__changes label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.bp-import__kind {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--bp-border-strong);
+  color: var(--bp-text-muted);
+}
+
+.bp-import__was {
+  margin: 0 0 0 2.4rem;
+  font-size: 0.85rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-import__refused {
+  border-left: 3px solid var(--bp-danger, #b91c1c);
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.bp-import__actions,
+.bp-export__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bp-export__boundary {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  max-width: 46rem;
+  margin-bottom: 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-export__boundary dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.bp-export__boundary dd {
+  margin: 0 0 0.25rem;
+  color: var(--bp-text-muted);
+}
+
+/* Only the document prints. Everything else on the page — rail, controls,
+   the export panel itself — is chrome that has no business in a PDF someone
+   hands to a colleague. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .bp-print,
+  .bp-print * {
+    visibility: visible;
+  }
+
+  .bp-print {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  .bp-print__body {
+    border: 0;
+    padding: 0;
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+  }
+}
+
 /* The product's description, under its title. Muted and narrow: it is
    orientation, not content, and a full-width paragraph reads as the page. */
 /* Product settings: collapsed by default. Renaming is rare and the panel
