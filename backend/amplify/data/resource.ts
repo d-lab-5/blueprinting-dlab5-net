@@ -1,6 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
 import { projectAdmin } from "../functions/projectAdmin/resource";
+import { projectRename } from "../functions/projectRename/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -173,7 +174,7 @@ const schema = a.schema({
     })
     .returns(a.ref("CreatedProject"))
     .authorization((allow) => [allow.authenticated()])
-    .handler(a.handler.function(projectAdmin)),
+    .handler(a.handler.function(projectRename)),
 
   saveModel: a
     .mutation()

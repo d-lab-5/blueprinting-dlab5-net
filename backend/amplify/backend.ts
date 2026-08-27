@@ -6,6 +6,7 @@ import { data } from "./data/resource";
 import { storage } from "./storage/resource";
 import { modelStorageProxy } from "./functions/modelStorageProxy/resource";
 import { projectAdmin } from "./functions/projectAdmin/resource";
+import { projectRename } from "./functions/projectRename/resource";
 
 const backend = defineBackend({
   auth,
@@ -13,6 +14,7 @@ const backend = defineBackend({
   storage,
   modelStorageProxy,
   projectAdmin,
+  projectRename,
 });
 
 /* ------------------------------------------------------------------------ *
@@ -137,5 +139,38 @@ projectAdminLambda.addToRolePolicy(
 );
 
 backend.projectAdmin.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
+
+/* ------------------------------------------------------------------------ *
+ * projectRename.
+ *
+ * Its own function because AppSync does not populate event.info.fieldName for
+ * these handlers, so one function cannot serve two mutations whose arguments
+ * are identical. See functions/projectRename/resource.ts.
+ * ------------------------------------------------------------------------ */
+
+const projectRenameLambda = backend.projectRename.resources.lambda;
+
+projectRenameLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    // Update only. This function must never be able to create a product row,
+    // because a row without its Cognito group is one nobody can open.
+    actions: ["dynamodb:UpdateItem"],
+    resources: [projectTable.tableArn],
+  })
+);
+
+// Wildcarded for the same CloudFormation-cycle reason as projectAdmin above.
+projectRenameLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["cognito-idp:UpdateGroup", "cognito-idp:GetGroup"],
+    resources: [
+      `arn:aws:cognito-idp:${stack.region}:${stack.account}:userpool/*`,
+    ],
+  })
+);
+
+backend.projectRename.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
 
 export default backend;
