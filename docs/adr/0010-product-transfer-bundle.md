@@ -78,6 +78,20 @@ exists on disk for every product it would delete.
 
 ## Consequences
 
+**Re-identifying a product is an IRI rewrite, and it is free.** Every IRI in
+the Turtle embeds the product id — `https://blueprinting.dlab5.net/i/<id>/…` —
+so a new id means rewriting all of them; the platform's own model has 580. This
+is safe only because IRIs are *derived* from `model.projectSlug` when the model
+is serialized, never stored: parsing under the old id and serializing under the
+new one regenerates every one of them. A unit test in `packages/core` asserts
+that property directly, because everything else here depends on it.
+
+It also means re-identification must never be done by search and replace. The
+platform's own model contains an element whose id is `dlab5-blueprint-blockly`;
+replacing the string `dlab5-blueprint` would corrupt it. The first version of
+the round-trip check made exactly that mistake in its assertion, and finding it
+is the reason this paragraph exists.
+
 **A product becomes portable, and reviewable.** A bundle is four files, one of
 them byte-stable Turtle, so a transfer can be inspected in a diff before it is
 applied and kept in version control if that is useful.

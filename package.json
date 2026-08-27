@@ -1,7 +1,7 @@
 {
   "name": "blueprinting-dlab5-net",
   "private": true,
-  "description": "D-LAB-5 Blueprinting Platform — engineering governance over an ArchiMate 3.2 semantic model",
+  "description": "D-LAB-5 Blueprinting Platform \u2014 engineering governance over an ArchiMate 3.2 semantic model",
   "license": "MIT",
   "workspaces": [
     "packages/*"
@@ -32,7 +32,10 @@
     "backend:install": "npm --prefix backend install",
     "backend:sandbox": "npm --prefix backend run sandbox",
     "backend:sync-outputs": "npm --prefix backend run sync-outputs",
-    "backend:typecheck": "npm --prefix backend run typecheck"
+    "backend:typecheck": "npm --prefix backend run typecheck",
+    "bundle:export": "node scripts/bundle-export.mjs",
+    "bundle:import": "node scripts/bundle-import.mjs",
+    "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs"
   },
   "engines": {
     "node": ">=22"

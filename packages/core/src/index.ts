@@ -118,3 +118,10 @@ export type {
   RadarLayoutOptions,
   RadarSector,
 } from "./diagrams/radar-layout.js";
+
+export {
+  PRODUCT_ID,
+  PRODUCT_ID_PREFIX,
+  isMintedProductId,
+  mintProductId,
+} from "./identity.js";
