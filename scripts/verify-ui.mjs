@@ -389,6 +389,7 @@ const PROBE = `
     // Visible text only: innerText ignores href attributes and DOM ids,
     // where the opaque id legitimately belongs.
     bodyText: document.body?.innerText ?? "",
+    hasSaveBar: !!document.querySelector(".bp-savebar"),
     // Text drawn inside a diagram, used to prove the check above can see into
     // an SVG at all. Without this the id-leak assertion would pass vacuously
     // if innerText ever stopped descending into SVG — which is precisely how
@@ -466,6 +467,8 @@ const ROUTES = [
   // The Tools section. Import needs no backend beyond the model; documents and
   // export are added once documentStore is deployed.
   { path: "/p/dlab5-blueprint/import/", name: "project · import" },
+  { path: "/p/dlab5-blueprint/documents/", name: "project · documents" },
+  { path: "/p/dlab5-blueprint/export/", name: "project · export" },
 ];
 
 /**
@@ -1343,6 +1346,15 @@ async function signedIn(cdp) {
         );
       }
     }
+    // The record screens do not touch the model, so its save bar must not
+    // appear there — a Save button under a list of documents reads as though
+    // the documents are what it saves.
+    const isRecordScreen = /\/(documents|export)\/$/.test(route.path);
+    check(
+      value.hasSaveBar === !isRecordScreen,
+      `${route.name}: ${isRecordScreen ? "no save bar, nothing here to save" : "the save bar is present"}`,
+      `save bar ${value.hasSaveBar ? "present" : "absent"}`
+    );
     check(!value.hasSignIn, `${route.name}: the gate is gone`);
     check(
       value.renderedContent,

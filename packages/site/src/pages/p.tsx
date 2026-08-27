@@ -95,6 +95,9 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   // title, the rail, and every diagram title. ADR-0009.
   const heading = project?.name ?? (projectLoading ? "…" : (slug ?? ""));
 
+  /** Screens that hold records rather than the model, and want none of its chrome. */
+  const records = tab === "documents" || tab === "export";
+
   if (!slug) {
     return (
       <Shell>
@@ -120,20 +123,24 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
         <ProductSettings project={project} onRenamed={setProject} />
       )}
 
-      {error && (
+      {error && !records && (
         <p className="bp-error" role="alert">
           {error}
         </p>
       )}
-      {loading && <p className="bp-muted">Loading model…</p>}
+      {loading && !records && <p className="bp-muted">Loading model…</p>}
 
       {/* Outside the model gate on purpose. A product created this morning has
           no blueprint yet, and the report that will become one has to be able
-          to land somewhere before there is anything to import it into. */}
+          to land somewhere before there is anything to import it into.
+
+          The model's own chrome is withheld here for the same reason: these
+          screens do not touch the model, and a Save button under a list of
+          documents invites the reading that the documents are what it saves. */}
       {tab === "documents" && <Documents slug={slug} />}
       {tab === "export" && <ExportTools slug={slug} name={heading} />}
 
-      {model && (
+      {model && !records && (
         <>
           <SaveBar
             dirty={dirty}
