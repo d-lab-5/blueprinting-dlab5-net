@@ -67,6 +67,28 @@ const SOURCE_SECTION = CONVENTIONS.sourceSection.propertyKey;
 /** `<!-- am element type=Stakeholder id=cfo -->` — one per line. */
 const ANNOTATION = /^\s*<!--\s*am\s+([a-z]+)\b([^>]*?)-->\s*$/i;
 
+/**
+ * Heading text, with inline markdown removed, for use as an element name.
+ *
+ * Found on a real plan of record, whose phase headings read
+ * `### Phase B — Odoo extract *(blocked on API key)*`. Carried through
+ * verbatim, the asterisks end up in the element's name, in every diagram it
+ * appears on and in the Archi export. Emphasis is formatting; it is not part
+ * of what the thing is called.
+ *
+ * Link text is kept and the URL dropped, for the same reason.
+ */
+function plainText(heading: string): string {
+  return heading
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/(\*\*\*|___)(.+?)\1/g, "$2")
+    .replace(/(\*\*|__)(.+?)\1/g, "$2")
+    .replace(/(\*|_)(.+?)\1/g, "$2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** ATX headings only. Setext (`====` underline) is not recognised. */
 const HEADING = /^(#{1,6})\s+(.+?)\s*$/;
 
@@ -166,7 +188,7 @@ export function fromAnnotatedMarkdown(
         continue;
       }
 
-      const headingText = heading[2];
+      const headingText = plainText(heading[2]);
       const type = attrs.type;
       const id = attrs.id;
 

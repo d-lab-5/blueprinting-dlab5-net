@@ -247,3 +247,31 @@ Text before.
   assert.equal(r.elements, 1);
   assert.match(byId(r, "cfo").documentation, /Text before\./);
 });
+
+/* -- found on real documents ----------------------------------------------- */
+
+test("inline markdown is stripped from a heading used as a name", () => {
+  // A real plan of record had `### Phase B — Odoo extract *(blocked on API key)*`.
+  // Carried through verbatim the asterisks reach every diagram and the Archi
+  // export. Emphasis is formatting, not part of what the thing is called.
+  const r = read(`<!-- am element type=WorkPackage id=phase-b -->
+### Phase B — Odoo extract *(blocked on API key)*
+`);
+  assert.equal(byId(r, "phase-b").name, "Phase B — Odoo extract (blocked on API key)");
+});
+
+test("code spans and links in a heading are reduced to their text", () => {
+  const r = read(`<!-- am element type=DataObject id=pt -->
+### \`product.template\` and [the docs](https://example.com/x)
+`);
+  assert.equal(byId(r, "pt").name, "product.template and the docs");
+});
+
+test("stripping does not touch the documentation, which stays markdown", () => {
+  const r = read(`<!-- am element type=WorkPackage id=w -->
+### Work *emphasised*
+Body with *emphasis* and \`code\` that must survive.
+`);
+  assert.equal(byId(r, "w").name, "Work emphasised");
+  assert.equal(byId(r, "w").documentation, "Body with *emphasis* and `code` that must survive.");
+});
