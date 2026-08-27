@@ -1,3 +1,5 @@
+import { CONVENTIONS } from "@dlab5/archimate-metamodel";
+
 import type { AbElement, AbModel, AbRelationship } from "../types.js";
 
 /**
@@ -55,7 +57,9 @@ export interface ImportPlan {
   refused: Array<{ incoming: AbElement; existing: AbElement; reason: string }>;
 }
 
-const SOURCE_DOCUMENT = "sourceDocument";
+// From the overlay, not spelled out here — constraint 11.
+const SOURCE_DOCUMENT = CONVENTIONS.sourceDocument.propertyKey;
+const SOURCE_SECTION = CONVENTIONS.sourceSection.propertyKey;
 
 /** Fields that differ between what the document says and what the model holds. */
 function differingFields(incoming: AbElement, existing: AbElement): string[] {
@@ -68,7 +72,7 @@ function differingFields(incoming: AbElement, existing: AbElement): string[] {
     // sourceSection changing is a consequence of a renamed heading, not an
     // edit anyone made to the model. It is carried, but it is not a conflict
     // worth putting in front of someone.
-    if (key === "sourceSection" || key === SOURCE_DOCUMENT) continue;
+    if (key === SOURCE_SECTION || key === SOURCE_DOCUMENT) continue;
     if (existing.properties[key] !== value) out.push(key);
   }
   return out;

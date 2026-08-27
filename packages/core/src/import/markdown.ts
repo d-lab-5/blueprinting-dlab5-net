@@ -1,4 +1,9 @@
-import { isAllowed, isElementType, isRelationshipType } from "@dlab5/archimate-metamodel";
+import {
+  CONVENTIONS,
+  isAllowed,
+  isElementType,
+  isRelationshipType,
+} from "@dlab5/archimate-metamodel";
 import type { ElementTypeId, RelationshipTypeId } from "@dlab5/archimate-metamodel";
 
 import { slugifyId } from "../iri.js";
@@ -48,6 +53,16 @@ export interface MarkdownImportResult {
   /** Annotations that were not understood, with their 1-based line numbers. */
   skipped: MarkdownAnnotationError[];
 }
+
+/**
+ * Where an imported element says it came from.
+ *
+ * Read from the overlay, never spelled out here: constraint 11 keeps every
+ * property key in one place, and a key hard-coded in an importer is exactly
+ * how two spellings of the same property end up in one model.
+ */
+const SOURCE_DOCUMENT = CONVENTIONS.sourceDocument.propertyKey;
+const SOURCE_SECTION = CONVENTIONS.sourceSection.propertyKey;
 
 /** `<!-- am element type=Stakeholder id=cfo -->` — one per line. */
 const ANNOTATION = /^\s*<!--\s*am\s+([a-z]+)\b([^>]*?)-->\s*$/i;
@@ -181,8 +196,8 @@ export function fromAnnotatedMarkdown(
       typeById.set(id, type);
 
       const properties: Record<string, string> = {};
-      if (options.documentId) properties.sourceDocument = options.documentId;
-      properties.sourceSection = slugifyId(headingText);
+      if (options.documentId) properties[SOURCE_DOCUMENT] = options.documentId;
+      properties[SOURCE_SECTION] = slugifyId(headingText);
 
       const element: AbElement = {
         id,
@@ -257,7 +272,7 @@ export function fromAnnotatedMarkdown(
       type: type as RelationshipTypeId,
       source: from,
       target: to,
-      properties: options.documentId ? { sourceDocument: options.documentId } : {},
+      properties: options.documentId ? { [SOURCE_DOCUMENT]: options.documentId } : {},
     });
   }
 
