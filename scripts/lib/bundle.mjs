@@ -3,8 +3,32 @@ import { createHash } from "node:crypto";
 
 export const BUNDLE_FORMAT = {
   name: "dlab5-blueprint-product-bundle",
-  version: 1,
+  // v2 carries documents/. A v1 bundle is still readable; it simply has none.
+  version: 2,
 };
+
+/**
+ * Where a document may go, most restrictive first.
+ *
+ * The axis is destination, not sensitivity. `collaboration` is the tier that
+ * is easy to leave out and expensive to lack: sprint notes and working
+ * documents must travel between environments with the product and must not
+ * reach a public repository, and no two-valued field can say both.
+ */
+export const CLASSIFICATIONS = ["confidential", "collaboration", "shared"];
+
+/**
+ * Whether a document may travel in a bundle exported at `include`.
+ *
+ * Confidential never travels, whatever is asked for — that is the one rule
+ * with no flag behind it. Anything unrecognised is treated as confidential,
+ * so a classification this tool does not know about fails closed.
+ */
+export function mayTravel(classification, include) {
+  if (classification === "shared") return true;
+  if (classification === "collaboration") return include === "collaboration";
+  return false;
+}
 
 export const sha256 = (content) =>
   createHash("sha256").update(content).digest("hex");

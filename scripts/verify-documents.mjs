@@ -56,6 +56,7 @@ const check = (ok, what, detail) => {
 const stamp = Date.now().toString(36);
 const plainId = `verify-doc-${stamp}`;
 const sharedId = `verify-shared-${stamp}`;
+const collabId = `verify-collab-${stamp}`;
 const secretId = `verify-secret-${stamp}`;
 const created = [];
 
@@ -176,6 +177,35 @@ try {
   );
   if (!shared.error) created.push(sharedId);
 
+  const collab = await call(client, "saveDocument", {
+    projectSlug: product,
+    docId: collabId,
+    markdown: "# Sprint 17 notes\n\nStandup, blockers, what shipped.\n",
+    title: "Verification collaboration",
+    classification: "collaboration",
+  });
+  check(
+    collab.data?.classification === "collaboration",
+    "a document can be marked collaboration",
+    collab.data?.classification ?? collab.error ?? ""
+  );
+  if (!collab.error) created.push(collabId);
+
+  // A typo must not be the thing that decides a document travels.
+  const typo = await call(client, "saveDocument", {
+    projectSlug: product,
+    docId: `${collabId}-typo`,
+    markdown: "# Nonsense classification\n",
+    title: "Verification typo",
+    classification: "Collaboration",
+  });
+  check(
+    typo.data?.classification === "confidential",
+    "an unrecognised classification falls back to confidential",
+    typo.data?.classification ?? typo.error ?? ""
+  );
+  if (!typo.error) created.push(`${collabId}-typo`);
+
   /* -- the index ----------------------------------------------------------- */
 
   const list = await client.models.Document.list({
@@ -187,11 +217,12 @@ try {
     "every stored document is in the index",
     `${ours.length} of ${created.length}`
   );
-  const confidential = ours.filter((d) => d.classification === "confidential").length;
+  const tally = {};
+  for (const d of ours) tally[d.classification] = (tally[d.classification] ?? 0) + 1;
   check(
-    confidential === 1 && ours.length === 2,
+    tally.confidential === 2 && tally.collaboration === 1 && tally.shared === 1,
     "the index records how far each may travel",
-    `${confidential} confidential, ${ours.length - confidential} shared`
+    Object.entries(tally).map(([k, v]) => `${v} ${k}`).join(", ")
   );
 
   /* -- a product you are not in ------------------------------------------- */
@@ -224,7 +255,7 @@ try {
   );
   const bucket = outputs?.storage?.bucket_name;
   if (bucket) {
-    for (const docId of [plainId, sharedId, secretId]) {
+    for (const docId of [plainId, sharedId, collabId, `${collabId}-typo`, secretId]) {
       try {
         execFileSync(
           "aws",

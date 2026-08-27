@@ -14,15 +14,26 @@ import type { BpDocument, Classification } from "../lib/data";
  *
  * Which makes `classification` the field that matters:
  *
- *   Confidential  never travels in a transfer bundle. Comes out only as a
- *                 local download, by someone who asks for it.
- *   Shared        working material — architecture, mappings, workflow. Goes
- *                 with the model wherever the model goes.
+ *                    in a bundle   safe in a public repo
+ *   Confidential         no              no
+ *   Collaboration       yes              no
+ *   Shared              yes             yes
+ *
+ * The middle tier is the one that is easy to omit and expensive to lack.
+ * Sprint notes and working documents have to travel with the product between
+ * environments and must not reach a public GitHub page — two properties no
+ * two-valued field can express at once.
  *
  * **Confidential is the default**, and the direction is the whole point.
  * Sharing is a decision someone makes; not-sharing is what happens when
  * nobody does.
  */
+const LABELS: Record<string, string> = {
+  confidential: "Confidential",
+  collaboration: "Collaboration",
+  shared: "Shared",
+};
+
 export function Documents({ slug }: { slug: string }) {
   const [documents, setDocuments] = React.useState<BpDocument[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -96,8 +107,9 @@ export function Documents({ slug }: { slug: string }) {
     <section className="bp-documents">
       <h2>Documents</h2>
       <p className="bp-muted">
-        Held for the record, beside the model. Confidential documents never
-        travel in an export — they come out here, as a download.
+        Held for the record, beside the model. Classification decides where a
+        document may go: confidential stays here, collaboration travels with
+        the product, shared is safe in a public repository.
       </p>
 
       <UploadForm busy={busy} onUpload={upload} />
@@ -140,12 +152,8 @@ export function Documents({ slug }: { slug: string }) {
                   </div>
                 </td>
                 <td>
-                  <span
-                    className={`bp-tag bp-tag--${
-                      doc.classification === "shared" ? "shared" : "confidential"
-                    }`}
-                  >
-                    {doc.classification === "shared" ? "Shared" : "Confidential"}
+                  <span className={`bp-tag bp-tag--${doc.classification}`}>
+                    {LABELS[doc.classification] ?? "Confidential"}
                   </span>
                 </td>
                 <td className="bp-muted">
@@ -210,9 +218,14 @@ function UploadForm({
           onChange={(e) => setClassification(e.target.value as Classification)}
         >
           <option value="confidential">
-            Confidential — never leaves in an export
+            Confidential — never leaves this system
           </option>
-          <option value="shared">Shared — travels with the model</option>
+          <option value="collaboration">
+            Collaboration — travels with the product, never to a public repo
+          </option>
+          <option value="shared">
+            Shared — safe anywhere, including a public repo
+          </option>
         </select>
       </label>
 

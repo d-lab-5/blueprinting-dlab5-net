@@ -24,7 +24,15 @@ export interface Project {
   lockedAt?: string | null;
 }
 
-export type Classification = "confidential" | "shared";
+/**
+ * Where a document may go. The axis is destination, not sensitivity.
+ *
+ *                   in a bundle   safe in a public repo
+ *   confidential         no              no
+ *   collaboration       yes              no
+ *   shared              yes             yes
+ */
+export type Classification = "confidential" | "collaboration" | "shared";
 
 /**
  * A source document held beside the model.

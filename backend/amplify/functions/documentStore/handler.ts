@@ -49,7 +49,16 @@ const SECRET_SHAPES: Array<[RegExp, string]> = [
   [/\baws_secret_access_key\s*[=:]\s*\S/i, "an AWS secret access key"],
 ];
 
-type Classification = "confidential" | "shared";
+type Classification = "confidential" | "collaboration" | "shared";
+
+/**
+ * Where a document may go, most restrictive first.
+ *
+ * The axis is destination, not sensitivity: `collaboration` travels between
+ * environments with the product but never into a public repository, which is
+ * a pair of properties a two-valued field cannot express.
+ */
+const CLASSIFICATIONS: Classification[] = ["confidential", "collaboration", "shared"];
 
 interface Args {
   projectSlug: string;
@@ -181,8 +190,12 @@ export const handler = async (
   // Confidential unless someone says otherwise. Sharing is opt-in, so a
   // document nobody classified stays put; the other direction puts commercial
   // terms in a file bound for a public repository.
+  // Anything unrecognised falls back to confidential rather than being
+  // rejected: a typo in a classification must not be the thing that decides a
+  // document travels.
+  const requested = event.arguments.classification as Classification | undefined;
   const classification: Classification =
-    event.arguments.classification === "shared" ? "shared" : "confidential";
+    requested && CLASSIFICATIONS.includes(requested) ? requested : "confidential";
 
   const isSource = (kind ?? "source") === "source";
   const now = new Date().toISOString();

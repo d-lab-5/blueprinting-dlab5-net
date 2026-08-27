@@ -16,7 +16,7 @@
  * that must agree with the environment they land in, so provisionProject
  * computes them, exactly as it does for a product created by hand.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,7 +33,11 @@ import {
 } from "@dlab5/blueprint-core";
 import { toOpenExchange } from "@dlab5/archimate-exchange";
 
-import { BUNDLE_FORMAT, environmentFingerprint, sha256 } from "./lib/bundle.mjs";
+import {
+  BUNDLE_FORMAT,
+  environmentFingerprint,
+  sha256,
+} from "./lib/bundle.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputs = JSON.parse(
@@ -135,6 +139,16 @@ console.log(
     `${model.relationships.length} relationships, ArchiMate ${model.languageVersion}`
 );
 console.log(`  checksums     ok, and model.xml matches model.ttl`);
+const bundledDocuments = manifest.documents ?? [];
+console.log(
+  `  documents     ${bundledDocuments.length} carried` +
+    (manifest.withheld?.length
+      ? `, ${manifest.withheld.length} withheld at export`
+      : "")
+);
+for (const d of manifest.withheld ?? []) {
+  console.log(`    not here    ${d.docId} (${d.classification})`);
+}
 if (errors.length) {
   console.log(`  validation    ${errors.length} error(s):`);
   for (const e of errors) console.log(`    ${e.message}`);
@@ -208,9 +222,39 @@ try {
     "save model"
   );
 
+  // Documents after the model, and never fatally: a product whose model
+  // landed but whose notes did not is recoverable; one that fails halfway
+  // through provisioning is not.
+  let restored = 0;
+  for (const doc of bundledDocuments) {
+    for (const kind of ["source", "annotated"]) {
+      const file = join(dir, "documents", doc.docId, `${kind}.md`);
+      if (!existsSync(file)) continue;
+      try {
+        unwrap(
+          await client.mutations.saveDocument({
+            projectSlug: targetSlug,
+            docId: doc.docId,
+            markdown: readFileSync(file, "utf8"),
+            title: doc.title,
+            // Carried across as it was. A document does not become more
+            // shareable by being moved to another environment.
+            classification: doc.classification,
+            kind,
+          }),
+          `restore ${doc.docId}/${kind}`
+        );
+        if (kind === "source") restored++;
+      } catch (err) {
+        console.error(`  could not restore ${doc.docId}/${kind}: ${err.message}`);
+      }
+    }
+  }
+
   console.log(`\nimported as ${targetSlug}`);
   console.log(`  group ${created.group} — created EMPTY except for you.`);
   console.log(`  key   ${saved.key}`);
+  console.log(`  documents restored: ${restored}`);
   console.log(`  etag  ${saved.etag}`);
   console.log(
     `  Members do not transfer (ADR-0010). Add them in the Cognito console.`

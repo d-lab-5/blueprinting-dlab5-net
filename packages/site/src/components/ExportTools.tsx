@@ -42,7 +42,7 @@ export function ExportTools({ slug, name }: { slug: string; name: string }) {
   }, [slug, chosen]);
 
   const doc = documents?.find((d) => d.docId === chosen);
-  const confidential = doc?.classification !== "shared";
+  const confidential = doc?.classification === "confidential";
 
   return (
     <section className="bp-export">
@@ -57,12 +57,17 @@ export function ExportTools({ slug, name }: { slug: string; name: string }) {
             XML, which opens in Archi.
           </dd>
           <dt>Shared documents</dt>
-          <dd>Travel with the model.</dd>
+          <dd>Travel with the model, and are safe in a public repository.</dd>
+          <dt>Collaboration documents</dt>
+          <dd>
+            Travel with the product between environments, but never into a
+            public repository. A bundle carries them only when it is asked to.
+          </dd>
           <dt>Confidential documents</dt>
           <dd>
-            <strong>Never travel.</strong> They are excluded from every bundle
-            and come out only as a download, from the Documents screen, by
-            someone who asks for that document by name.
+            <strong>Never travel.</strong> They are excluded from every bundle,
+            with no flag to override it, and come out only as a download from
+            the Documents screen by someone who asks for that document by name.
           </dd>
         </dl>
       </div>
@@ -80,7 +85,7 @@ export function ExportTools({ slug, name }: { slug: string; name: string }) {
           {documents?.map((d) => (
             <option key={d.docId} value={d.docId}>
               {d.title}
-              {d.classification === "shared" ? "" : " (confidential)"}
+              {d.classification === "shared" ? "" : ` (${d.classification})`}
             </option>
           ))}
         </select>

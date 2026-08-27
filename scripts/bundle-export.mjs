@@ -27,7 +27,12 @@ import { generateClient } from "aws-amplify/data";
 import { parseAbox, serializeAbox, validateModel } from "@dlab5/blueprint-core";
 import { toOpenExchange } from "@dlab5/archimate-exchange";
 
-import { BUNDLE_FORMAT, environmentFingerprint, sha256 } from "./lib/bundle.mjs";
+import {
+  BUNDLE_FORMAT,
+  environmentFingerprint,
+  mayTravel,
+  sha256,
+} from "./lib/bundle.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputs = JSON.parse(
@@ -51,11 +56,25 @@ const arg = (name) => {
 const slug = arg("--product") ?? arg("--project");
 const out = arg("--out");
 const envLabel = arg("--env") ?? "unspecified";
+// Shared only unless asked otherwise. The safest default is the one that
+// produces a bundle safe to commit, because that is the bundle someone will
+// commit without checking.
+const include = process.argv.includes("--include")
+  ? arg("--include")
+  : "shared";
+if (include !== "shared" && include !== "collaboration") {
+  console.error(
+    `--include takes "shared" (default) or "collaboration". Confidential ` +
+      `documents never travel and there is deliberately no flag for it.`
+  );
+  process.exit(2);
+}
 const { BP_USER: username, BP_PASSWORD: password } = process.env;
 
 if (!slug || !out) {
   console.error(
-    "usage: node scripts/bundle-export.mjs --product <slug> --out <dir> [--env <label>]"
+    "usage: node scripts/bundle-export.mjs --product <slug> --out <dir> " +
+      "[--env <label>] [--include collaboration]"
   );
   process.exit(2);
 }
@@ -116,13 +135,51 @@ try {
     description: row.description ?? null,
   };
 
+  /* -- documents ---------------------------------------------------------- */
+
+  const index = await client.models.Document.list({
+    filter: { projectSlug: { eq: slug } },
+  });
+  const allDocuments = index.data ?? [];
+  const travelling = allDocuments.filter((d) =>
+    mayTravel(d.classification, include)
+  );
+  const held = allDocuments.filter((d) => !mayTravel(d.classification, include));
+
+  const documentFiles = {};
+  const manifestDocuments = [];
+  for (const doc of travelling) {
+    for (const kind of ["source", "annotated"]) {
+      if (kind === "annotated" && !doc.annotatedKey) continue;
+      const access = unwrap(
+        await client.mutations.requestDocumentReadUrl({
+          projectSlug: slug,
+          docId: doc.docId,
+          kind,
+        }),
+        `read ${doc.docId}/${kind}`
+      );
+      if (!access.exists || !access.url) continue;
+      const text = await (await fetch(access.url)).text();
+      documentFiles[`documents/${doc.docId}/${kind}.md`] = text;
+    }
+    manifestDocuments.push({
+      docId: doc.docId,
+      title: doc.title,
+      classification: doc.classification,
+    });
+  }
+
   const files = {
     "product.json": JSON.stringify(product, null, 2) + "\n",
     "model.ttl": canonical,
     "model.xml": xml,
+    ...documentFiles,
   };
   for (const [name, content] of Object.entries(files)) {
-    writeFileSync(join(out, name), content);
+    const target = join(out, name);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, content);
   }
 
   const manifest = {
@@ -142,6 +199,15 @@ try {
       relationships: model.relationships.length,
     },
     languageVersion: model.languageVersion,
+    include,
+    documents: manifestDocuments,
+    // What was deliberately left behind, and why. A bundle that silently
+    // omits half a product's records is indistinguishable from one that had
+    // none, and the difference matters when someone reloads it.
+    withheld: held.map((d) => ({
+      docId: d.docId,
+      classification: d.classification,
+    })),
     files: Object.fromEntries(
       Object.entries(files).map(([name, content]) => [
         name,
@@ -158,6 +224,18 @@ try {
   );
   console.log(`  name "${row.name}"`);
   console.log(`  group ${row.group} and membership are NOT in the bundle (ADR-0010)`);
+  console.log(
+    `  documents: ${travelling.length} carried (--include ${include}), ` +
+      `${held.length} withheld`
+  );
+  for (const d of held) {
+    console.log(`    withheld  ${d.docId}  (${d.classification})`);
+  }
+  if (held.some((d) => d.classification !== "confidential")) {
+    console.log(
+      `    pass --include collaboration to carry collaboration documents too.`
+    );
+  }
   if (errors.length) {
     console.log(`  ${errors.length} validation error(s) — exported anyway:`);
     for (const e of errors) console.log(`    ${e.message}`);

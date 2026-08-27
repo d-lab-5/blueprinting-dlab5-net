@@ -95,13 +95,18 @@ const schema = a.schema({
    * index — what exists, what it is called, and crucially how far it may
    * travel.
    *
-   * `classification` is the load-bearing field:
+   * `classification` is the load-bearing field, and its axis is WHERE A
+   * DOCUMENT MAY GO rather than how secret it is:
    *
-   *   confidential  never leaves this system in a shareable form. Excluded
-   *                 from the transfer bundle; retrievable only as a local
-   *                 download by someone who asks for it explicitly.
-   *   shared        working material — technical architecture, mappings,
-   *                 workflow. Travels in the bundle with the model.
+   *                    in a bundle   safe in a public repo
+   *   confidential          no              no
+   *   collaboration        yes              no
+   *   shared               yes             yes
+   *
+   * The middle tier is the one that is easy to leave out and expensive to
+   * lack. Sprint notes and working documents have to travel between
+   * environments with the product, and must not end up on a public GitHub
+   * page — two properties that a two-valued field cannot express at once.
    *
    * **The default is confidential**, and that direction is deliberate. Sharing
    * is opt-in, so a document nobody classified stays put; the other way round,
@@ -113,7 +118,7 @@ const schema = a.schema({
       docId: a.id().required(),
       projectSlug: a.string().required(),
       title: a.string().required(),
-      classification: a.enum(["confidential", "shared"]),
+      classification: a.enum(["confidential", "collaboration", "shared"]),
       /** `projects/<product>/documents/<docId>/source.md` — never rewritten. */
       sourceKey: a.string().required(),
       /** The annotated working copy, once someone has made one. */

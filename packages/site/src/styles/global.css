@@ -557,6 +557,12 @@ a {
   border-color: color-mix(in srgb, var(--bp-danger, #b91c1c) 45%, transparent);
 }
 
+/* Collaboration sits between the two, and looks it. */
+.bp-tag--collaboration {
+  background: color-mix(in srgb, var(--bp-accent, #0e7490) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-accent, #0e7490) 40%, transparent);
+}
+
 .bp-tag--shared {
   background: color-mix(in srgb, var(--bp-text-muted) 14%, transparent);
   border-color: color-mix(in srgb, var(--bp-text-muted) 35%, transparent);
