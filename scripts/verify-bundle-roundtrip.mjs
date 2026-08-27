@@ -393,6 +393,24 @@ try {
     }
     await signOut();
 
+    // The product row and the group were being cleaned up, and the model in
+    // S3 was not — so every run left a 96 kB abox.ttl under a product that no
+    // longer existed. Nothing pointed at it and nothing complained, which is
+    // how litter accumulates in a bucket for weeks.
+    const scratchBucket = outputs?.storage?.bucket_name;
+    if (scratchBucket) {
+      try {
+        execFileSync(
+          "aws",
+          ["s3", "rm", `s3://${scratchBucket}/projects/${scratch}/`, "--recursive"],
+          { stdio: "ignore" }
+        );
+        console.log(`cleaned up s3://…/projects/${scratch}/`);
+      } catch {
+        console.error(`LEFT BEHIND: projects/${scratch}/ in the model bucket.`);
+      }
+    }
+
     const poolId = outputs?.auth?.user_pool_id;
     if (poolId) {
       try {
