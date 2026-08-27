@@ -69,6 +69,19 @@ export type { GitgraphOptions } from "./diagrams/gitgraph.js";
 export { fromMermaidGantt } from "./import/gantt.js";
 export type { GanttImportResult } from "./import/gantt.js";
 
+export { applyImport, everyChange, planImport } from "./import/plan.js";
+export type {
+  ChangeKind,
+  ElementChange,
+  ImportPlan,
+  RelationshipChange,
+} from "./import/plan.js";
+export { fromAnnotatedMarkdown } from "./import/markdown.js";
+export type {
+  MarkdownAnnotationError,
+  MarkdownImportResult,
+} from "./import/markdown.js";
+
 export { MAX_DEPTH, neighbourhood } from "./neighbourhood.js";
 export type { Neighbourhood } from "./neighbourhood.js";
 
