@@ -58,6 +58,7 @@ npm run verify:archi                # round-trip through Archi itself
 BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
 BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
 BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
+BP_USER=… BP_PASSWORD=… npm run verify:documents # the document store, live
 
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
@@ -87,6 +88,18 @@ update a primary key, so there is no in-place path. ADR-0010.
 THAT, and compares the Turtle byte for byte. Going back out through S3 is the
 point: an exporter and an importer that agree with each other prove nothing.
 It creates and deletes a scratch product and its Cognito group.
+
+A product also holds **documents** — reports, plans, decision records — beside
+its model. They are evidence about an architecture rather than part of one, so
+they live in S3 under `projects/<id>/documents/` with a `Document` row as the
+index. `classification` decides how far one travels: `shared` goes with the
+model, `confidential` never leaves in an export and comes out only as a local
+download. **Unclassified means confidential** — sharing is a decision someone
+makes. A document whose text matches a credential shape is refused outright,
+and a stored source is never rewritten.
+
+`verify:documents` proves those four promises against a real backend, because
+each of them is something the UI claims and only the Lambda can keep.
 
 `verify:model-store` creates a scratch project, proves the authorization
 boundary and the ETag conflict against real AWS, then deletes it. Both live

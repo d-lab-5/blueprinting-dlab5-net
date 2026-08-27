@@ -35,7 +35,8 @@
     "backend:typecheck": "npm --prefix backend run typecheck",
     "bundle:export": "node scripts/bundle-export.mjs",
     "bundle:import": "node scripts/bundle-import.mjs",
-    "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs"
+    "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs",
+    "verify:documents": "node scripts/verify-documents.mjs"
   },
   "engines": {
     "node": ">=22"
