@@ -5,6 +5,8 @@ import { getProject } from "../lib/data";
 export interface UseProject {
   project: Project | null;
   loading: boolean;
+  /** Applied after a rename, so the page renames itself without a reload. */
+  setProject: (project: Project) => void;
 }
 
 /**
@@ -40,5 +42,5 @@ export function useProject(slug: string): UseProject {
     };
   }, [slug]);
 
-  return { project, loading };
+  return { project, loading, setProject };
 }

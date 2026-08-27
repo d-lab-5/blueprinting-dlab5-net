@@ -473,6 +473,89 @@ const ROUTES = [
  * sectors — a figure whose shape changes as you filter cannot be compared
  * against itself.
  */
+/**
+ * Product settings: the panel that makes a product renameable (ADR-0009).
+ *
+ * It is also the one place the opaque id is shown on purpose, so this doubles
+ * as the proof that the "id is never shown as text" assertion is not passing
+ * merely because the panel failed to render.
+ */
+async function productSettings(cdp) {
+  console.log("\nproduct settings");
+
+  const OPEN = `
+    const panel = document.querySelector(".bp-settings");
+    if (panel) panel.open = true;
+  `;
+
+  const READ = `
+    const panel = document.querySelector(".bp-settings");
+    const form = panel?.querySelector(".bp-settings__form");
+    const inputs = [...(form?.querySelectorAll("input, textarea") ?? [])];
+    return {
+      exists: Boolean(panel),
+      summary: panel?.querySelector("summary")?.textContent.trim() ?? null,
+      open: Boolean(panel?.open),
+      fields: inputs.map((i) => ({
+        label: i.closest(".bp-field")?.querySelector("span")?.textContent.trim() ?? null,
+        value: i.value,
+      })),
+      // Nothing to save until something changes: a Save that is always live
+      // invites a write that changes nothing and bumps the row for no reason.
+      saveDisabled: [...(form?.querySelectorAll("button") ?? [])]
+        .find((b) => b.textContent.trim().startsWith("Save"))?.disabled ?? null,
+      shownText: panel?.innerText ?? "",
+      // Only the name is editable; there must be no id field to type into.
+      idIsEditable: inputs.some((i) => i.value === "dlab5-blueprint"),
+    };
+  `;
+
+  let value;
+  try {
+    ({ value } = await visit(cdp, "/p/dlab5-blueprint/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      before: undefined,
+      then: OPEN,
+      evaluate: READ,
+      shot: "product-settings.png",
+    }));
+  } catch (error) {
+    check(false, "the settings panel renders", error.message);
+    return;
+  }
+
+  check(value.exists, "an administrator gets a settings panel", value.summary ?? "missing");
+  check(value.open, "it opens");
+  check(
+    value.fields.some((f) => f.label === "Name" && f.value === "DLAB5 Blueprint"),
+    "the name field holds the current name",
+    JSON.stringify(value.fields.map((f) => f.label))
+  );
+  check(
+    value.fields.some((f) => f.label === "Description" && f.value.length > 0),
+    "the description field holds the current description"
+  );
+  check(
+    value.saveDisabled === true,
+    "Save is inert until something changes",
+    `disabled=${value.saveDisabled}`
+  );
+  check(
+    !value.idIsEditable,
+    "the id is not editable",
+    "it is the partition key; re-identifying is an export and a reload"
+  );
+  // The counterpart to the id-leak assertion: the id IS shown here, on purpose,
+  // and only here. If this fails, the leak assertion has been passing for the
+  // wrong reason.
+  check(
+    value.shownText.includes("dlab5-blueprint"),
+    "the id is shown here, where identity is the point",
+    "and nowhere else"
+  );
+}
+
 async function radar(cdp) {
   console.log("\nradar");
 
@@ -1290,6 +1373,7 @@ async function signedIn(cdp) {
   await ganttImport(cdp);
   await findingsPanel(cdp);
   await viewport(cdp);
+  await productSettings(cdp);
   await radar(cdp);
 
   // The rail must fold away rather than eat a phone screen.

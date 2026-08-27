@@ -1,19 +1,33 @@
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 import {
   AdminAddUserToGroupCommand,
   CognitoIdentityProviderClient,
   CreateGroupCommand,
   GroupExistsException,
+  UpdateGroupCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 
 /**
- * Creates a project: a Project row and its Cognito group, together.
+ * Administrative operations on a product, dispatched by field name.
  *
- * Only bp-admins may call this. Creating a project grants access to a new
- * slice of the platform, and the caller is added to the new group so that the
- * person who made the project can immediately open it.
+ * `provisionProject` creates a Project row and its Cognito group together.
+ * `renameProject` changes the name and description, and keeps the Cognito
+ * group's description in step with them.
+ *
+ * Renaming needs its own mutation rather than the generated `updateProject`
+ * for one reason: the group description is set at creation to "Members of the
+ * <name> blueprint", and under ADR-0009 product ids are opaque — so that
+ * description is the only thing in the Cognito console that says which product
+ * a group belongs to. Letting it go stale would make the console unreadable,
+ * and only a Lambda holds the permission to update it.
+ *
+ * Only bp-admins may call either.
  */
 
 const ADMIN_GROUP = "bp-admins";
@@ -66,7 +80,11 @@ export const handler = async (
   const { groups, username, userPoolId } = claimsOf(event.identity);
 
   if (!groups.includes(ADMIN_GROUP)) {
-    throw new Error("Only platform administrators can create projects.");
+    throw new Error("Only platform administrators can change products.");
+  }
+
+  if (event.info?.fieldName === "renameProject") {
+    return rename(event, userPoolId);
   }
 
   const slug = (event.arguments.slug ?? "").trim().toLowerCase();
@@ -158,3 +176,71 @@ export const handler = async (
 
   return { slug, name, description, group, ttlKey };
 };
+
+/**
+ * Changes a product's name and description.
+ *
+ * The id is untouched, and cannot be changed: it is the DynamoDB partition
+ * key. Re-identifying a product is done by exporting and reloading it
+ * (ADR-0010), not here.
+ */
+async function rename(
+  event: AppSyncResolverEvent<Args>,
+  userPoolId: string | undefined
+): Promise<CreatedProject> {
+  const slug = (event.arguments.slug ?? "").trim().toLowerCase();
+  const name = (event.arguments.name ?? "").trim();
+  const description = event.arguments.description?.trim() || undefined;
+
+  if (!SLUG.test(slug)) throw new Error("That is not a product id.");
+  if (!name) throw new Error("A product name is required.");
+
+  const group = `bp-${slug}`;
+  const ttlKey = `projects/${slug}/abox.ttl`;
+
+  // Conditional on the row existing, so renaming a product that is not there
+  // fails rather than creating one with no Cognito group behind it.
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: PROJECT_TABLE,
+        Key: { slug },
+        UpdateExpression: description
+          ? "SET #n = :n, description = :d, updatedAt = :u"
+          : "SET #n = :n, updatedAt = :u REMOVE description",
+        ExpressionAttributeNames: { "#n": "name" },
+        ExpressionAttributeValues: {
+          ":n": name,
+          ":u": new Date().toISOString(),
+          ...(description ? { ":d": description } : {}),
+        },
+        ConditionExpression: "attribute_exists(slug)",
+      })
+    );
+  } catch (err) {
+    if ((err as { name?: string }).name === "ConditionalCheckFailedException") {
+      throw new Error(`There is no product "${slug}".`);
+    }
+    throw err;
+  }
+
+  // Best effort, and deliberately not fatal. The rename has already happened
+  // and is what the user asked for; a stale group description is a legibility
+  // problem in a console, not a broken product. Reporting failure here would
+  // suggest the rename did not take, which would be worse.
+  if (userPoolId) {
+    try {
+      await idp.send(
+        new UpdateGroupCommand({
+          UserPoolId: userPoolId,
+          GroupName: group,
+          Description: `Members of the ${name} blueprint`,
+        })
+      );
+    } catch (err) {
+      console.warn("[projectAdmin] updateGroup description", err);
+    }
+  }
+
+  return { slug, name, description, group, ttlKey };
+}

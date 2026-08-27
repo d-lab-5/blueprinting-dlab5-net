@@ -24,6 +24,8 @@ import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 import { useProject } from "../hooks/useProject";
+import { ProductSettings } from "../components/ProductSettings";
+import { useSession } from "../components/AuthGate";
 
 type Tab =
   | "roadmap"
@@ -77,7 +79,8 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
     reload,
   } = useModel(slug ?? "");
 
-  const { project, loading: projectLoading } = useProject(slug ?? "");
+  const { project, loading: projectLoading, setProject } = useProject(slug ?? "");
+  const session = useSession();
 
   // What a reader is shown wherever the product is named — the page
   // title, the rail, and every diagram title. ADR-0009.
@@ -103,6 +106,9 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
       <h1>{heading}</h1>
       {project?.description && (
         <p className="bp-product__blurb">{project.description}</p>
+      )}
+      {project && session.isAdmin && (
+        <ProductSettings project={project} onRenamed={setProject} />
       )}
 
       {error && (

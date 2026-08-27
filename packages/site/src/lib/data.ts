@@ -66,6 +66,18 @@ const GET_PROJECT = /* GraphQL */ `
   }
 `;
 
+const RENAME_PROJECT = /* GraphQL */ `
+  mutation RenameProject($slug: String!, $name: String!, $description: String) {
+    renameProject(slug: $slug, name: $name, description: $description) {
+      slug
+      name
+      description
+      group
+      ttlKey
+    }
+  }
+`;
+
 const PROVISION_PROJECT = /* GraphQL */ `
   mutation ProvisionProject($slug: String!, $name: String!, $description: String) {
     provisionProject(slug: $slug, name: $name, description: $description) {
@@ -190,6 +202,33 @@ export async function createProject(input: {
  * present, and without it the save would have to be unconditional, which the
  * backend refuses.
  */
+/**
+ * Changes a product's name and description.
+ *
+ * Calls `renameProject`, not the generated `updateProject`, so that the
+ * Cognito group's description is kept in step — under ADR-0009 the group name
+ * is opaque, and that description is the only thing in the console that says
+ * which product it belongs to.
+ *
+ * The id is not changeable. Re-identifying a product is an export and a
+ * reload (ADR-0010).
+ */
+export async function renameProject(input: {
+  slug: string;
+  name: string;
+  description?: string;
+}): Promise<Project> {
+  const result = (await client().graphql({
+    query: RENAME_PROJECT,
+    variables: {
+      slug: input.slug,
+      name: input.name,
+      description: input.description ?? null,
+    },
+  })) as GraphQLResult<{ renameProject: Project }>;
+  return unwrap(result).renameProject;
+}
+
 export async function loadModel(
   projectSlug: string
 ): Promise<{ model: AbModel; etag: string | null }> {

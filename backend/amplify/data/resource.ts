@@ -152,6 +152,29 @@ const schema = a.schema({
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(projectAdmin)),
 
+  /**
+   * Renames a product, and keeps its Cognito group description in step.
+   *
+   * The generated `updateProject` can change these same two fields, and is
+   * still there. This exists because the group's description is the only thing
+   * in the Cognito console that says which product an opaque `bp-p-…` group
+   * belongs to (ADR-0009), and updating it needs permissions the browser must
+   * never hold.
+   *
+   * The id is not an argument. It is the partition key; re-identifying a
+   * product is an export and a reload (ADR-0010), not an update.
+   */
+  renameProject: a
+    .mutation()
+    .arguments({
+      slug: a.string().required(),
+      name: a.string().required(),
+      description: a.string(),
+    })
+    .returns(a.ref("CreatedProject"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(projectAdmin)),
+
   saveModel: a
     .mutation()
     .arguments({
