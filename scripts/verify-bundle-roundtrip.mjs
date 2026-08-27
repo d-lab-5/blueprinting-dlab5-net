@@ -25,7 +25,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -83,10 +83,39 @@ const work = mkdtempSync(join(tmpdir(), "bp-bundle-"));
 const bundleA = join(work, "a");
 const bundleB = join(work, "b");
 let scratch = null;
+/** Seeded on the source product; cleaned up in the finally block. */
+let seededIds = [];
 
 console.log(`product bundle round trip (ADR-0010), source ${source}\n`);
 
 try {
+  /* -- 0. documents on the source product ---------------------------------- */
+
+  // Seeded BEFORE the first export, so the round trip carries them and the
+  // restore path is exercised. Seeded afterwards, as this first did, the
+  // import never sees a document and the restore code is shipped unproven.
+  await signIn({ username, password });
+  await fetchAuthSession();
+  const docClient = generateClient({ authMode: "userPool" });
+  const docStamp = Date.now().toString(36);
+  const seeded = [
+    [`bundle-conf-${docStamp}`, "confidential", "# Commercial terms\n"],
+    [`bundle-collab-${docStamp}`, "collaboration", "# Sprint notes\n"],
+    [`bundle-shared-${docStamp}`, "shared", "# Field mapping\n"],
+  ];
+  for (const [docId, classification, markdown] of seeded) {
+    await docClient.mutations.saveDocument({
+      projectSlug: source,
+      docId,
+      markdown,
+      title: docId,
+      classification,
+    });
+  }
+  await signOut();
+  const [confId, collabId, sharedId] = seeded.map(([id]) => id);
+  seededIds = [confId, collabId, sharedId];
+
   /* -- 1. export ---------------------------------------------------------- */
 
   run([
@@ -94,6 +123,7 @@ try {
     "--product", source,
     "--out", bundleA,
     "--env", "roundtrip",
+    "--include", "collaboration",
   ]);
 
   const manifestA = readJson(bundleA, "MANIFEST.json");
@@ -133,6 +163,33 @@ try {
     /^p-[23456789bcdfghjkmnpqrstvwxz]{10}$/.test(scratch),
     "the minted id is opaque",
     scratch
+  );
+
+  /* -- 2b. the documents landed too --------------------------------------- */
+
+  await signIn({ username, password });
+  await fetchAuthSession();
+  const check2 = generateClient({ authMode: "userPool" });
+  const landed = await check2.models.Document.list({
+    filter: { projectSlug: { eq: scratch } },
+  });
+  const landedIds = (landed.data ?? []).map((d) => d.docId).sort();
+  await signOut();
+
+  check(
+    landedIds.includes(sharedId) && landedIds.includes(collabId),
+    "the documents that travelled were restored on import",
+    landedIds.join(", ") || "none"
+  );
+  check(
+    !landedIds.includes(confId),
+    "and the confidential one did not appear from nowhere"
+  );
+  const restoredCollab = (landed.data ?? []).find((d) => d.docId === collabId);
+  check(
+    restoredCollab?.classification === "collaboration",
+    "classification survives the move",
+    restoredCollab?.classification ?? "missing"
   );
 
   /* -- 3. export what actually landed ------------------------------------- */
@@ -193,6 +250,62 @@ try {
     "the ArchiMate version is preserved"
   );
 
+  /* -- 5. documents travel only as far as they are allowed ---------------- */
+
+  const withDocs = join(work, "docs-default");
+  const withCollab = join(work, "docs-collab");
+
+  run(["scripts/bundle-export.mjs", "--product", source, "--out", withDocs,
+       "--env", "roundtrip"]);
+  run(["scripts/bundle-export.mjs", "--product", source, "--out", withCollab,
+       "--env", "roundtrip", "--include", "collaboration"]);
+
+  const has = (dir, docId) =>
+    existsSync(join(dir, "documents", docId, "source.md"));
+
+  check(has(withDocs, sharedId), "a shared document travels by default");
+  check(
+    !has(withDocs, collabId),
+    "a collaboration document does NOT travel by default",
+    "the default bundle is the one safe to commit"
+  );
+  check(
+    !has(withDocs, confId) && !has(withCollab, confId),
+    "a confidential document travels under NO flag",
+    "there is deliberately no way to ask for it"
+  );
+  check(
+    has(withCollab, collabId),
+    "--include collaboration carries the middle tier"
+  );
+  check(
+    has(withCollab, sharedId),
+    "and still carries the shared one"
+  );
+
+  const defaultManifest = readJson(withDocs, "MANIFEST.json");
+  check(
+    defaultManifest.formatVersion === 2,
+    "the bundle declares format v2",
+    `v${defaultManifest.formatVersion}`
+  );
+  check(
+    (defaultManifest.withheld ?? []).some((d) => d.docId === confId) &&
+      (defaultManifest.withheld ?? []).some((d) => d.docId === collabId),
+    "the manifest says what it withheld, not only what it carried",
+    `${(defaultManifest.withheld ?? []).length} withheld`
+  );
+
+  // Nothing of a withheld document may be anywhere in the bundle — not its
+  // text, and not its id in a file list. A bundle that names what it does not
+  // contain still leaks that the document exists.
+  const everything = [...Object.keys(defaultManifest.files ?? {})].join(" ") +
+    JSON.stringify(defaultManifest.documents ?? []);
+  check(
+    !everything.includes(confId),
+    "a withheld document's content is nowhere in the carried files"
+  );
+
   /* -- 5. a bundle that disagrees with itself is refused ------------------- */
 
   const tampered = join(work, "tampered");
@@ -227,10 +340,51 @@ try {
     "an XML that disagrees with the Turtle is refused, checksum or not"
   );
 } finally {
+  if (typeof seededIds !== "undefined" && seededIds.length) {
+    await signIn({ username, password });
+    await fetchAuthSession();
+    const c = generateClient({ authMode: "userPool" });
+    for (const docId of seededIds) {
+      try {
+        await c.models.Document.delete({ projectSlug: source, docId });
+      } catch {
+        console.error(`could not delete document ${docId}`);
+      }
+    }
+    await signOut();
+    const poolBucket = outputs?.storage?.bucket_name;
+    if (poolBucket) {
+      for (const docId of seededIds) {
+        try {
+          execFileSync(
+            "aws",
+            ["s3", "rm", `s3://${poolBucket}/projects/${source}/documents/${docId}/`,
+             "--recursive"],
+            { stdio: "ignore" }
+          );
+        } catch {
+          console.error(`LEFT BEHIND: documents/${docId}/`);
+        }
+      }
+    }
+    console.log(`cleaned up ${seededIds.length} seeded documents`);
+  }
+
   if (scratch) {
     await signIn({ username, password });
     await fetchAuthSession();
-    const client = generateClient({ authMode: "userPool" });
+    const sc = generateClient({ authMode: "userPool" });
+    try {
+      const theirs = await sc.models.Document.list({
+        filter: { projectSlug: { eq: scratch } },
+      });
+      for (const d of theirs.data ?? []) {
+        await sc.models.Document.delete({ projectSlug: scratch, docId: d.docId });
+      }
+    } catch {
+      console.error("could not clear the scratch product's documents");
+    }
+    const client = sc;
     try {
       await client.models.Project.delete({ slug: scratch });
       console.log(`\ncleaned up product ${scratch}`);

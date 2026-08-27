@@ -90,7 +90,7 @@ const LIST_PROJECTS = /* GraphQL */ `
 
 const LIST_DOCUMENTS = /* GraphQL */ `
   query ListDocuments($projectSlug: String!) {
-    listDocumentByProjectSlug(projectSlug: $projectSlug) {
+    listDocuments(projectSlug: $projectSlug) {
       items {
         docId
         projectSlug
@@ -334,8 +334,8 @@ export async function listDocuments(projectSlug: string): Promise<BpDocument[]> 
   const result = (await client().graphql({
     query: LIST_DOCUMENTS,
     variables: { projectSlug },
-  })) as GraphQLResult<{ listDocumentByProjectSlug: { items: BpDocument[] } }>;
-  return unwrap(result).listDocumentByProjectSlug.items;
+  })) as GraphQLResult<{ listDocuments: { items: BpDocument[] } }>;
+  return unwrap(result).listDocuments.items;
 }
 
 /**

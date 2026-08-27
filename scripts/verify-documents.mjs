@@ -239,7 +239,7 @@ try {
 } finally {
   for (const docId of created) {
     try {
-      await client.models.Document.delete({ docId });
+      await client.models.Document.delete({ projectSlug: product, docId });
       console.log(`\ncleaned up ${docId}`);
     } catch (err) {
       console.error(`could not delete ${docId}: ${err.message}`);

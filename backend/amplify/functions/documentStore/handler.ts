@@ -130,9 +130,12 @@ export const handler = async (
 
   if (typeof markdown !== "string") {
     const { Item } = await ddb.send(
-      new GetCommand({ TableName: DOCUMENT_TABLE, Key: { docId } })
+      new GetCommand({
+        TableName: DOCUMENT_TABLE,
+        Key: { projectSlug, docId },
+      })
     );
-    if (!Item || Item.projectSlug !== projectSlug) {
+    if (!Item) {
       return { docId, key, exists: false, classification: "confidential" };
     }
     const url = await getSignedUrl(
@@ -162,12 +165,16 @@ export const handler = async (
     }
   }
 
+  // Keyed by product AND id, so a document id is unique within a product and
+  // says nothing about any other. The cross-product check that used to live
+  // here existed only because the key was global, and it made copying a
+  // product into another environment fail on the first name collision.
   const existing = await ddb.send(
-    new GetCommand({ TableName: DOCUMENT_TABLE, Key: { docId } })
+    new GetCommand({
+      TableName: DOCUMENT_TABLE,
+      Key: { projectSlug, docId },
+    })
   );
-  if (existing.Item && existing.Item.projectSlug !== projectSlug) {
-    throw new Refused("No such product, or you cannot access it.");
-  }
 
   // The source is written once. It is the record of what arrived, and a record
   // that can be rewritten is not one — annotation goes to the working copy.

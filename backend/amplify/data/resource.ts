@@ -130,8 +130,12 @@ const schema = a.schema({
       /** Copied from the product so group authorization applies here too. */
       group: a.string().required(),
     })
-    .identifier(["docId"])
-    .secondaryIndexes((index) => [index("projectSlug")])
+    // Composite, so a document id is unique WITHIN a product rather than
+    // across all of them. A global docId meant two products could not both
+    // hold a "sprint-notes", and that copying a product into another
+    // environment failed the moment a document id was already taken —
+    // which is exactly what a product copy does.
+    .identifier(["projectSlug", "docId"])
     .authorization((allow) => [
       allow.group("bp-admins"),
       allow.groupDefinedIn("group"),
