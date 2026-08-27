@@ -385,6 +385,18 @@ const PROBE = `
   const rail = document.querySelector(".bp-rail");
   return {
     h1s: document.querySelectorAll("h1").length,
+    h1Text: (document.querySelector("h1")?.textContent ?? "").trim(),
+    // Visible text only: innerText ignores href attributes and DOM ids,
+    // where the opaque id legitimately belongs.
+    bodyText: document.body?.innerText ?? "",
+    // Text drawn inside a diagram, used to prove the check above can see into
+    // an SVG at all. Without this the id-leak assertion would pass vacuously
+    // if innerText ever stopped descending into SVG — which is precisely how
+    // a check goes green while the thing it guards is broken.
+    svgText: (() => {
+      const t = document.querySelector("svg text, svg tspan");
+      return (t?.textContent ?? "").trim();
+    })(),
     h1: document.querySelector("h1")?.textContent ?? null,
     theme: document.documentElement.getAttribute("data-bp-theme"),
     bodyBackground: style(document.body, "background-color"),
@@ -1210,6 +1222,37 @@ async function signedIn(cdp) {
     const { value, consoleErrors, failedRequests } = result;
 
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
+    // ADR-0009: the id in the URL is opaque and says nothing a reader can
+    // use, so a page titled with its own id has failed to load the row.
+    // This is the exact defect the ADR corrects — p.tsx read `<h1>{slug}</h1>`.
+    const routeSlug = route.path.split("/")[2] ?? "";
+    if (routeSlug) {
+      check(
+        value.h1Text !== routeSlug,
+        `${route.name}: titled with the product name, not its id`,
+        `<h1> reads "${value.h1Text}"`
+      );
+      // Catches every leak at once, including diagram titles rendered
+      // inside an SVG. The id belongs in the URL and in DOM ids, never in
+      // anything a person reads.
+      check(
+        !value.bodyText.includes(routeSlug),
+        `${route.name}: the product id is never shown as text`,
+        value.bodyText.includes(routeSlug)
+          ? `"${routeSlug}" is rendered as text`
+          : "not in the rendered text"
+      );
+      // The assertion above is only worth having if it can see diagram text.
+      if (value.svgText) {
+        check(
+          value.bodyText.includes(value.svgText),
+          `${route.name}: the id check can see inside diagrams`,
+          `svg text "${value.svgText}" ${
+            value.bodyText.includes(value.svgText) ? "is" : "is NOT"
+          } in body.innerText`
+        );
+      }
+    }
     check(!value.hasSignIn, `${route.name}: the gate is gone`);
     check(
       value.renderedContent,

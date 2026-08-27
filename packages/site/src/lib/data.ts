@@ -51,6 +51,21 @@ const LIST_PROJECTS = /* GraphQL */ `
   }
 `;
 
+const GET_PROJECT = /* GraphQL */ `
+  query GetProject($slug: ID!) {
+    getProject(slug: $slug) {
+      slug
+      name
+      description
+      group
+      ttlKey
+      version
+      lockedBy
+      lockedAt
+    }
+  }
+`;
+
 const PROVISION_PROJECT = /* GraphQL */ `
   mutation ProvisionProject($slug: String!, $name: String!, $description: String) {
     provisionProject(slug: $slug, name: $name, description: $description) {
@@ -122,6 +137,23 @@ export async function listProjects(): Promise<Project[]> {
     query: LIST_PROJECTS,
   })) as GraphQLResult<{ listProjects: { items: Project[] } }>;
   return unwrap(result).listProjects.items;
+}
+
+/**
+ * One product's metadata row.
+ *
+ * Separate from `listProjects` because a product page needs the row itself —
+ * its name is what the page is titled with, and under ADR-0009 the id in the
+ * URL is opaque and says nothing a reader can use. Returns null when the row
+ * does not exist or the caller may not see it; AppSync does not distinguish
+ * the two, and neither should the UI.
+ */
+export async function getProject(slug: string): Promise<Project | null> {
+  const result = (await client().graphql({
+    query: GET_PROJECT,
+    variables: { slug },
+  })) as GraphQLResult<{ getProject: Project | null }>;
+  return unwrap(result).getProject ?? null;
 }
 
 /**

@@ -23,6 +23,7 @@ import { BlocklyEditor } from "../components/BlocklyEditor";
 import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
+import { useProject } from "../hooks/useProject";
 
 type Tab =
   | "roadmap"
@@ -76,6 +77,12 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
     reload,
   } = useModel(slug ?? "");
 
+  const { project, loading: projectLoading } = useProject(slug ?? "");
+
+  // What a reader is shown wherever the product is named — the page
+  // title, the rail, and every diagram title. ADR-0009.
+  const heading = project?.name ?? (projectLoading ? "…" : (slug ?? ""));
+
   if (!slug) {
     return (
       <Shell>
@@ -88,8 +95,15 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   }
 
   return (
-    <Shell project={{ slug, active: tab }}>
-      <h1>{slug}</h1>
+    <Shell project={{ slug, name: project?.name, active: tab }}>
+      {/* The name, never the id. Under ADR-0009 the id in the URL is
+          opaque, so titling the page with it would say nothing a reader can
+          use. It is still the fallback when the row cannot be read, because a
+          wrong-looking title beats no title at all. */}
+      <h1>{heading}</h1>
+      {project?.description && (
+        <p className="bp-product__blurb">{project.description}</p>
+      )}
 
       {error && (
         <p className="bp-error" role="alert">
@@ -112,14 +126,14 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
 
           {tab === "roadmap" && (
             <>
-              <Roadmap model={model} slug={slug} />
+              <Roadmap model={model} slug={slug} title={heading} />
               <h2>Edit</h2>
               <RoadmapEditor model={model} onChange={update} />
               <GanttImport model={model} onChange={update} />
             </>
           )}
-          {tab === "releases" && <Releases model={model} slug={slug} />}
-          {tab === "views" && <Views model={model} />}
+          {tab === "releases" && <Releases model={model} slug={slug} title={heading} />}
+          {tab === "views" && <Views model={model} title={heading} />}
           {tab === "radar" && (
             <>
               <p className="bp-lede">
@@ -222,12 +236,21 @@ function Findings({
   );
 }
 
-function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
+function Roadmap({
+  model,
+  slug,
+  title,
+}: {
+  model: AbModel;
+  /** Opaque id (ADR-0009) — for the DOM id only, never for a label. */
+  slug: string;
+  title: string;
+}) {
   // Regenerated on every model change, so the Gantt is a view of the graph
   // rather than a stored artefact that can drift from it.
   const script = React.useMemo(
-    () => toMermaidGantt(model, { title: slug }),
-    [model, slug]
+    () => toMermaidGantt(model, { title }),
+    [model, title]
   );
   return (
     <>
@@ -255,10 +278,19 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
  * change" — and an engineer reads a branch-and-merge picture faster than a
  * list of realization relationships.
  */
-function Releases({ model, slug }: { model: AbModel; slug: string }) {
+function Releases({
+  model,
+  slug,
+  title,
+}: {
+  model: AbModel;
+  /** Opaque id (ADR-0009) — for the DOM id only, never for a label. */
+  slug: string;
+  title: string;
+}) {
   const script = React.useMemo(
-    () => toMermaidGitgraph(model, { title: slug }),
-    [model, slug]
+    () => toMermaidGitgraph(model, { title }),
+    [model, title]
   );
 
   const plateaus = model.elements.filter((e) => e.type === "Plateau").length;
@@ -295,7 +327,7 @@ function Releases({ model, slug }: { model: AbModel; slug: string }) {
   );
 }
 
-function Views({ model }: { model: AbModel }) {
+function Views({ model, title }: { model: AbModel; title: string }) {
   const [domains, setDomains] = React.useState<LayerId[] | null>(null);
   /** Element to centre the structure view on, or null for the whole model. */
   const [focus, setFocus] = React.useState<string>("");
@@ -332,12 +364,12 @@ function Views({ model }: { model: AbModel }) {
   }, [model, focus, depth]);
 
   const d2 = React.useMemo(
-    () => toD2(shown, { title: shown.projectSlug, domains: selected }),
-    [shown, selected]
+    () => toD2(shown, { title, domains: selected }),
+    [shown, selected, title]
   );
   const sequence = React.useMemo(
-    () => toMermaidSequence(model, { title: model.projectSlug, from: flow || undefined }),
-    [model, flow]
+    () => toMermaidSequence(model, { title, from: flow || undefined }),
+    [model, flow, title]
   );
 
   /**

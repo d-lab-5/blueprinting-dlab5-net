@@ -204,7 +204,7 @@ function ProjectSwitcher({ slug }: { slug?: string }) {
         {/* The current project is always an option, even before the list
             arrives, so the control never renders empty or wrong. */}
         {slug && !projects?.some((p) => p.slug === slug) && (
-          <option value={slug}>{slug}</option>
+          <option value={slug}>{projects === null ? "Loading…" : slug}</option>
         )}
         {projects?.map((p) => (
           <option key={p.slug} value={p.slug}>
@@ -257,7 +257,8 @@ function ThemeSegments() {
 interface ShellProps {
   children: React.ReactNode;
   /** Present inside a project; absent at `/`, which is the launcher. */
-  project?: { slug: string; active: string };
+  /** `name` is what a reader sees; `slug` is the opaque id (ADR-0009). */
+  project?: { slug: string; name?: string | null; active: string };
 }
 
 export function Shell({ children, project }: ShellProps) {
@@ -367,7 +368,7 @@ export function Shell({ children, project }: ShellProps) {
             ☰
           </button>
           <span className="bp-shell__title">
-            {project ? project.slug : "Blueprinting"}
+            {project ? (project.name ?? project.slug) : "Blueprinting"}
           </span>
           <span className="bp-shell__meta">/ internal · admin-provisioned</span>
           <span className="bp-shell__spacer" />

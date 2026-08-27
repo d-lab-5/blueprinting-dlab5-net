@@ -503,6 +503,14 @@ a {
   color: var(--bp-text-muted);
 }
 
+/* The product's description, under its title. Muted and narrow: it is
+   orientation, not content, and a full-width paragraph reads as the page. */
+.bp-product__blurb {
+  color: var(--bp-text-muted);
+  max-width: 60ch;
+  margin: -0.25rem 0 1rem;
+}
+
 .bp-error {
   color: var(--bp-danger);
 }

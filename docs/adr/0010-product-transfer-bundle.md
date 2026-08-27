@@ -1,0 +1,105 @@
+# ADR-0010 — Structural change happens by export and reload, not by migration
+
+- Status: accepted
+- Date: 2026-08-27
+
+## Context
+
+Two problems arrived together and have one answer.
+
+**Environments cannot share data.** There is one Amplify branch, `stage`. When a
+production branch is created it gets its own Cognito pool, its own DynamoDB
+tables and its own S3 bucket. Nothing bridges them. Some products on stage
+should reach production and some should not, and today there is no way to move
+one.
+
+**Structural change has no safe path.** ADR-0009 changes what a product's
+primary key looks like. DynamoDB cannot update a primary key, so any in-place
+migration is delete-and-recreate against live data, with a window in which the
+product exists in neither form.
+
+`scripts/export.mjs` already exports the graph as Turtle or as ArchiMate Open
+Exchange XML. It does not export the product: the `Project` row — name,
+description, group — is not in either format, and cannot be, because Open
+Exchange has no place for it.
+
+Three facts made the scope smaller than expected:
+
+- **Views are never persisted.** The `View` model is declared but nothing writes
+  it; the Views page generates D2 and Mermaid live from the graph. A complete
+  product is one DynamoDB row, one S3 object, and one Cognito group.
+- **Open Exchange already carries our properties.** `oef.ts` emits
+  `propertyDefinitions` plus per-concept `property`, and
+  `verify-archi-roundtrip.mjs` asserts they survive a round-trip through a real
+  Archi installation. The interchange half is already trustworthy.
+- **The Turtle serializer is byte-stable.** Two exports of an unchanged model
+  are identical, so a bundle is diffable and a round-trip is verifiable by
+  comparing bytes rather than by parsing and hoping.
+
+## Decision
+
+**A product transfer bundle is the unit of movement between environments, and
+the mechanism for structural change.**
+
+```
+<product>/
+  MANIFEST.json    format version, source environment, exported-at, checksums
+  product.json     the Project row, minus environment-local fields
+  model.ttl        authoritative — byte-stable
+  model.xml        ArchiMate Open Exchange, for Archi and everything else
+```
+
+`model.ttl` is authoritative and `MANIFEST.json` says so. The importer
+re-derives the Open Exchange XML from the Turtle and compares it to
+`model.xml`; a mismatch fails the import. Carrying a derived artifact in a
+transfer format otherwise invites someone to edit the XML and silently lose it.
+
+**What a bundle deliberately does not carry:**
+
+| Field | | Why |
+|---|---|---|
+| `version` | reset to 0 | A local revision counter; it means nothing in another environment |
+| `lockedBy`, `lockedAt` | dropped | A stale lock from stage would park the product in production for 30 minutes |
+| Cognito group membership | dropped | Stage testers are not production users. Groups are created empty and the importing administrator is added, exactly as at creation |
+
+`group` and `ttlKey` are recomputed from the id on import rather than carried,
+because they are derived values that must agree with the environment they land
+in.
+
+**Structural change is an import-time transform.** `import --reid` mints a fresh
+opaque id, recomputes `group` and `ttlKey`, and writes a new row. ADR-0009's
+change of identity is applied this way, not by a script that mutates primary
+keys. The old environment is wiped afterwards, as a separate act.
+
+**Destruction is gated.** A wipe spans three services and S3 objects do not come
+back. `--dry-run` is the default; destruction requires an explicit
+`--yes-destroy <env>` and refuses to run unless a verified bundle already
+exists on disk for every product it would delete.
+
+## Consequences
+
+**A product becomes portable, and reviewable.** A bundle is four files, one of
+them byte-stable Turtle, so a transfer can be inspected in a diff before it is
+applied and kept in version control if that is useful.
+
+**Migrations stop being written.** The class of change that would previously
+have needed a bespoke script against live tables — re-keying, re-grouping,
+splitting a product — becomes export, transform the bundle, reload. The
+transform is inspectable as a file diff, and the previous state is still on
+disk if it goes wrong.
+
+**Group membership cannot be restored.** This is the one thing no bundle holds.
+After a wipe, every member of every `bp-*` group must be re-added by hand. An
+opt-in `--with-members` flag can carry them, kept out of the default because
+the common case — stage to production — is exactly the case where copying
+accounts would be wrong.
+
+**The round-trip must be proved before it is trusted.** An exporter and an
+importer that agree with each other prove nothing; this is the same trap
+`verify:archi` and `verify:mcp-client` exist to avoid. The check exports a real
+product, imports it as a scratch product, and compares the Turtle byte for
+byte — then deletes the scratch product, as `verify:model-store` already does.
+
+**Two formats can drift, and the manifest is what stops them.** The checksum
+comparison is not a nicety: without it the bundle has two sources of truth and
+no way to tell which one an importer used.
