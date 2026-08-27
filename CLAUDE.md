@@ -55,6 +55,10 @@ BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef
 
 npm run verify:archi                # round-trip through Archi itself
 
+BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
+BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
+BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
+
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
@@ -71,6 +75,18 @@ export, re-exports it, and compares. Schema validity says a document matches
 the XSD; it does not say Archi will open it or that anything survives. Install
 Archi from archimatetool.com — a user-local unpack under `~/opt/Archi` is
 enough — and the check skips cleanly when it is absent.
+
+A **product transfer bundle** is how a product moves between environments and
+how structural changes are made: export, transform the files, reload. Four
+files — `MANIFEST.json`, `product.json`, `model.ttl`, `model.xml` — with the
+Turtle authoritative and the XML re-derived and compared on import. `--reid`
+mints a fresh id, which is how a re-identification happens; DynamoDB cannot
+update a primary key, so there is no in-place path. ADR-0010.
+
+`verify:bundle` exports a real product, imports it under a minted id, exports
+THAT, and compares the Turtle byte for byte. Going back out through S3 is the
+point: an exporter and an importer that agree with each other prove nothing.
+It creates and deletes a scratch product and its Cognito group.
 
 `verify:model-store` creates a scratch project, proves the authorization
 boundary and the ETag conflict against real AWS, then deletes it. Both live
@@ -178,6 +194,14 @@ These are things that will bite. Each is load-bearing and has cost someone time.
   choices** — they are the standard pastels Archi uses, so a Blockly block, a
   D2 node and a legend swatch all agree with what a reader sees in Archi.
 - One shell component. The DHC Portal ended up with two and the seam still shows.
+- **A product's id is minted, never derived from its name.** `p-` plus ten
+  characters, from `mintProductId()`. Names change; ids cannot, because the id
+  is the DynamoDB partition key, the Cognito group and the S3 prefix are
+  computed from it, and every IRI in the model embeds it. **Never show an id
+  where a name belongs** — `verify:ui` asserts no product page renders its own
+  id as text. The settings panel is the one exception, and it is asserted too,
+  so that the first assertion cannot pass by the panel failing to render.
+  ADR-0009.
 - **A blueprint belongs to a *Product*, and the code calls it a `Project`.**
   The interface says Product everywhere a person reads it; the schema, the
   GraphQL API, the MCP tool names, the `/p/<slug>/` route and the `bp-<slug>`
