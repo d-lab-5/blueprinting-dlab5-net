@@ -149,6 +149,63 @@ export function fromAnnotatedMarkdown(
     text: string;
   }> = [];
 
+  /**
+   * Validates one element annotation and returns the element, or records why
+   * not. Shared by both ways an annotation can arrive, so a self-contained one
+   * is held to exactly the same rules as one bound to a heading.
+   */
+  const buildElement = (
+    attrs: Record<string, string>,
+    line: number,
+    text: string,
+    headingText?: string
+  ): AbElement | null => {
+    const type = attrs.type;
+    const id = attrs.id;
+
+    if (!type) {
+      skip(line, text, "an element annotation needs type=");
+      return null;
+    }
+    if (!isElementType(type)) {
+      skip(line, text, `"${type}" is not an ArchiMate element type`);
+      return null;
+    }
+    if (!id) {
+      skip(
+        line,
+        text,
+        "an element annotation needs id=, so a later import updates this " +
+          "element rather than creating a second one"
+      );
+      return null;
+    }
+    if (seen.has(id)) {
+      skip(line, text, `id "${id}" is used more than once in this document`);
+      return null;
+    }
+
+    const name = attrs.name ?? headingText;
+    if (!name) {
+      skip(line, text, "an element annotation needs a heading or a name=");
+      return null;
+    }
+
+    seen.add(id);
+    typeById.set(id, type);
+
+    const properties: Record<string, string> = {};
+    if (options.documentId) properties[SOURCE_DOCUMENT] = options.documentId;
+    // Only an element that OWNS a section records one. A self-contained
+    // annotation sits beside a heading it does not claim, and pointing at that
+    // heading would attribute someone else's prose to it.
+    if (headingText) properties[SOURCE_SECTION] = slugifyId(headingText);
+
+    const element: AbElement = { id, type, name, properties };
+    elements.push(element);
+    return element;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
     const lineNumber = i + 1;
@@ -160,6 +217,11 @@ export function fromAnnotatedMarkdown(
 
       if (kind === "rel") {
         pendingRelationships.push({ attrs, line: lineNumber, text: raw });
+      } else if (kind === "element" && attrs.name) {
+        // Self-contained: it brought its own name, so it needs no heading and
+        // does not take one. That is what lets a single heading naming a PAIR
+        // — `product.template -> Shopify product` — declare both of them.
+        buildElement(attrs, lineNumber, raw);
       } else if (kind === "element" || kind === "ignore") {
         if (pending) {
           skip(pending.line, pending.text, "no heading followed this annotation");
@@ -188,46 +250,9 @@ export function fromAnnotatedMarkdown(
         continue;
       }
 
-      const headingText = plainText(heading[2]);
-      const type = attrs.type;
-      const id = attrs.id;
+      const element = buildElement(attrs, line, text, plainText(heading[2]));
+      if (!element) continue;
 
-      if (!type) {
-        skip(line, text, "an element annotation needs type=");
-        continue;
-      }
-      if (!isElementType(type)) {
-        skip(line, text, `"${type}" is not an ArchiMate element type`);
-        continue;
-      }
-      if (!id) {
-        skip(
-          line,
-          text,
-          "an element annotation needs id=, so a later import updates this " +
-            "element rather than creating a second one"
-        );
-        continue;
-      }
-      if (seen.has(id)) {
-        skip(line, text, `id "${id}" is used more than once in this document`);
-        continue;
-      }
-
-      seen.add(id);
-      typeById.set(id, type);
-
-      const properties: Record<string, string> = {};
-      if (options.documentId) properties[SOURCE_DOCUMENT] = options.documentId;
-      properties[SOURCE_SECTION] = slugifyId(headingText);
-
-      const element: AbElement = {
-        id,
-        type,
-        name: attrs.name ?? headingText,
-        properties,
-      };
-      elements.push(element);
       collecting = { element, body: [] };
       continue;
     }

@@ -135,6 +135,12 @@ export function MarkdownImport({
             relationship ArchiMate forbids is refused and tells you why.
           </li>
           <li>
+            <strong>An annotation with <code>name=</code> takes no heading.</strong>{" "}
+            That is how one heading can name a pair — put two annotations above
+            it and both land. A named element gets no documentation, because
+            the section beside it is not its own.
+          </li>
+          <li>
             <code>&lt;!-- am ignore --&gt;</code> marks a section as
             deliberately not modelled, which is different from simply not
             annotating it.

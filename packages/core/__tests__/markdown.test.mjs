@@ -275,3 +275,66 @@ Body with *emphasis* and \`code\` that must survive.
   assert.equal(byId(r, "w").name, "Work emphasised");
   assert.equal(byId(r, "w").documentation, "Body with *emphasis* and `code` that must survive.");
 });
+
+/* -- annotations that bring their own name --------------------------------- */
+
+test("two named annotations before one heading both land", () => {
+  // A real field-mapping document whose headings name a PAIR. Before this,
+  // only one annotation could bind per heading and the other was reported as
+  // orphaned, so the document could not be annotated at all.
+  const r = read(`<!-- am element type=DataObject id=odoo-pt name="product.template" -->
+<!-- am element type=DataObject id=shopify-p name="Shopify product" -->
+<!-- am rel type=association from=odoo-pt to=shopify-p -->
+### \`product.template\` → Shopify product
+`);
+  assert.equal(r.elements, 2);
+  assert.equal(r.relationships, 1);
+  assert.deepEqual(r.skipped, []);
+  assert.equal(byId(r, "odoo-pt").name, "product.template");
+  assert.equal(byId(r, "shopify-p").name, "Shopify product");
+});
+
+test("a named annotation does not claim the heading's prose", () => {
+  // It sits beside a heading it does not own. Borrowing that section would
+  // attribute someone else's text to it.
+  const r = read(`<!-- am element type=DataObject id=pair name="One of a pair" -->
+## A heading that belongs to nobody
+Prose under the heading.
+`);
+  assert.equal(byId(r, "pair").documentation, undefined);
+  assert.equal(byId(r, "pair").properties.sourceSection, undefined);
+});
+
+test("a named annotation needs no heading at all", () => {
+  const r = read(`Just prose.
+
+<!-- am element type=Driver id=d name="Standalone" -->
+
+More prose, no heading anywhere.
+`);
+  assert.equal(r.elements, 1);
+  assert.deepEqual(r.skipped, []);
+});
+
+test("an unnamed annotation still binds to the next heading", () => {
+  const r = read(`<!-- am element type=Stakeholder id=cfo -->
+## Chief Financial Officer
+Owns the cost line.
+`);
+  assert.equal(byId(r, "cfo").name, "Chief Financial Officer");
+  assert.equal(byId(r, "cfo").documentation, "Owns the cost line.");
+  assert.equal(byId(r, "cfo").properties.sourceSection, "chief-financial-officer");
+});
+
+test("a named and an unnamed annotation can share a heading", () => {
+  const r = read(`<!-- am element type=DataObject id=named name="Named one" -->
+<!-- am element type=DataObject id=bound -->
+### The heading
+Prose.
+`);
+  assert.equal(r.elements, 2);
+  assert.deepEqual(r.skipped, []);
+  assert.equal(byId(r, "named").name, "Named one");
+  assert.equal(byId(r, "bound").name, "The heading");
+  assert.equal(byId(r, "bound").documentation, "Prose.");
+});
