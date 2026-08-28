@@ -131,6 +131,12 @@ const SAVE_DOCUMENT = /* GraphQL */ `
   }
 `;
 
+const DELETE_DOCUMENT = /* GraphQL */ `
+  mutation DeleteDocument($projectSlug: String!, $docId: String!) {
+    deleteDocument(projectSlug: $projectSlug, docId: $docId)
+  }
+`;
+
 const READ_DOCUMENT = /* GraphQL */ `
   mutation RequestDocumentReadUrl(
     $projectSlug: String!
@@ -365,6 +371,22 @@ export async function saveDocument(input: {
     },
   })) as GraphQLResult<{ saveDocument: DocumentAccess }>;
   return unwrap(result).saveDocument;
+}
+
+/**
+ * Removes a document, its stored copies and its index row.
+ *
+ * Irreversible — S3 has no undo here — which is why the caller asks first.
+ */
+export async function deleteDocument(
+  projectSlug: string,
+  docId: string
+): Promise<void> {
+  const result = (await client().graphql({
+    query: DELETE_DOCUMENT,
+    variables: { projectSlug, docId },
+  })) as GraphQLResult<{ deleteDocument: boolean }>;
+  unwrap(result);
 }
 
 /** The markdown itself, through a short-lived pre-signed URL. */

@@ -1,6 +1,11 @@
 import * as React from "react";
 import { slugifyId } from "@dlab5/blueprint-core";
-import { listDocuments, loadDocument, saveDocument } from "../lib/data";
+import {
+  deleteDocument,
+  listDocuments,
+  loadDocument,
+  saveDocument,
+} from "../lib/data";
 import type { BpDocument, Classification } from "../lib/data";
 
 /**
@@ -72,6 +77,30 @@ export function Documents({ slug }: { slug: string }) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
+    }
+  }
+
+  /**
+   * Removing a document, which is the only way to take one back.
+   *
+   * The source is written once, so there is no editing a record — only
+   * deleting it and uploading a revision. The confirmation names the document
+   * rather than asking a generic "are you sure", because the generic question
+   * is the one people answer without reading.
+   */
+  async function remove(doc: BpDocument) {
+    const sure = window.confirm(
+      `Delete "${doc.title}" and both its stored copies?\n\n` +
+        `This cannot be undone.`
+    );
+    if (!sure) return;
+    setError(null);
+    try {
+      await deleteDocument(slug, doc.docId);
+      if (open?.doc.docId === doc.docId) setOpen(null);
+      refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -162,7 +191,16 @@ export function Documents({ slug }: { slug: string }) {
                 <td className="bp-muted">
                   {doc.uploadedAt ? doc.uploadedAt.slice(0, 10) : "—"}
                 </td>
-                <td>
+                <td className="bp-documents__actions">
+                  {/* The path that was missing: a stored document could not
+                      reach the importer at all, so annotating one meant
+                      pasting it back in by hand. */}
+                  <a
+                    className="bp-linkbutton"
+                    href={`/p/${slug}/import/?doc=${encodeURIComponent(doc.docId)}`}
+                  >
+                    Annotate
+                  </a>
                   <button
                     type="button"
                     className="bp-linkbutton"
@@ -173,6 +211,13 @@ export function Documents({ slug }: { slug: string }) {
                     }
                   >
                     Download
+                  </button>
+                  <button
+                    type="button"
+                    className="bp-linkbutton bp-linkbutton--danger"
+                    onClick={() => void remove(doc)}
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>

@@ -8,6 +8,7 @@ import { modelStorageProxy } from "./functions/modelStorageProxy/resource";
 import { projectAdmin } from "./functions/projectAdmin/resource";
 import { projectRename } from "./functions/projectRename/resource";
 import { documentStore } from "./functions/documentStore/resource";
+import { documentDelete } from "./functions/documentDelete/resource";
 
 const backend = defineBackend({
   auth,
@@ -17,6 +18,7 @@ const backend = defineBackend({
   projectAdmin,
   projectRename,
   documentStore,
+  documentDelete,
 });
 
 /* ------------------------------------------------------------------------ *
@@ -217,5 +219,43 @@ documentLambda.addToRolePolicy(
 backend.documentStore.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
 backend.documentStore.addEnvironment("DOCUMENT_TABLE_NAME", documentTable.tableName);
 backend.documentStore.addEnvironment("MODEL_BUCKET_NAME", bucket.bucketName);
+
+/* ------------------------------------------------------------------------ *
+ * documentDelete.
+ *
+ * Deliberately the mirror image of documentStore's grants: this one may
+ * delete and not write, that one may write and not delete. Neither can do the
+ * other's job, whatever happens inside it.
+ * ------------------------------------------------------------------------ */
+
+const documentDeleteLambda = backend.documentDelete.resources.lambda;
+
+documentDeleteLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:GetItem"],
+    resources: [projectTable.tableArn],
+  })
+);
+
+documentDeleteLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:GetItem", "dynamodb:DeleteItem"],
+    resources: [documentTable.tableArn],
+  })
+);
+
+documentDeleteLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["s3:DeleteObject"],
+    resources: [`${bucket.bucketArn}/projects/*/documents/*`],
+  })
+);
+
+backend.documentDelete.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
+backend.documentDelete.addEnvironment("DOCUMENT_TABLE_NAME", documentTable.tableName);
+backend.documentDelete.addEnvironment("MODEL_BUCKET_NAME", bucket.bucketName);
 
 export default backend;

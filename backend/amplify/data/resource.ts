@@ -3,6 +3,7 @@ import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
 import { projectAdmin } from "../functions/projectAdmin/resource";
 import { projectRename } from "../functions/projectRename/resource";
 import { documentStore } from "../functions/documentStore/resource";
+import { documentDelete } from "../functions/documentDelete/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -273,6 +274,24 @@ const schema = a.schema({
     .returns(a.ref("DocumentAccess"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(documentStore)),
+
+  /**
+   * Removes a document, its objects and its row.
+   *
+   * Its own function, not a branch in documentStore: the arguments are the
+   * same as requestDocumentReadUrl's, and AppSync does not populate
+   * `event.info.fieldName` for these handlers. It also holds s3:DeleteObject
+   * and not s3:PutObject, which documentStore has the reverse of.
+   */
+  deleteDocument: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+    })
+    .returns(a.boolean())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentDelete)),
 
   saveModel: a
     .mutation()

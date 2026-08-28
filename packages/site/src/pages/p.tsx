@@ -25,6 +25,7 @@ import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
 import { useProject } from "../hooks/useProject";
 import { ProductSettings } from "../components/ProductSettings";
+import { loadDocument } from "../lib/data";
 import { MarkdownImport } from "../components/MarkdownImport";
 import { Documents } from "../components/Documents";
 import { ExportTools } from "../components/ExportTools";
@@ -98,6 +99,34 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
   /** Screens that hold records rather than the model, and want none of its chrome. */
   const records = tab === "documents" || tab === "export";
 
+  // Import can be opened against a stored document: /p/<id>/import/?doc=<docId>.
+  // Documents links here, which is the path that did not exist before —
+  // annotating a stored document meant pasting it back in by hand.
+  const requestedDoc =
+    typeof location.search === "string"
+      ? new URLSearchParams(location.search).get("doc")
+      : null;
+  const [docSource, setDocSource] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (!slug || !requestedDoc) {
+      setDocSource(undefined);
+      return;
+    }
+    let live = true;
+    // The working copy if there is one, the source if not: annotation is
+    // iterative, and reopening should not discard the last pass.
+    loadDocument(slug, requestedDoc, "annotated")
+      .then(({ markdown }) =>
+        markdown !== null ? markdown : loadDocument(slug, requestedDoc, "source").then((r) => r.markdown)
+      )
+      .then((markdown) => live && setDocSource(markdown ?? undefined))
+      .catch(() => live && setDocSource(undefined));
+    return () => {
+      live = false;
+    };
+  }, [slug, requestedDoc]);
+
   if (!slug) {
     return (
       <Shell>
@@ -161,7 +190,13 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
           )}
           {tab === "import" && (
             <>
-              <MarkdownImport model={model} onChange={update} />
+              <MarkdownImport
+                model={model}
+                onChange={update}
+                slug={slug}
+                documentId={requestedDoc ?? undefined}
+                initialSource={docSource}
+              />
               <GanttImport model={model} onChange={update} />
             </>
           )}

@@ -6,6 +6,8 @@ import {
   planImport,
 } from "@dlab5/blueprint-core";
 import type { AbModel, ImportPlan } from "@dlab5/blueprint-core";
+import { ELEMENT_TYPE_IDS } from "@dlab5/archimate-metamodel";
+import { saveDocument } from "../lib/data";
 
 /**
  * Reads an annotated markdown document into the model.
@@ -25,14 +27,26 @@ import type { AbModel, ImportPlan } from "@dlab5/blueprint-core";
  *
  * Nothing reaches S3 until Save model, exactly as with the Gantt.
  */
+const EXAMPLE = `<!-- am element type=Stakeholder id=cfo -->
+## Chief Financial Officer
+
+Wants cost per transaction below EUR 0.02 by Q3.
+
+<!-- am element type=Driver id=cost-per-txn -->
+## Cost per transaction
+
+<!-- am rel type=influence from=cfo to=cost-per-txn -->`;
+
 export function MarkdownImport({
   model,
   onChange,
+  slug,
   documentId,
   initialSource,
 }: {
   model: AbModel;
   onChange: (next: AbModel) => void;
+  slug: string;
   /** Stamped on every imported element, and what a re-import matches on. */
   documentId?: string;
   initialSource?: string;
@@ -40,6 +54,8 @@ export function MarkdownImport({
   const [source, setSource] = React.useState(initialSource ?? "");
   const [accepted, setAccepted] = React.useState<Set<string> | null>(null);
   const [applied, setApplied] = React.useState<number | null>(null);
+  const [saveNote, setSaveNote] = React.useState<string | null>(null);
+  const fileInput = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (initialSource !== undefined) setSource(initialSource);
@@ -90,14 +106,74 @@ export function MarkdownImport({
   return (
     <section className="bp-import bp-import--markdown">
       <h2>Import a document</h2>
-      <p className="bp-muted">
-        Markdown with <code>&lt;!-- am … --&gt;</code> annotations. Importing the
-        same document again updates what it created rather than adding it twice.
-        Nothing is saved until you press Save model.
-      </p>
+
+      <details className="bp-import__help">
+        <summary>How annotation works</summary>
+        <p>
+          A markdown document is not an architecture — it is prose that mentions
+          one. Annotations say which parts are which, and they are HTML
+          comments, so the document still reads and prints exactly as it did.
+        </p>
+        <p>Put a comment on the line <em>above</em> a heading:</p>
+        <pre>{EXAMPLE}</pre>
+        <ul>
+          <li>
+            <strong>The heading becomes the name</strong>, and the prose beneath
+            it, up to the next heading, becomes the element's documentation.
+          </li>
+          <li>
+            <strong><code>id=</code> is required.</strong> It is what makes a
+            second import of a revised document update the same element instead
+            of creating a twin. Choose it once and keep it.
+          </li>
+          <li>
+            <code>type=</code> must be a real ArchiMate type — {ELEMENT_TYPE_IDS.length}{" "}
+            of them. A wrong one is reported, never guessed at.
+          </li>
+          <li>
+            <code>rel</code> needs no id: it is identified by its two ends. A
+            relationship ArchiMate forbids is refused and tells you why.
+          </li>
+          <li>
+            <code>&lt;!-- am ignore --&gt;</code> marks a section as
+            deliberately not modelled, which is different from simply not
+            annotating it.
+          </li>
+          <li>
+            Anything unannotated is <strong>ignored</strong>. Most of a document
+            usually should be.
+          </li>
+        </ul>
+      </details>
+
+      <div className="bp-import__load">
+        <label className="bp-field">
+          <span>Open a markdown file</span>
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".md,.markdown,.txt,text/markdown,text/plain"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setSource(await file.text());
+              setAccepted(null);
+              setApplied(null);
+              if (fileInput.current) fileInput.current.value = "";
+            }}
+          />
+        </label>
+        <p className="bp-muted bp-editor__hint">
+          Opening a file here does not store it. To keep it as a record, upload
+          it on the Documents screen first and annotate it from there — then the
+          elements it creates carry the document they came from.
+        </p>
+      </div>
 
       <label className="bp-field">
-        <span>Annotated markdown</span>
+        <span>
+          {documentId ? `Annotating "${documentId}"` : "Annotated markdown"}
+        </span>
         <textarea
           className="bp-import__source"
           rows={14}
@@ -245,9 +321,40 @@ export function MarkdownImport({
                 ? "Nothing selected"
                 : `Add ${selection.size} to the model`}
             </button>
+            {documentId && (
+              <button
+                type="button"
+                className="bp-linkbutton"
+                onClick={async () => {
+                  setSaveNote(null);
+                  try {
+                    // The working copy, never the source. The source is the
+                    // record of what arrived and is not rewritable.
+                    await saveDocument({
+                      projectSlug: slug,
+                      docId: documentId,
+                      markdown: source,
+                      kind: "annotated",
+                    });
+                    setSaveNote("Annotations saved to the working copy.");
+                  } catch (err) {
+                    setSaveNote(
+                      err instanceof Error ? err.message : String(err)
+                    );
+                  }
+                }}
+              >
+                Save annotations
+              </button>
+            )}
             {applied !== null && (
               <span className="bp-muted" role="status">
                 {applied} applied — not saved yet.
+              </span>
+            )}
+            {saveNote && (
+              <span className="bp-muted" role="status">
+                {saveNote}
               </span>
             )}
           </div>

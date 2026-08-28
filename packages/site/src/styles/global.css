@@ -582,6 +582,54 @@ a {
   background: var(--bp-surface);
 }
 
+.bp-documents__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+/* Delete is the one action here with no undo, and it should not look like
+   the two beside it that have. */
+.bp-linkbutton--danger {
+  color: var(--bp-danger);
+}
+
+.bp-import__help {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  max-width: 60rem;
+}
+
+.bp-import__help > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.bp-import__help pre {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+}
+
+.bp-import__help li {
+  margin-bottom: 0.35rem;
+}
+
+.bp-import__load {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  max-width: 46rem;
+  background: var(--bp-surface);
+}
+
 .bp-import__source {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.85rem;
