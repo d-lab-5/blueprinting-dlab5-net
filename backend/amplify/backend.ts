@@ -400,7 +400,8 @@ const apiKeyClientWrite = new CfnUserPoolClient(
  * other function then reads one claim and needs no client id, no lookup and no
  * reference to anything in the auth stack.
  */
-backend.preTokenGeneration.resources.lambda.addToRolePolicy(
+for (const fn of [backend.preTokenGeneration, backend.verifyAuthChallengeResponse])
+  fn.resources.lambda.addToRolePolicy(
   new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ["cognito-idp:ListUserPoolClients"],

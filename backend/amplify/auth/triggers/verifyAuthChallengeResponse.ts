@@ -1,5 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { VerifyAuthChallengeResponseTriggerHandler } from "aws-lambda";
+
+import { requestedScope } from "./keyClients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -14,10 +16,11 @@ import {
  * row; the secret is compared against a stored SHA-256, never against anything
  * reversible.
  *
- * Four things must hold, and the answer is the same when any of them fails:
+ * Five things must hold, and the answer is the same when any of them fails:
  * the key exists, it belongs to the user being authenticated, it has not been
- * revoked, and it has not expired. Distinguishing them would let someone with
- * a wrong key learn which part was wrong.
+ * revoked, it has not expired, and its scope covers the app client it is being
+ * presented on. Distinguishing them would let someone with a wrong key learn
+ * which part was wrong.
  */
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
@@ -75,6 +78,18 @@ export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
 
   const presented = createHash("sha256").update(answer).digest("hex");
   if (!sameHash(presented, String(Item.hash ?? ""))) return event;
+
+  // The scope is checked HERE, where the key is known — not by the caller, and
+  // not later. preTokenGeneration writes the scope into the token from the app
+  // client alone, so without this a read-only key presented on the write
+  // client would be handed a write token. verify:api-keys caught exactly that.
+  // No try/catch, deliberately: if the clients cannot be resolved this throws,
+  // the Lambda fails, and Cognito denies. A verifier that cannot establish the
+  // scope must not guess at it. preTokenGeneration fails the other way for the
+  // opposite reason — its job is to restrict, so failing open leaves a browser
+  // session untouched rather than locking everyone out.
+  const asking = await requestedScope(event.userPoolId, event.callerContext?.clientId);
+  if (asking === "write" && Item.scope !== "write") return event;
 
   event.response.answerCorrect = true;
 
