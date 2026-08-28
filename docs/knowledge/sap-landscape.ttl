@@ -1,0 +1,508 @@
+@prefix archimate: <https://purl.org/archimate#>.
+@prefix bp: <https://blueprinting.dlab5.net/ns#>.
+
+<https://blueprinting.dlab5.net/i/sap-landscape/model> bp:languageVersion "3.2".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-cds> a archimate:SystemSoftware;
+    archimate:identifier "abap-cds";
+    archimate:name "ABAP Core Data Services";
+    archimate:documentation "The data-modelling layer inside the ABAP platform. Views defined once and consumed by OData, Fiori Elements and RAP.";
+    archimate:hasProperty _:p-e-abap-cds-0.
+_:p-e-abap-cds-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-abap-cds — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-platform> a archimate:SystemSoftware;
+    archimate:identifier "abap-platform";
+    archimate:name "ABAP Platform";
+    archimate:documentation "The ABAP application server: the runtime SAP business applications have been written for since R/3, now also available as a cloud environment.";
+    archimate:hasProperty _:p-e-abap-platform-0.
+_:p-e-abap-platform-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-abap — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/ai-core> a archimate:TechnologyService;
+    archimate:identifier "ai-core";
+    archimate:name "SAP AI Core";
+    archimate:documentation "Runs training and inference workloads for SAP applications.";
+    archimate:hasProperty _:p-e-ai-core-0.
+_:p-e-ai-core-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-ai-core — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/bas> a archimate:ApplicationComponent;
+    archimate:identifier "bas";
+    archimate:name "Business Application Studio";
+    archimate:documentation "The hosted development environment for BTP applications.";
+    archimate:hasProperty _:p-e-bas-0.
+_:p-e-bas-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-business-application-studio — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/btp> a archimate:SystemSoftware;
+    archimate:identifier "btp";
+    archimate:name "SAP Business Technology Platform";
+    archimate:documentation "The platform the services below are subscribed to and run on.";
+    archimate:hasProperty _:p-e-btp-0.
+_:p-e-btp-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-cloud-platform — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-cias> a archimate:TechnologyService;
+    archimate:identifier "btp-cias";
+    archimate:name "Cloud Integration Automation Service";
+    archimate:documentation "Guided workflows for setting up integration between SAP systems.";
+    archimate:hasProperty _:p-e-btp-cias-0.
+_:p-e-btp-cias-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-cias — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-connectivity> a archimate:TechnologyService;
+    archimate:identifier "btp-connectivity";
+    archimate:name "BTP Connectivity";
+    archimate:documentation "Reaches systems inside a corporate network from an application running outside it.";
+    archimate:hasProperty _:p-e-btp-connectivity-0.
+_:p-e-btp-connectivity-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-connectivity — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-destination> a archimate:TechnologyService;
+    archimate:identifier "btp-destination";
+    archimate:name "BTP Destination";
+    archimate:documentation "Named, credentialed endpoints, so an application does not hold connection details of its own.";
+    archimate:hasProperty _:p-e-btp-destination-0.
+_:p-e-btp-destination-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-connectivity — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-identity> a archimate:TechnologyService;
+    archimate:identifier "btp-identity";
+    archimate:name "SAP Cloud Identity Services";
+    archimate:documentation "Authentication, identity provisioning and directory federation for BTP applications.";
+    archimate:hasProperty _:p-e-btp-identity-0.
+_:p-e-btp-identity-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-cloud-identity-services — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-integration-suite> a archimate:TechnologyService;
+    archimate:identifier "btp-integration-suite";
+    archimate:name "SAP Integration Suite";
+    archimate:documentation "Integration flows, API management and event mesh between SAP and everything else.";
+    archimate:hasProperty _:p-e-btp-integration-suite-0.
+_:p-e-btp-integration-suite-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-integration-suite — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-isa> a archimate:TechnologyService;
+    archimate:identifier "btp-isa";
+    archimate:name "Intelligent Situation Automation";
+    archimate:documentation "Situation handling automation. Its skill is marked archived and describes maintaining existing tenants rather than adopting it.";
+    archimate:hasProperty _:p-e-btp-isa-0.
+_:p-e-btp-isa-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-intelligent-situation-automation — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-job-scheduling> a archimate:TechnologyService;
+    archimate:identifier "btp-job-scheduling";
+    archimate:name "BTP Job Scheduling";
+    archimate:documentation "Runs jobs on a schedule without an application holding a timer of its own.";
+    archimate:hasProperty _:p-e-btp-job-scheduling-0.
+_:p-e-btp-job-scheduling-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-job-scheduling — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-logging> a archimate:TechnologyService;
+    archimate:identifier "btp-logging";
+    archimate:name "SAP Cloud Logging";
+    archimate:documentation "Log and metric collection for applications running on BTP.";
+    archimate:hasProperty _:p-e-btp-logging-0.
+_:p-e-btp-logging-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-cloud-logging — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-mdi> a archimate:TechnologyService;
+    archimate:identifier "btp-mdi";
+    archimate:name "Master Data Integration";
+    archimate:documentation "Distributes master data between SAP applications from one place.";
+    archimate:hasProperty _:p-e-btp-mdi-0.
+_:p-e-btp-mdi-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-master-data-integration — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-service-manager> a archimate:TechnologyService;
+    archimate:identifier "btp-service-manager";
+    archimate:name "BTP Service Manager";
+    archimate:documentation "Provisions and binds the services above to applications.";
+    archimate:hasProperty _:p-e-btp-service-manager-0.
+_:p-e-btp-service-manager-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-service-manager — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-transport> a archimate:TechnologyService;
+    archimate:identifier "btp-transport";
+    archimate:name "Cloud Transport Management";
+    archimate:documentation "Moves deployable artifacts between BTP landscapes under a change process.";
+    archimate:hasProperty _:p-e-btp-transport-0.
+_:p-e-btp-transport-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-cloud-transport-management — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-work-zone> a archimate:TechnologyService;
+    archimate:identifier "btp-work-zone";
+    archimate:name "SAP Build Work Zone";
+    archimate:documentation "The entry point users reach applications through.";
+    archimate:hasProperty _:p-e-btp-work-zone-0.
+_:p-e-btp-work-zone-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-btp-build-work-zone-advanced — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/bw> a archimate:SystemSoftware;
+    archimate:identifier "bw";
+    archimate:name "SAP BW";
+    archimate:documentation "The classic data warehouse, queried by its own query definitions.";
+    archimate:hasProperty _:p-e-bw-0.
+_:p-e-bw-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-bw-query — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cap> a archimate:ApplicationComponent;
+    archimate:identifier "cap";
+    archimate:name "SAP Cloud Application Programming Model";
+    archimate:documentation "The Node.js and Java framework for building services on BTP.";
+    archimate:hasProperty _:p-e-cap-0.
+_:p-e-cap-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-cap-capire — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cloud-sdk-ai> a archimate:ApplicationComponent;
+    archimate:identifier "cloud-sdk-ai";
+    archimate:name "SAP Cloud SDK for AI";
+    archimate:documentation "The client libraries applications reach AI Core and generative models through.";
+    archimate:hasProperty _:p-e-cloud-sdk-ai-0.
+_:p-e-cloud-sdk-ai-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-cloud-sdk-ai — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/datasphere> a archimate:SystemSoftware;
+    archimate:identifier "datasphere";
+    archimate:name "SAP Datasphere";
+    archimate:documentation "Data warehousing and federation across SAP and non-SAP sources.";
+    archimate:hasProperty _:p-e-datasphere-0.
+_:p-e-datasphere-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-datasphere — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/fiori-elements> a archimate:ApplicationComponent;
+    archimate:identifier "fiori-elements";
+    archimate:name "SAP Fiori Elements";
+    archimate:documentation "Applications generated from annotations rather than written screen by screen.";
+    archimate:hasProperty _:p-e-fiori-elements-0.
+_:p-e-fiori-elements-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-fiori-tools — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/hana-cli> a archimate:ApplicationComponent;
+    archimate:identifier "hana-cli";
+    archimate:name "HANA CLI";
+    archimate:documentation "Command-line access to HANA Cloud for development and deployment.";
+    archimate:hasProperty _:p-e-hana-cli-0.
+_:p-e-hana-cli-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-hana-cli — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud> a archimate:SystemSoftware;
+    archimate:identifier "hana-cloud";
+    archimate:name "SAP HANA Cloud";
+    archimate:documentation "The in-memory database SAP applications and analytics run on.";
+    archimate:hasProperty _:p-e-hana-cloud-0.
+_:p-e-hana-cloud-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-hana-cli — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-di> a archimate:SystemSoftware;
+    archimate:identifier "hana-di";
+    archimate:name "HANA Cloud Data Intelligence";
+    archimate:documentation "Pipelines and orchestration over data held in HANA Cloud.";
+    archimate:hasProperty _:p-e-hana-di-0.
+_:p-e-hana-di-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-hana-cloud-data-intelligence — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-ml> a archimate:SystemSoftware;
+    archimate:identifier "hana-ml";
+    archimate:name "HANA Machine Learning";
+    archimate:documentation "Model training and inference executed inside the database, next to the data.";
+    archimate:hasProperty _:p-e-hana-ml-0.
+_:p-e-hana-ml-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-hana-ml — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-sqlscript> a archimate:SystemSoftware;
+    archimate:identifier "hana-sqlscript";
+    archimate:name "SAP HANA SQLScript";
+    archimate:documentation "The procedural SQL dialect used for calculation logic pushed down into HANA.";
+    archimate:hasProperty _:p-e-hana-sqlscript-0.
+_:p-e-hana-sqlscript-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sqlscript — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/rpt1> a archimate:SystemSoftware;
+    archimate:identifier "rpt1";
+    archimate:name "SAP-RPT-1-OSS";
+    archimate:documentation "An open-source tabular prediction model, used for classification and regression over SAP business data.";
+    archimate:hasProperty _:p-e-rpt1-0.
+_:p-e-rpt1-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-rpt1 — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sac> a archimate:SystemSoftware;
+    archimate:identifier "sac";
+    archimate:name "SAP Analytics Cloud";
+    archimate:documentation "Planning, reporting and dashboards over SAP data.";
+    archimate:hasProperty _:p-e-sac-0.
+_:p-e-sac-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sac-planning — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/sac-widget> a archimate:ApplicationComponent;
+    archimate:identifier "sac-widget";
+    archimate:name "SAC Custom Widget";
+    archimate:documentation "Extension point for visualisations SAP Analytics Cloud does not provide.";
+    archimate:hasProperty _:p-e-sac-widget-0.
+_:p-e-sac-widget-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sac-custom-widget — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap> a archimate:Grouping;
+    archimate:identifier "sap-abap";
+    archimate:name "ABAP";
+    archimate:documentation "The ABAP application server and the languages that run on it.".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai> a archimate:Grouping;
+    archimate:identifier "sap-ai";
+    archimate:name "AI";
+    archimate:documentation "Model training, inference and the SDKs that reach them.".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> a archimate:Grouping;
+    archimate:identifier "sap-btp";
+    archimate:name "SAP BTP";
+    archimate:documentation "Business Technology Platform: the cloud services SAP applications are extended and integrated with.".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> a archimate:Grouping;
+    archimate:identifier "sap-data";
+    archimate:name "Data and analytics";
+    archimate:documentation "Where SAP data is stored, modelled and reported on.".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling> a archimate:Grouping;
+    archimate:identifier "sap-tooling";
+    archimate:name "Developer tooling";
+    archimate:documentation "Command-line tools, linters and IDEs used to build the above.".
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui> a archimate:Grouping;
+    archimate:identifier "sap-ui";
+    archimate:name "User interface";
+    archimate:documentation "The runtimes and toolchains SAP user interfaces are built with.".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sapui5> a archimate:SystemSoftware;
+    archimate:identifier "sapui5";
+    archimate:name "SAPUI5";
+    archimate:documentation "The JavaScript runtime SAP Fiori applications are built on.";
+    archimate:hasProperty _:p-e-sapui5-0.
+_:p-e-sapui5-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sapui5 — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-cli> a archimate:ApplicationComponent;
+    archimate:identifier "ui5-cli";
+    archimate:name "UI5 CLI";
+    archimate:documentation "Builds and serves SAPUI5 applications.";
+    archimate:hasProperty _:p-e-ui5-cli-0.
+_:p-e-ui5-cli-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sapui5-cli — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-linter> a archimate:ApplicationComponent;
+    archimate:identifier "ui5-linter";
+    archimate:name "UI5 Linter";
+    archimate:documentation "Checks SAPUI5 code against the rules for current and future UI5 versions.";
+    archimate:hasProperty _:p-e-ui5-linter-0.
+_:p-e-ui5-linter-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "sap-sapui5-linter — SAP skills catalogue, https://sap-ai-skills.com".
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-platform> archimate:composition <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-cds>.
+<https://blueprinting.dlab5.net/i/sap-landscape/composition/abap-platform-composition-abap-cds> a archimate:Relationship;
+    archimate:identifier "abap-platform-composition-abap-cds";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-platform>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-cds>.
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud> archimate:composition <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-ml>.
+<https://blueprinting.dlab5.net/i/sap-landscape/composition/hana-cloud-composition-hana-ml> a archimate:Relationship;
+    archimate:identifier "hana-cloud-composition-hana-ml";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-ml>.
+<https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud> archimate:composition <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-sqlscript>.
+<https://blueprinting.dlab5.net/i/sap-landscape/composition/hana-cloud-composition-hana-sqlscript> a archimate:Relationship;
+    archimate:identifier "hana-cloud-composition-hana-sqlscript";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-sqlscript>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-cds>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-abap-aggregation-abap-cds> a archimate:Relationship;
+    archimate:identifier "sap-abap-aggregation-abap-cds";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-cds>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-platform>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-abap-aggregation-abap-platform> a archimate:Relationship;
+    archimate:identifier "sap-abap-aggregation-abap-platform";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/abap-platform>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-sqlscript>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-abap-aggregation-hana-sqlscript> a archimate:Relationship;
+    archimate:identifier "sap-abap-aggregation-hana-sqlscript";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-abap>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-sqlscript>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/ai-core>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ai-aggregation-ai-core> a archimate:Relationship;
+    archimate:identifier "sap-ai-aggregation-ai-core";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/ai-core>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cloud-sdk-ai>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ai-aggregation-cloud-sdk-ai> a archimate:Relationship;
+    archimate:identifier "sap-ai-aggregation-cloud-sdk-ai";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cloud-sdk-ai>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/rpt1>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ai-aggregation-rpt1> a archimate:Relationship;
+    archimate:identifier "sap-ai-aggregation-rpt1";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ai>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/rpt1>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/btp>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/btp>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-cias>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-cias> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-cias";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-cias>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-connectivity>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-connectivity> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-connectivity";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-connectivity>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-destination>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-destination> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-destination";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-destination>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-identity>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-identity> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-identity";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-identity>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-integration-suite>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-integration-suite> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-integration-suite";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-integration-suite>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-isa>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-isa> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-isa";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-isa>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-job-scheduling>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-job-scheduling> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-job-scheduling";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-job-scheduling>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-logging>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-logging> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-logging";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-logging>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-mdi>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-mdi> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-mdi";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-mdi>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-service-manager>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-service-manager> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-service-manager";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-service-manager>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-transport>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-transport> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-transport";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-transport>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-work-zone>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-btp-aggregation-btp-work-zone> a archimate:Relationship;
+    archimate:identifier "sap-btp-aggregation-btp-work-zone";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-btp>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/TechnologyService/btp-work-zone>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/bw>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-bw> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-bw";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/bw>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/datasphere>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-datasphere> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-datasphere";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/datasphere>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-hana-cloud> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-hana-cloud";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-cloud>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-di>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-hana-di> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-hana-di";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-di>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-ml>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-hana-ml> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-hana-ml";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/hana-ml>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sac>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-data-aggregation-sac> a archimate:Relationship;
+    archimate:identifier "sap-data-aggregation-sac";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-data>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sac>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/bas>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-tooling-aggregation-bas> a archimate:Relationship;
+    archimate:identifier "sap-tooling-aggregation-bas";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/bas>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/hana-cli>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-tooling-aggregation-hana-cli> a archimate:Relationship;
+    archimate:identifier "sap-tooling-aggregation-hana-cli";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/hana-cli>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-cli>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-tooling-aggregation-ui5-cli> a archimate:Relationship;
+    archimate:identifier "sap-tooling-aggregation-ui5-cli";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-cli>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-linter>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-tooling-aggregation-ui5-linter> a archimate:Relationship;
+    archimate:identifier "sap-tooling-aggregation-ui5-linter";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-tooling>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/ui5-linter>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cap>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ui-aggregation-cap> a archimate:Relationship;
+    archimate:identifier "sap-ui-aggregation-cap";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/cap>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/fiori-elements>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ui-aggregation-fiori-elements> a archimate:Relationship;
+    archimate:identifier "sap-ui-aggregation-fiori-elements";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/fiori-elements>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/sac-widget>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ui-aggregation-sac-widget> a archimate:Relationship;
+    archimate:identifier "sap-ui-aggregation-sac-widget";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/ApplicationComponent/sac-widget>.
+<https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui> archimate:aggregation <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sapui5>.
+<https://blueprinting.dlab5.net/i/sap-landscape/aggregation/sap-ui-aggregation-sapui5> a archimate:Relationship;
+    archimate:identifier "sap-ui-aggregation-sapui5";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/sap-landscape/Grouping/sap-ui>;
+    bp:target <https://blueprinting.dlab5.net/i/sap-landscape/SystemSoftware/sapui5>.

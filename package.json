@@ -37,7 +37,8 @@
     "bundle:import": "node scripts/bundle-import.mjs",
     "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs",
     "verify:documents": "node scripts/verify-documents.mjs",
-    "verify:api-keys": "node scripts/verify-api-keys.mjs"
+    "verify:api-keys": "node scripts/verify-api-keys.mjs",
+    "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs"
   },
   "engines": {
     "node": ">=22"
