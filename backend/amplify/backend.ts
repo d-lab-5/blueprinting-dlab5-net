@@ -387,19 +387,30 @@ const apiKeyClientWrite = new CfnUserPoolClient(
   }
 );
 
-// Every function that decides anything needs to recognise a key session.
-for (const fn of [
-  backend.preTokenGeneration,
-  backend.verifyAuthChallengeResponse,
-  backend.modelStorageProxy,
-  backend.documentStore,
-  backend.documentDelete,
-  backend.projectAdmin,
-  backend.projectRename,
-]) {
-  fn.addEnvironment("API_KEY_CLIENT_READ", apiKeyClientRead.ref);
-  fn.addEnvironment("API_KEY_CLIENT_WRITE", apiKeyClientWrite.ref);
-}
+/*
+ * The client ids are NOT passed to the functions.
+ *
+ * Doing that closed a CloudFormation cycle: the clients live in the auth
+ * stack, auth already references the trigger functions, and an env var
+ * pointing back at a client made the two stacks depend on each other. This is
+ * ADR-0006 again, and it cost a deploy to rediscover.
+ *
+ * So preTokenGeneration resolves them at runtime by name — it has the pool id
+ * in its event — and writes the decision into the token as `bp:scope`. Every
+ * other function then reads one claim and needs no client id, no lookup and no
+ * reference to anything in the auth stack.
+ */
+backend.preTokenGeneration.resources.lambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["cognito-idp:ListUserPoolClients"],
+    // Wildcarded for the same reason as projectAdmin's grant: naming the pool
+    // would point the function stack back at the auth stack.
+    resources: [
+      `arn:aws:cognito-idp:${Stack.of(backend.preTokenGeneration.resources.lambda).region}:${Stack.of(backend.preTokenGeneration.resources.lambda).account}:userpool/*`,
+    ],
+  })
+);
 
 /*
  * preTokenGeneration must run as V2.

@@ -36,7 +36,8 @@
     "bundle:export": "node scripts/bundle-export.mjs",
     "bundle:import": "node scripts/bundle-import.mjs",
     "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs",
-    "verify:documents": "node scripts/verify-documents.mjs"
+    "verify:documents": "node scripts/verify-documents.mjs",
+    "verify:api-keys": "node scripts/verify-api-keys.mjs"
   },
   "engines": {
     "node": ">=22"

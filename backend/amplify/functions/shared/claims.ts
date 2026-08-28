@@ -37,27 +37,23 @@ export const SLUG = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 /**
  * Whether this session came from an API key, and what it may do.
  *
- * The app client id is the signal, because Cognito sets it and the caller
- * cannot: it arrives as `client_id` in an access token and `aud` in an ID
- * token, and AppSync accepts either. A key's own scope was already checked
- * against the client it authenticated with, so the client alone is enough
- * here.
+ * `bp:scope` is written into the token by the preTokenGeneration trigger,
+ * which resolved the app client that authenticated the caller. Cognito sets
+ * that client, not the caller, so the claim cannot be forged — and reading one
+ * claim here means no function needs a client id, a lookup, or a reference to
+ * anything in the auth stack. The last of those closed a CloudFormation cycle
+ * once already (ADR-0006).
  *
- * A browser session has neither id and is unrestricted, exactly as before.
+ * A browser session has no such claim and is unrestricted, exactly as before.
  */
 export function keySession(identity: unknown) {
   const cognito = identity as { claims?: Record<string, unknown> } | undefined;
-  const clientId =
-    (cognito?.claims?.client_id as string | undefined) ??
-    (cognito?.claims?.aud as string | undefined);
+  const scope = cognito?.claims?.["bp:scope"] as string | undefined;
 
-  const read = process.env.API_KEY_CLIENT_READ;
-  const write = process.env.API_KEY_CLIENT_WRITE;
-
-  if (!clientId || (clientId !== read && clientId !== write)) {
+  if (scope !== "read" && scope !== "write") {
     return { isKey: false, mayWrite: true };
   }
-  return { isKey: true, mayWrite: clientId === write };
+  return { isKey: true, mayWrite: scope === "write" };
 }
 
 /** Throws unless this session may change things. */
