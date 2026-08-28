@@ -1,4 +1,5 @@
 import type { AppSyncResolverEvent } from "aws-lambda";
+import { requireWrite } from "../shared/claims";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
@@ -45,6 +46,7 @@ export const handler = async (
   event: AppSyncResolverEvent<Args>
 ): Promise<boolean> => {
   const { projectSlug, docId } = event.arguments;
+  requireWrite(event.identity, "delete a document");
   const groups = groupsOf(event.identity);
 
   const { Item: product } = await ddb.send(

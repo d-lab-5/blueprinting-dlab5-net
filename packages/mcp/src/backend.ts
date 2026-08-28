@@ -88,6 +88,7 @@ export async function connect(options: {
   username?: string;
   password?: string;
   refreshToken?: string;
+  apiKey?: string;
 }): Promise<void> {
   currentOutputsPath = options.outputsPath;
   Amplify.configure(JSON.parse(readFileSync(options.outputsPath, "utf8")));
@@ -100,14 +101,23 @@ export async function connect(options: {
     clear: async () => void mem.clear(),
   });
 
-  if (options.refreshToken) {
+  if (options.apiKey) {
+    if (!options.username) {
+      throw new Error(
+        "BP_API_KEY needs BP_USER as well: a key authenticates a particular " +
+          "account, and Cognito has to be told which."
+      );
+    }
+    await connectWithApiKey(options.username, options.apiKey, mem);
+  } else if (options.refreshToken) {
     await connectWithRefreshToken(options.refreshToken, mem);
   } else if (options.username && options.password) {
     await signIn({ username: options.username, password: options.password });
     await fetchAuthSession();
   } else {
     throw new Error(
-      "no credentials: set BP_USER and BP_PASSWORD, or BP_REFRESH_TOKEN"
+      "no credentials: set BP_USER with BP_API_KEY or BP_PASSWORD, " +
+        "or set BP_REFRESH_TOKEN"
     );
   }
 
@@ -174,6 +184,106 @@ async function connectWithRefreshToken(
   mem.set(`${prefix}.${sub}.accessToken`, AccessToken);
   if (IdToken) mem.set(`${prefix}.${sub}.idToken`, IdToken);
   mem.set(`${prefix}.${sub}.refreshToken`, refreshToken);
+
+  await fetchAuthSession();
+}
+
+/**
+ * Exchanges an API key for a session, through Cognito custom authentication.
+ *
+ * Two round trips: InitiateAuth opens the challenge, RespondToAuthChallenge
+ * answers it with the key. What comes back is an ordinary Cognito session
+ * carrying the user's own groups, which is the whole reason this is a Cognito
+ * credential rather than an API-level one (ADR-0012).
+ *
+ * The app client is chosen by the key's scope: a read key on the write client
+ * is refused by the verifier, deliberately. `bp_` keys are read-only unless
+ * created otherwise, so the read client is the default and the write client is
+ * used only when BP_API_KEY_WRITE says to.
+ */
+async function connectWithApiKey(
+  username: string,
+  apiKey: string,
+  mem: Map<string, string>
+): Promise<void> {
+  const outputs = JSON.parse(readFileSync(currentOutputsPath, "utf8")) as {
+    auth: { aws_region: string; user_pool_client_id: string };
+    custom?: { apiKeyClientReadId?: string; apiKeyClientWriteId?: string };
+  };
+  const region = outputs.auth.aws_region;
+  const wantWrite = process.env.BP_API_KEY_WRITE === "1";
+  const clientId = wantWrite
+    ? outputs.custom?.apiKeyClientWriteId
+    : outputs.custom?.apiKeyClientReadId;
+
+  if (!clientId) {
+    throw new Error(
+      "this backend has no API key client; regenerate amplify_outputs.json"
+    );
+  }
+
+  const call = async (target: string, body: unknown) => {
+    const r = await fetch(`https://cognito-idp.${region}.amazonaws.com/`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/x-amz-json-1.1",
+        "x-amz-target": `AWSCognitoIdentityProviderService.${target}`,
+      },
+      body: JSON.stringify(body),
+    });
+    const json = (await r.json()) as Record<string, unknown>;
+    if (!r.ok) throw new Error(String(json.message ?? r.statusText));
+    return json;
+  };
+
+  const started = (await call("InitiateAuth", {
+    AuthFlow: "CUSTOM_AUTH",
+    ClientId: clientId,
+    AuthParameters: { USERNAME: username },
+  })) as { Session?: string };
+
+  const answered = (await call("RespondToAuthChallenge", {
+    ChallengeName: "CUSTOM_CHALLENGE",
+    ClientId: clientId,
+    Session: started.Session,
+    ChallengeResponses: { USERNAME: username, ANSWER: apiKey },
+  })) as {
+    AuthenticationResult?: {
+      AccessToken?: string;
+      IdToken?: string;
+      RefreshToken?: string;
+    };
+  };
+
+  const result = answered.AuthenticationResult;
+  if (!result?.AccessToken) {
+    // Cognito does not say WHY a custom challenge failed, on purpose: the key
+    // may be wrong, revoked, expired, someone else's, or read-only on the
+    // write client. Guessing between them here would invent a distinction the
+    // server deliberately refuses to make.
+    throw new Error(
+      "the API key was not accepted. It may be wrong, revoked, expired, " +
+        "belong to another account, or be read-only while BP_API_KEY_WRITE is set."
+    );
+  }
+
+  const sub = JSON.parse(
+    Buffer.from(result.AccessToken.split(".")[1], "base64url").toString("utf8")
+  ).sub as string;
+
+  // Stored under the CONFIGURED client id, not the one just authenticated
+  // against: that is where Amplify's token provider looks. The refresh token
+  // is deliberately NOT stored — it belongs to the API-key client, and letting
+  // Amplify try to refresh with it under a different client id would fail in a
+  // way that looks like an expired session rather than a mismatch.
+  //
+  // The consequence is a hard ceiling of one access-token lifetime, sixty
+  // minutes, per connect(). For an MCP server that is a long session; for
+  // anything longer, connect() again.
+  const prefix = `CognitoIdentityServiceProvider.${outputs.auth.user_pool_client_id}`;
+  mem.set(`${prefix}.LastAuthUser`, sub);
+  mem.set(`${prefix}.${sub}.accessToken`, result.AccessToken);
+  if (result.IdToken) mem.set(`${prefix}.${sub}.idToken`, result.IdToken);
 
   await fetchAuthSession();
 }

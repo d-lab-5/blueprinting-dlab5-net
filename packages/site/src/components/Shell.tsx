@@ -395,6 +395,20 @@ export function Shell({ children, project }: ShellProps) {
         <RailSection label="Account">
           <ul className="bp-rail__items">
             <li>
+              {/* A key belongs to a person, not a product — it carries its
+                  owner's groups and reaches everything they reach. So it lives
+                  beside the account, not inside a product. */}
+              <Link className="bp-rail__item" to="/keys/">
+                {icon(
+                  <>
+                    <path d="M15 7a4 4 0 1 1-3.9 5H7v3H4v-3H2v-2h9.1A4 4 0 0 1 15 7Z" />
+                    <path d="M16.5 10.5h.01" />
+                  </>
+                )}
+                API keys
+              </Link>
+            </li>
+            <li>
               <a
                 className="bp-rail__item"
                 href="https://github.com/d-lab-5/blueprinting-dlab5-net"

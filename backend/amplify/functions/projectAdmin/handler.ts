@@ -8,7 +8,7 @@ import {
   GroupExistsException,
 } from "@aws-sdk/client-cognito-identity-provider";
 
-import { ADMIN_GROUP, SLUG, claimsOf } from "../shared/claims";
+import { ADMIN_GROUP, SLUG, claimsOf, requireWrite } from "../shared/claims";
 
 /**
  * Creates a product: a Project row and its Cognito group, together.
@@ -50,6 +50,8 @@ export const handler = async (
   if (!groups.includes(ADMIN_GROUP)) {
     throw new Error("Only platform administrators can create products.");
   }
+
+  requireWrite(event.identity, "create a product");
 
   const slug = (event.arguments.slug ?? "").trim().toLowerCase();
   const name = (event.arguments.name ?? "").trim();

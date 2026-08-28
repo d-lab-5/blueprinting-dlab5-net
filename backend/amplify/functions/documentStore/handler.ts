@@ -1,4 +1,5 @@
 import type { AppSyncResolverEvent } from "aws-lambda";
+import { requireWrite } from "../shared/claims";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
@@ -153,6 +154,8 @@ export const handler = async (
   }
 
   /* -- write --------------------------------------------------------------- */
+
+  requireWrite(event.identity, "store a document");
 
   for (const [shape, what] of SECRET_SHAPES) {
     if (shape.test(markdown)) {

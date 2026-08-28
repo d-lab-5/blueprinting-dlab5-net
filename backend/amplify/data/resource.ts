@@ -4,6 +4,7 @@ import { projectAdmin } from "../functions/projectAdmin/resource";
 import { projectRename } from "../functions/projectRename/resource";
 import { documentStore } from "../functions/documentStore/resource";
 import { documentDelete } from "../functions/documentDelete/resource";
+import { apiKeyAdmin } from "../functions/apiKeyAdmin/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -84,7 +85,7 @@ const schema = a.schema({
     .secondaryIndexes((index) => [index("projectSlug")])
     .authorization((allow) => [
       allow.group("bp-admins"),
-      allow.groupDefinedIn("group"),
+      allow.groupDefinedIn("group").to(["read"]),
     ]),
 
   /**
@@ -137,9 +138,13 @@ const schema = a.schema({
     // environment failed the moment a document id was already taken —
     // which is exactly what a product copy does.
     .identifier(["projectSlug", "docId"])
+    // Members read the index; they do not write rows. Storing a document goes
+    // through documentStore and removing one through purgeDocument, because
+    // both own S3 objects that a bare row write would leave orphaned — and
+    // because a read-only API key (ADR-0012) must not have a second way in.
     .authorization((allow) => [
       allow.group("bp-admins"),
-      allow.groupDefinedIn("group"),
+      allow.groupDefinedIn("group").to(["read"]),
     ]),
 
   /** What modelStorageProxy hands back for both reads and writes. */
@@ -299,6 +304,57 @@ const schema = a.schema({
     .returns(a.boolean())
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(documentDelete)),
+
+  /**
+   * One API key, as its owner may see it — which never includes the key.
+   *
+   * `secret` is populated exactly once, by createApiKey, and is the only time
+   * the key exists anywhere but in the caller's hands. Nothing can ask for it
+   * again, because only its hash was stored.
+   */
+  ApiKeyView: a.customType({
+    keyId: a.string().required(),
+    name: a.string().required(),
+    scope: a.string().required(),
+    createdAt: a.string().required(),
+    expiresAt: a.string().required(),
+    lastUsedAt: a.string(),
+    revokedAt: a.string(),
+    secret: a.string(),
+  }),
+
+  /**
+   * Mints a key. Read-only unless `scope: "write"` is asked for.
+   *
+   * Not a model, so there is no generated CRUD over a row holding a key hash.
+   * All three of these share one function, dispatched on their arguments —
+   * create has a name, revoke has a keyId, list has neither — because AppSync
+   * does not populate `event.info.fieldName` for these handlers.
+   */
+  createApiKey: a
+    .mutation()
+    .arguments({
+      name: a.string().required(),
+      scope: a.string(),
+      days: a.integer(),
+    })
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
+
+  listApiKeys: a
+    .mutation()
+    .arguments({})
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
+
+  revokeApiKey: a
+    .mutation()
+    .arguments({ keyId: a.string().required() })
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
 
   saveModel: a
     .mutation()

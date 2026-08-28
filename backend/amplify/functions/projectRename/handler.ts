@@ -6,7 +6,7 @@ import {
   UpdateGroupCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 
-import { ADMIN_GROUP, SLUG, claimsOf } from "../shared/claims";
+import { ADMIN_GROUP, SLUG, claimsOf, requireWrite } from "../shared/claims";
 
 /**
  * Changes a product's name and description.
@@ -50,6 +50,8 @@ export const handler = async (
   if (!groups.includes(ADMIN_GROUP)) {
     throw new Error("Only platform administrators can rename products.");
   }
+
+  requireWrite(event.identity, "rename a product");
 
   const slug = (event.arguments.slug ?? "").trim().toLowerCase();
   const name = (event.arguments.name ?? "").trim();

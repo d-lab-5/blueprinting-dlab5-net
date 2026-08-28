@@ -88,6 +88,35 @@ const LIST_PROJECTS = /* GraphQL */ `
   }
 `;
 
+const API_KEY_FIELDS = `
+      keyId
+      name
+      scope
+      createdAt
+      expiresAt
+      lastUsedAt
+      revokedAt
+      secret
+`;
+
+const CREATE_API_KEY = /* GraphQL */ `
+  mutation CreateApiKey($name: String!, $scope: String, $days: Int) {
+    createApiKey(name: $name, scope: $scope, days: $days) {${API_KEY_FIELDS}}
+  }
+`;
+
+const LIST_API_KEYS = /* GraphQL */ `
+  mutation ListApiKeys {
+    listApiKeys {${API_KEY_FIELDS}}
+  }
+`;
+
+const REVOKE_API_KEY = /* GraphQL */ `
+  mutation RevokeApiKey($keyId: String!) {
+    revokeApiKey(keyId: $keyId) {${API_KEY_FIELDS}}
+  }
+`;
+
 const LIST_DOCUMENTS = /* GraphQL */ `
   query ListDocuments($projectSlug: String!) {
     listDocuments(projectSlug: $projectSlug) {
@@ -333,6 +362,53 @@ export async function renameProject(input: {
     },
   })) as GraphQLResult<{ renameProject: Project }>;
   return unwrap(result).renameProject;
+}
+
+/**
+ * An API key as its owner may see it.
+ *
+ * `secret` is set exactly once, by `createApiKey`, and is the only copy that
+ * will ever exist — only its hash is stored. Nothing can ask for it again.
+ */
+export interface ApiKeyView {
+  keyId: string;
+  name: string;
+  scope: "read" | "write";
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+  secret?: string | null;
+}
+
+export async function listApiKeys(): Promise<ApiKeyView[]> {
+  const result = (await client().graphql({
+    query: LIST_API_KEYS,
+  })) as GraphQLResult<{ listApiKeys: ApiKeyView[] }>;
+  return unwrap(result).listApiKeys ?? [];
+}
+
+/** Returns the one and only copy of the key in `secret`. */
+export async function createApiKey(input: {
+  name: string;
+  scope: "read" | "write";
+  days: number;
+}): Promise<ApiKeyView> {
+  const result = (await client().graphql({
+    query: CREATE_API_KEY,
+    variables: input,
+  })) as GraphQLResult<{ createApiKey: ApiKeyView[] }>;
+  const [key] = unwrap(result).createApiKey ?? [];
+  if (!key) throw new Error("the key was not created");
+  return key;
+}
+
+export async function revokeApiKey(keyId: string): Promise<void> {
+  const result = (await client().graphql({
+    query: REVOKE_API_KEY,
+    variables: { keyId },
+  })) as GraphQLResult<{ revokeApiKey: ApiKeyView[] }>;
+  unwrap(result);
 }
 
 /** Every document held for a product. */

@@ -505,6 +505,61 @@ a {
 
 /* ── Tools: documents, import, export ──────────────────────────────── */
 
+.bp-apikeys__form,
+.bp-apikeys__minted {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem;
+  max-width: 46rem;
+  background: var(--bp-surface);
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* The one moment the key exists. It should look like the one moment. */
+.bp-apikeys__minted {
+  border-color: var(--bp-accent-strong, #0ea5e9);
+  border-width: 2px;
+}
+
+.bp-apikeys__secret {
+  display: block;
+  word-break: break-all;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 4px;
+  background: var(--bp-bg);
+}
+
+.bp-apikeys__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bp-apikeys__scope {
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bp-apikeys__scope legend {
+  font-size: 0.85rem;
+  color: var(--bp-text-muted);
+  padding: 0 0.3rem;
+}
+
+.bp-apikeys__scope label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  cursor: pointer;
+}
+
 .bp-documents__upload {
   display: grid;
   gap: 0.75rem;

@@ -1,0 +1,17 @@
+import type { CreateAuthChallengeTriggerHandler } from "aws-lambda";
+
+/**
+ * There is nothing to send.
+ *
+ * In a one-time-code flow this trigger would generate and deliver the code.
+ * Here the secret is the API key, which the caller already holds — so the
+ * challenge carries no parameters at all. `publicChallengeParameters` is
+ * returned to the client and `privateChallengeParameters` to the verifier;
+ * both stay empty, because anything in either would be a hint.
+ */
+export const handler: CreateAuthChallengeTriggerHandler = async (event) => {
+  event.response.publicChallengeParameters = {};
+  event.response.privateChallengeParameters = {};
+  event.response.challengeMetadata = "API_KEY";
+  return event;
+};

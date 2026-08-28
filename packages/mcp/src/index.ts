@@ -26,6 +26,12 @@ import { ALL_TOOLS, METAMODEL_TOOLS } from "./tools.js";
  *                          starts and serves the metamodel tools, which need
  *                          no backend at all — useful for asking ArchiMate
  *                          questions with no project to hand.
+ *   BP_API_KEY             An API key, with BP_USER naming the account it
+ *                          belongs to. Read-only unless BP_API_KEY_WRITE=1,
+ *                          which selects the write app client and which a
+ *                          read-only key is refused on. Preferred over the two
+ *                          below: keys are named, listed, revoked one at a
+ *                          time, and expire. ADR-0012.
  *   BP_REFRESH_TOKEN       A Cognito refresh token, for a server running where
  *                          nobody can type a password. Takes precedence over
  *                          the pair above. It carries the user's own identity
@@ -48,17 +54,19 @@ async function main() {
   const username = process.env.BP_USER;
   const password = process.env.BP_PASSWORD;
   const refreshToken = process.env.BP_REFRESH_TOKEN;
+  const apiKey = process.env.BP_API_KEY;
 
   let connected = false;
   let reason = "";
 
-  if (!refreshToken && (!username || !password)) {
-    reason = "neither BP_REFRESH_TOKEN nor BP_USER/BP_PASSWORD are set";
+  if (!apiKey && !refreshToken && (!username || !password)) {
+    reason =
+      "none of BP_API_KEY, BP_REFRESH_TOKEN or BP_USER/BP_PASSWORD are set";
   } else if (!existsSync(outputsPath)) {
     reason = `no amplify_outputs.json at ${outputsPath}`;
   } else {
     try {
-      await connect({ outputsPath, username, password, refreshToken });
+      await connect({ outputsPath, username, password, refreshToken, apiKey });
       connected = true;
     } catch (err) {
       reason = err instanceof Error ? err.message : String(err);
