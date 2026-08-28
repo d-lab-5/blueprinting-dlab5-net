@@ -364,7 +364,11 @@ async function visit(
       { expression: `JSON.stringify((() => { ${evaluate} })())`, returnByValue: true },
       sessionId
     );
-    if (exceptionDetails) throw new Error(exceptionDetails.text);
+    if (exceptionDetails) {
+      throw new Error(
+        exceptionDetails.exception?.description ?? exceptionDetails.text
+      );
+    }
     value = JSON.parse(result.value);
   }
 
@@ -486,6 +490,108 @@ const ROUTES = [
  * as the proof that the "id is never shown as text" assertion is not passing
  * merely because the panel failed to render.
  */
+/**
+ * A stored document, rendered.
+ *
+ * The reader and the print view showed raw markdown before, which made the
+ * "well-formatted PDF" impossible. The assertions worth having are the ones
+ * that would fail silently: that a table becomes a table, that an annotation
+ * is gone rather than merely invisible, and that nothing in a document can
+ * produce markup of its own.
+ */
+async function documentRendering(cdp) {
+  console.log("\ndocument rendering");
+
+  const OPEN = `
+    const row = [...document.querySelectorAll(".bp-documents__index tbody tr")]
+      .find((tr) => tr.textContent.includes("render-check"));
+    row?.querySelector("button.bp-linkbutton")?.click();
+  `;
+
+  const READ = `
+    const prose = document.querySelector(".bp-documents__reader .bp-prose");
+    return {
+      rendered: Boolean(prose),
+      headings: prose?.querySelectorAll("h1, h2, h3").length ?? 0,
+      tables: prose?.querySelectorAll("table").length ?? 0,
+      rows: prose?.querySelectorAll("table tr").length ?? 0,
+      code: prose?.querySelectorAll("pre code").length ?? 0,
+      quotes: prose?.querySelectorAll("blockquote").length ?? 0,
+      lists: prose?.querySelectorAll("ul li").length ?? 0,
+      // The annotation must be gone from the DOM, not just not displayed.
+      annotationInHtml: (prose?.innerHTML ?? "").includes("am element"),
+      text: (prose?.innerText ?? "").slice(0, 4000),
+      // Nothing in the document may have produced a tag of its own.
+      scripts: prose?.querySelectorAll("script").length ?? 0,
+      // marked does not sanitize URLs. Every href and src that survived must
+      // be one a browser cannot execute.
+      badHrefs: [...(prose?.querySelectorAll("[href], [src]") ?? [])]
+        .map((n) => n.getAttribute("href") ?? n.getAttribute("src") ?? "")
+        .filter((u) => !/^(https?:|mailto:|tel:|#|\\/|\\.)/i.test(u)),
+      goodLinks: prose?.querySelectorAll('a[href^="https://"]').length ?? 0,
+      // Set by any payload that managed to run.
+      pwned: window.__pwned ?? null,
+    };
+  `;
+
+  let value;
+  try {
+    ({ value } = await visit(cdp, "/p/dlab5-blueprint/documents/", {
+      awaitSelector: SIGNED_IN,
+      then: OPEN,
+      evaluate: READ,
+      shot: "document-rendered.png",
+    }));
+  } catch (error) {
+    check(false, "a document opens", error.message);
+    return;
+  }
+
+  if (!value.rendered) {
+    // The fixture is a document in the environment, not something this script
+    // creates, so an environment without it should say so rather than fail.
+    console.log(
+      '  SKIP  no "render-check" document here.\n' +
+        "        Upload one on Documents with a table, a blockquote, a fenced\n" +
+        "        block and a javascript: link to exercise the renderer."
+    );
+    return;
+  }
+  check(true, "the document renders as prose, not raw markdown");
+  check(value.headings >= 3, "headings become headings", `${value.headings} found`);
+  check(value.tables === 1, "a markdown table becomes a table", `${value.tables} found`);
+  check(value.rows >= 3, "with its header and rows", `${value.rows} rows`);
+  check(value.code >= 1, "a fenced block becomes code", `${value.code} found`);
+  check(value.quotes >= 1, "a blockquote becomes a quote");
+  check(value.lists >= 3, "a list becomes a list", `${value.lists} items`);
+  check(
+    !value.annotationInHtml,
+    "the annotation is stripped from the DOM, not merely hidden",
+    "a comment left in the DOM is still in whatever gets saved"
+  );
+  check(value.scripts === 0, "the document produced no markup of its own");
+  check(
+    value.pwned === null,
+    "no payload in the document executed",
+    value.pwned === null ? "window.__pwned unset" : `EXECUTED: ${value.pwned}`
+  );
+  check(
+    value.badHrefs.length === 0,
+    "no link or image survived with a protocol a browser can execute",
+    value.badHrefs.length ? value.badHrefs.join(" | ") : "javascript:, data: and smuggled variants all neutralised"
+  );
+  check(
+    value.goodLinks >= 1,
+    "and an ordinary https link still works",
+    `${value.goodLinks} kept`
+  );
+  check(
+    !value.text.includes("| ---"),
+    "no raw markdown syntax survives into the text",
+    "table pipes would mean the renderer did not run"
+  );
+}
+
 async function productSettings(cdp) {
   console.log("\nproduct settings");
 
@@ -1393,6 +1499,7 @@ async function signedIn(cdp) {
   await findingsPanel(cdp);
   await viewport(cdp);
   await productSettings(cdp);
+  await documentRendering(cdp);
   await radar(cdp);
 
   // The rail must fold away rather than eat a phone screen.
