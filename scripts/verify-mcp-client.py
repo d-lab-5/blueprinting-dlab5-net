@@ -86,7 +86,10 @@ async def main() -> int:
         print(f"No server at {SERVER}. Run: npm run build --workspace @dlab5/archimate-mcp")
         return 1
 
-    credentialed = bool(os.environ.get("BP_USER") and os.environ.get("BP_PASSWORD"))
+    credentialed = bool(
+        os.environ.get("BP_REFRESH_TOKEN")
+        or (os.environ.get("BP_USER") and os.environ.get("BP_PASSWORD"))
+    )
 
     # The server reads its configuration from the environment, so it is passed
     # through as-is. Without credentials it must still start.

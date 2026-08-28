@@ -64,6 +64,13 @@ npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
 
+The MCP server takes `BP_USER`/`BP_PASSWORD`, or **`BP_REFRESH_TOKEN`** for a
+server running where nobody can type a password. The refresh token carries the
+user's own identity and groups, so every authorization check downstream behaves
+exactly as it does in the app — but it IS the account for thirty days, not a
+scoped key. Revoke it with Cognito's `RevokeToken`; signing out of the app
+revokes it too, which is worth knowing in both directions.
+
 `verify:mcp-client` is the only thing that exercises the MCP **protocol**.
 Everything else calls `tool.run(args)` directly, which skips the stdio framing,
 the registration and the zod-to-JSON-Schema conversion. It is Python against

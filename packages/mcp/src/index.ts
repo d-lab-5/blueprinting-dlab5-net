@@ -26,6 +26,13 @@ import { ALL_TOOLS, METAMODEL_TOOLS } from "./tools.js";
  *                          starts and serves the metamodel tools, which need
  *                          no backend at all — useful for asking ArchiMate
  *                          questions with no project to hand.
+ *   BP_REFRESH_TOKEN       A Cognito refresh token, for a server running where
+ *                          nobody can type a password. Takes precedence over
+ *                          the pair above. It carries the user's own identity
+ *                          and groups, so every authorization check behaves as
+ *                          it does in the app — but it IS the account for
+ *                          thirty days, not a scoped key. Revoke with Cognito's
+ *                          RevokeToken, or by signing out of the app.
  *   BP_OUTPUTS             Path to amplify_outputs.json. Defaults to
  *                          backend/amplify_outputs.json relative to the repo.
  *
@@ -40,17 +47,18 @@ async function main() {
   );
   const username = process.env.BP_USER;
   const password = process.env.BP_PASSWORD;
+  const refreshToken = process.env.BP_REFRESH_TOKEN;
 
   let connected = false;
   let reason = "";
 
-  if (!username || !password) {
-    reason = "BP_USER and BP_PASSWORD are not set";
+  if (!refreshToken && (!username || !password)) {
+    reason = "neither BP_REFRESH_TOKEN nor BP_USER/BP_PASSWORD are set";
   } else if (!existsSync(outputsPath)) {
     reason = `no amplify_outputs.json at ${outputsPath}`;
   } else {
     try {
-      await connect({ outputsPath, username, password });
+      await connect({ outputsPath, username, password, refreshToken });
       connected = true;
     } catch (err) {
       reason = err instanceof Error ? err.message : String(err);
@@ -72,7 +80,8 @@ async function main() {
     );
   } else {
     console.error(
-      `[archimate-mcp] connected as ${username}. Serving ${tools.length} tools.`
+      `[archimate-mcp] connected as ${username ?? "a refresh token"}. ` +
+        `Serving ${tools.length} tools.`
     );
   }
 

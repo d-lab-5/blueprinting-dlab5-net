@@ -64,19 +64,32 @@ interface BackendClient {
 }
 
 let client: BackendClient | null = null;
+let currentOutputsPath = "";
 
 /**
- * Signs in once per process.
+ * Signs in once per process, by password or by refresh token.
  *
  * Credentials come from the environment, the same way the repository's other
- * scripts take them. An MCP server started by an editor has no way to prompt,
- * and a token cached on disk is a credential nobody remembers to revoke.
+ * scripts take them. An MCP server started by an editor has no way to prompt.
+ *
+ * `BP_REFRESH_TOKEN` exists for the case a password cannot serve: a server
+ * running somewhere nobody is sitting. It is a Cognito refresh token, which
+ * makes it a real credential for the account rather than a shared key with no
+ * identity — the exchanged access token carries the user's own groups, so
+ * every authorization check downstream behaves exactly as it does in the app.
+ *
+ * What it is NOT is a scoped API key. It is the account, for thirty days, and
+ * anyone holding it can do anything its owner can. Revoke it with Cognito's
+ * RevokeToken, or by signing out of the app — signing out revokes it, which is
+ * worth knowing in both directions.
  */
 export async function connect(options: {
   outputsPath: string;
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
+  refreshToken?: string;
 }): Promise<void> {
+  currentOutputsPath = options.outputsPath;
   Amplify.configure(JSON.parse(readFileSync(options.outputsPath, "utf8")));
 
   const mem = new Map<string, string>();
@@ -87,9 +100,82 @@ export async function connect(options: {
     clear: async () => void mem.clear(),
   });
 
-  await signIn({ username: options.username, password: options.password });
-  await fetchAuthSession();
+  if (options.refreshToken) {
+    await connectWithRefreshToken(options.refreshToken, mem);
+  } else if (options.username && options.password) {
+    await signIn({ username: options.username, password: options.password });
+    await fetchAuthSession();
+  } else {
+    throw new Error(
+      "no credentials: set BP_USER and BP_PASSWORD, or BP_REFRESH_TOKEN"
+    );
+  }
+
   client = generateClient({ authMode: "userPool" }) as unknown as BackendClient;
+}
+
+/**
+ * Exchanges a refresh token for a session, and seeds Amplify's store with it.
+ *
+ * Amplify has no "sign in with a refresh token" call, so the exchange is the
+ * raw Cognito one — which is all any client does anyway — and the result is
+ * written into the same in-memory store Amplify reads from. From there the
+ * generated client refreshes on its own, exactly as after a password sign-in.
+ */
+async function connectWithRefreshToken(
+  refreshToken: string,
+  mem: Map<string, string>
+): Promise<void> {
+  const outputs = JSON.parse(
+    readFileSync(currentOutputsPath, "utf8")
+  ) as {
+    auth: { aws_region: string; user_pool_client_id: string };
+  };
+  const region = outputs.auth.aws_region;
+  const clientId = outputs.auth.user_pool_client_id;
+
+  const response = await fetch(
+    `https://cognito-idp.${region}.amazonaws.com/`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/x-amz-json-1.1",
+        "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
+      },
+      body: JSON.stringify({
+        AuthFlow: "REFRESH_TOKEN_AUTH",
+        ClientId: clientId,
+        AuthParameters: { REFRESH_TOKEN: refreshToken },
+      }),
+    }
+  );
+
+  const json = (await response.json()) as {
+    message?: string;
+    AuthenticationResult?: { AccessToken?: string; IdToken?: string };
+  };
+  if (!response.ok || !json.AuthenticationResult?.AccessToken) {
+    // Cognito says "Refresh Token has been revoked" for a revoked token and
+    // "Invalid Refresh Token" for a malformed one. Both are worth passing
+    // through verbatim: they are the difference between "someone revoked this"
+    // and "this was never a token".
+    throw new Error(
+      `BP_REFRESH_TOKEN was not accepted: ${json.message ?? response.statusText}`
+    );
+  }
+
+  const { AccessToken, IdToken } = json.AuthenticationResult;
+  const sub = JSON.parse(
+    Buffer.from(AccessToken.split(".")[1], "base64url").toString("utf8")
+  ).sub as string;
+
+  const prefix = `CognitoIdentityServiceProvider.${clientId}`;
+  mem.set(`${prefix}.LastAuthUser`, sub);
+  mem.set(`${prefix}.${sub}.accessToken`, AccessToken);
+  if (IdToken) mem.set(`${prefix}.${sub}.idToken`, IdToken);
+  mem.set(`${prefix}.${sub}.refreshToken`, refreshToken);
+
+  await fetchAuthSession();
 }
 
 function api() {

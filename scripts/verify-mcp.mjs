@@ -35,9 +35,13 @@ cognitoUserPoolsTokenProvider.setKeyValueStorage({
   clear: async () => void mem.clear(),
 });
 
-const { BP_USER: username, BP_PASSWORD: password } = process.env;
-if (!username || !password) {
-  console.error("set BP_USER and BP_PASSWORD");
+const {
+  BP_USER: username,
+  BP_PASSWORD: password,
+  BP_REFRESH_TOKEN: refreshToken,
+} = process.env;
+if (!refreshToken && (!username || !password)) {
+  console.error("set BP_USER and BP_PASSWORD, or BP_REFRESH_TOKEN");
   process.exit(2);
 }
 
@@ -50,10 +54,8 @@ const check = (ok, label, detail = "") => {
 const tools = new Map(ALL_TOOLS.map((t) => [t.name, t]));
 const call = (name, args) => tools.get(name).run(args);
 
-await signIn({ username, password });
-await fetchAuthSession();
+await connect({ outputsPath: OUTPUTS, username, password, refreshToken });
 const admin = generateClient({ authMode: "userPool" });
-await connect({ outputsPath: OUTPUTS, username, password });
 
 const slug = `mcp-${Date.now().toString(36)}`;
 console.log(`MCP model tools, scratch project ${slug}\n`);
