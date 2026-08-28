@@ -43,11 +43,18 @@ the mechanism for structural change.**
 
 ```
 <product>/
-  MANIFEST.json    format version, source environment, exported-at, checksums
+  MANIFEST.json    format version, source environment, exported-at, checksums,
+                   and what was WITHHELD
   product.json     the Project row, minus environment-local fields
   model.ttl        authoritative — byte-stable
   model.xml        ArchiMate Open Exchange, for Archi and everything else
+  documents/
+    <docId>/source.md      the record, as uploaded
+    <docId>/annotated.md   the working copy, when there is one
 ```
+
+**Format version 2** added `documents/`. A v1 bundle is still readable; it
+simply has none.
 
 `model.ttl` is authoritative and `MANIFEST.json` says so. The importer
 re-derives the Open Exchange XML from the Turtle and compares it to
@@ -65,6 +72,20 @@ transfer format otherwise invites someone to edit the XML and silently lose it.
 `group` and `ttlKey` are recomputed from the id on import rather than carried,
 because they are derived values that must agree with the environment they land
 in.
+
+**Documents travel only as far as their classification allows** (ADR-0011).
+`--include` defaults to `shared`, so the bundle produced without thinking is
+the one that is safe to commit — because that is the bundle someone will commit
+without thinking. `--include collaboration` adds the middle tier.
+**Confidential documents never travel, and there is deliberately no flag for
+it**; the rule fails closed on any classification the tool does not recognise.
+
+The manifest records what was **withheld**, not only what was carried, and both
+the exporter and the importer print it. A bundle that silently omits half a
+product's records is indistinguishable from one whose product had none, and the
+difference matters to whoever reloads it. Nothing of a withheld document is in
+the bundle — not its text and not its id in a file list, since naming a document
+you do not carry still discloses that it exists.
 
 **Structural change is an import-time transform.** `import --reid` mints a fresh
 opaque id, recomputes `group` and `ttlKey`, and writes a new row. ADR-0009's
@@ -101,6 +122,19 @@ have needed a bespoke script against live tables — re-keying, re-grouping,
 splitting a product — becomes export, transform the bundle, reload. The
 transform is inspectable as a file diff, and the previous state is still on
 disk if it goes wrong.
+
+**Documents are restored after the model, and never fatally.** A product whose
+model landed but whose notes did not is recoverable; one that fails halfway
+through provisioning is not. Classification is carried across unchanged — a
+document does not become more shareable by being moved to another environment.
+
+**A document id is unique within a product, not across all of them.** It was
+global at first, which meant two products could not both hold a "sprint-notes"
+and that copying a product into another environment failed the moment one id
+was already taken — which is exactly what a copy does. Found by reordering the
+round-trip check so documents existed *before* the export; seeded afterwards,
+as it was first written, no import ever saw one and the restore path was
+unproven.
 
 **Group membership cannot be restored.** This is the one thing no bundle holds.
 After a wipe, every member of every `bp-*` group must be re-added by hand. An

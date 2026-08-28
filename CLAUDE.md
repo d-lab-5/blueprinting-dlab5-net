@@ -59,6 +59,7 @@ BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
 BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
 BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
 BP_USER=… BP_PASSWORD=… npm run verify:documents # the document store, live
+BP_USER=… BP_PASSWORD=… npm run verify:api-keys  # scopes and refusals, live
 
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
@@ -95,6 +96,19 @@ update a primary key, so there is no in-place path. ADR-0010.
 THAT, and compares the Turtle byte for byte. Going back out through S3 is the
 point: an exporter and an importer that agree with each other prove nothing.
 It creates and deletes a scratch product and its Cognito group.
+
+An **API key** is a Cognito credential, not an API-level one: it authenticates
+through custom auth and yields an ordinary session carrying its owner's groups,
+minus `bp-admins`. So every authorization rule downstream is untouched, and a
+key can never do something its owner could not. Read-only is the default and is
+enforced in three places — the app client the key authenticated against, the
+`bp:scope` claim the five writing Lambdas check, and the group strip that closes
+the generated-mutation route. ADR-0012.
+
+**Never pass an app client id to a function as an environment variable.** The
+clients live in the auth stack, which already references the trigger functions,
+so the reference closes a CloudFormation cycle — ADR-0006, and it cost a build.
+`preTokenGeneration` resolves them by name at runtime instead.
 
 A product also holds **documents** — reports, plans, decision records — beside
 its model. They are evidence about an architecture rather than part of one, so
