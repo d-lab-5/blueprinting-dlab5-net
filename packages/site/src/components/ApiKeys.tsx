@@ -23,6 +23,10 @@ export function ApiKeys() {
   const [busy, setBusy] = React.useState(false);
   const [minted, setMinted] = React.useState<ApiKeyView | null>(null);
   const [copied, setCopied] = React.useState(false);
+  // Revoked and expired keys are kept — the record of what existed is worth
+  // having — but they are not what anyone comes to this screen to read, and
+  // after a few rounds of verification they outnumber the live ones.
+  const [showDead, setShowDead] = React.useState(false);
 
   const [name, setName] = React.useState("");
   const [scope, setScope] = React.useState<"read" | "write">("read");
@@ -74,9 +78,11 @@ export function ApiKeys() {
   const live = (key: ApiKeyView) =>
     !key.revokedAt && Date.parse(key.expiresAt) > Date.now();
 
+  const dead = (keys ?? []).filter((k) => !live(k));
+  const shown = showDead ? (keys ?? []) : (keys ?? []).filter(live);
+
   return (
     <section className="bp-apikeys">
-      <h2>API keys</h2>
       <p className="bp-muted">
         For a client that cannot be asked for a password — an MCP server on
         another machine, a scheduled export. A key acts as you, and sees exactly
@@ -182,7 +188,23 @@ export function ApiKeys() {
       {keys === null && <p className="bp-muted">Loading…</p>}
       {keys?.length === 0 && <p className="bp-muted">No keys yet.</p>}
 
-      {keys && keys.length > 0 && (
+      {dead.length > 0 && (
+        <p className="bp-muted">
+          <button
+            type="button"
+            className="bp-linkbutton"
+            onClick={() => setShowDead((on) => !on)}
+          >
+            {showDead ? "Hide" : "Show"} {dead.length} revoked or expired
+          </button>
+        </p>
+      )}
+
+      {shown.length === 0 && keys && keys.length > 0 && !showDead && (
+        <p className="bp-muted">No live keys.</p>
+      )}
+
+      {shown.length > 0 && (
         <table className="bp-documents__index">
           <thead>
             <tr>
@@ -194,8 +216,8 @@ export function ApiKeys() {
             </tr>
           </thead>
           <tbody>
-            {keys.map((key) => (
-              <tr key={key.keyId} className={live(key) ? "" : "bp-muted"}>
+            {shown.map((key) => (
+              <tr key={key.keyId} className={live(key) ? "" : "bp-apikeys__dead"}>
                 <td>
                   {key.name}
                   <div className="bp-muted bp-documents__id">

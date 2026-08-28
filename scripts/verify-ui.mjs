@@ -473,6 +473,9 @@ const ROUTES = [
   { path: "/p/dlab5-blueprint/import/", name: "project · import" },
   { path: "/p/dlab5-blueprint/documents/", name: "project · documents" },
   { path: "/p/dlab5-blueprint/export/", name: "project · export" },
+  // Not under /p/ at all: a key belongs to a person and reaches every product
+  // they can, so it is not scoped to one.
+  { path: "/keys/", name: "api keys" },
 ];
 
 /**
@@ -1452,13 +1455,14 @@ async function signedIn(cdp) {
         );
       }
     }
-    // The record screens do not touch the model, so its save bar must not
-    // appear there — a Save button under a list of documents reads as though
-    // the documents are what it saves.
-    const isRecordScreen = /\/(documents|export)\/$/.test(route.path);
+    // The save bar belongs to the model, so it appears on the screens that
+    // edit one and nowhere else — not on the record screens, and not on a page
+    // that has no product at all. A Save button under a list of documents or
+    // of API keys reads as though those are what it saves.
+    const editsAModel = Boolean(routeSlug) && !/\/(documents|export)\/$/.test(route.path);
     check(
-      value.hasSaveBar === !isRecordScreen,
-      `${route.name}: ${isRecordScreen ? "no save bar, nothing here to save" : "the save bar is present"}`,
+      value.hasSaveBar === editsAModel,
+      `${route.name}: ${editsAModel ? "the save bar is present" : "no save bar, nothing here to save"}`,
       `save bar ${value.hasSaveBar ? "present" : "absent"}`
     );
     check(!value.hasSignIn, `${route.name}: the gate is gone`);
@@ -1466,9 +1470,12 @@ async function signedIn(cdp) {
       value.renderedContent,
       `${route.name}: the model rendered, not an empty frame`
     );
+    // The workspace section lists a product's screens, so it exists only where
+    // there is a product. At the launcher and on /keys/ the rail carries the
+    // switcher and the account links and nothing else, which is correct.
     check(
-      value.railItems === RAIL_ITEMS,
-      `${route.name}: ${RAIL_ITEMS} rail entries`,
+      value.railItems === (routeSlug ? RAIL_ITEMS : 0),
+      `${route.name}: ${routeSlug ? `${RAIL_ITEMS} rail entries` : "no workspace rail without a product"}`,
       `${value.railItems} items`
     );
     check(

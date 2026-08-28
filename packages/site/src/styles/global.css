@@ -539,6 +539,18 @@ a {
   align-items: center;
 }
 
+/* A dead key is kept for the record and should read as history, not as
+   something you might still use. */
+.bp-apikeys__dead td {
+  color: var(--bp-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--bp-text-muted) 50%, transparent);
+}
+
+.bp-apikeys__dead td .bp-tag {
+  opacity: 0.6;
+}
+
 .bp-apikeys__scope {
   border: 1px solid var(--bp-border);
   border-radius: 4px;

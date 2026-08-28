@@ -201,6 +201,19 @@ async function connectWithRefreshToken(
  * created otherwise, so the read client is the default and the write client is
  * used only when BP_API_KEY_WRITE says to.
  */
+/**
+ * What a refused key means, since Cognito will not say.
+ *
+ * It answers NotAuthorizedException with "Incorrect username or password" for
+ * every one of these, which is misleading rather than merely unhelpful — no
+ * password is involved anywhere in this flow. The server withholds the
+ * distinction deliberately, so the client lists the possibilities instead of
+ * repeating a wrong one.
+ */
+const REFUSED =
+  "the API key was not accepted. It may be wrong, revoked, expired, belong " +
+  "to another account, or be read-only while BP_API_KEY_WRITE is set.";
+
 async function connectWithApiKey(
   username: string,
   apiKey: string,
@@ -232,7 +245,15 @@ async function connectWithApiKey(
       body: JSON.stringify(body),
     });
     const json = (await r.json()) as Record<string, unknown>;
-    if (!r.ok) throw new Error(String(json.message ?? r.statusText));
+    if (!r.ok) {
+      // Cognito answers every custom-auth failure with "Incorrect username or
+      // password", which is true of none of them: no password was involved.
+      // The real cause is one of five, and the server refuses to say which on
+      // purpose — so the message lists them rather than repeating a wrong one.
+      const type = String(json.__type ?? "");
+      if (type.includes("NotAuthorized")) throw new Error(REFUSED);
+      throw new Error(String(json.message ?? r.statusText));
+    }
     return json;
   };
 
@@ -256,16 +277,7 @@ async function connectWithApiKey(
   };
 
   const result = answered.AuthenticationResult;
-  if (!result?.AccessToken) {
-    // Cognito does not say WHY a custom challenge failed, on purpose: the key
-    // may be wrong, revoked, expired, someone else's, or read-only on the
-    // write client. Guessing between them here would invent a distinction the
-    // server deliberately refuses to make.
-    throw new Error(
-      "the API key was not accepted. It may be wrong, revoked, expired, " +
-        "belong to another account, or be read-only while BP_API_KEY_WRITE is set."
-    );
-  }
+  if (!result?.AccessToken) throw new Error(REFUSED);
 
   const sub = JSON.parse(
     Buffer.from(result.AccessToken.split(".")[1], "base64url").toString("utf8")
