@@ -46,11 +46,39 @@ interface Result<T> {
  * untyped (ADR-0001, and constraint 13 in CLAUDE.md). The shapes below are the
  * three calls this file makes and must track data/resource.ts by hand.
  */
+export interface BpDocument {
+  docId: string;
+  projectSlug: string;
+  title: string;
+  classification: string;
+  annotatedKey?: string | null;
+  bytes?: number | null;
+  uploadedAt?: string | null;
+}
+
 interface BackendClient {
   models: {
     Project: { list: () => Promise<Result<Project[]>> };
+    Document: {
+      list: (args?: {
+        filter?: { projectSlug?: { eq: string } };
+      }) => Promise<Result<BpDocument[]>>;
+    };
   };
   mutations: {
+    saveDocument: (args: {
+      projectSlug: string;
+      docId: string;
+      markdown: string;
+      title?: string;
+      classification?: string;
+      kind?: string;
+    }) => Promise<Result<{ docId: string; key: string }>>;
+    requestDocumentReadUrl: (args: {
+      projectSlug: string;
+      docId: string;
+      kind?: string;
+    }) => Promise<Result<{ url?: string; exists: boolean; classification: string }>>;
     requestModelReadUrl: (args: { projectSlug: string }) => Promise<
       Result<{ url?: string; etag?: string; exists: boolean }>
     >;
@@ -392,4 +420,72 @@ export async function mutate(
   const next = change(model);
   const newEtag = await saveModel(next, etag);
   return { model: next, etag: newEtag };
+}
+
+/* -- documents -------------------------------------------------------------- */
+
+/** Every document held for a product, without their text. */
+export async function listDocuments(projectSlug: string): Promise<BpDocument[]> {
+  const result = await api().models.Document.list({
+    filter: { projectSlug: { eq: projectSlug } },
+  });
+  return unwrap(result, "list documents") ?? [];
+}
+
+/**
+ * One document's markdown.
+ *
+ * The working copy by default, falling back to the source: annotation is
+ * iterative, and an agent asked to continue should see the last pass rather
+ * than start again from what arrived.
+ */
+export async function loadDocument(
+  projectSlug: string,
+  docId: string,
+  kind: "source" | "annotated" = "annotated"
+): Promise<{ markdown: string | null; classification: string }> {
+  const fetchOne = async (which: "source" | "annotated") => {
+    const access = unwrap(
+      await api().mutations.requestDocumentReadUrl({ projectSlug, docId, kind: which }),
+      `read ${docId}`
+    );
+    if (!access.exists || !access.url) return null;
+    const response = await fetch(access.url);
+    return response.ok ? { text: await response.text(), access } : null;
+  };
+
+  const wanted = await fetchOne(kind);
+  if (wanted) return { markdown: wanted.text, classification: wanted.access.classification };
+
+  if (kind === "annotated") {
+    const source = await fetchOne("source");
+    if (source) {
+      return { markdown: source.text, classification: source.access.classification };
+    }
+  }
+  return { markdown: null, classification: "confidential" };
+}
+
+/**
+ * Writes the annotated working copy.
+ *
+ * Never the source. The source is the record of what arrived and the backend
+ * refuses to rewrite it, so offering the choice here would only produce an
+ * error a caller could not act on.
+ */
+export async function saveAnnotated(
+  projectSlug: string,
+  docId: string,
+  markdown: string
+): Promise<string> {
+  const saved = unwrap(
+    await api().mutations.saveDocument({
+      projectSlug,
+      docId,
+      markdown,
+      kind: "annotated",
+    }),
+    `save ${docId}`
+  );
+  return saved.key;
 }

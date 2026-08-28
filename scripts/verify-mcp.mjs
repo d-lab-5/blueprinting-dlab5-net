@@ -11,6 +11,7 @@
  * Usage:
  *   BP_USER=… BP_PASSWORD=… node scripts/verify-mcp.mjs
  */
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -150,13 +151,90 @@ try {
   check(/relationship/.test(removed), "removing an element removes its relationships", removed.trim());
   const after = JSON.parse(await call("validate_model", { project: slug }));
   check(after.valid === true, "no dangling references are left behind");
+
+  /* -- documents: the agent annotates, a person imports -------------------- */
+
+  const elementsBeforeDocuments = JSON.parse(
+    await call("get_model", { project: slug })
+  ).elements.length;
+
+  const DOC = "mcp-doc-check";
+  const annotated = [
+    "# Stakeholder review",
+    "",
+    "<!-- am element type=Stakeholder id=mcp-cfo -->",
+    "## Chief Financial Officer",
+    "Wants cost per transaction below EUR 0.02.",
+  ].join("\n");
+
+  const put = JSON.parse(
+    await call("put_document", { project: slug, docId: DOC, markdown: annotated })
+  );
+  check(
+    put.key.endsWith("/annotated.md"),
+    "put_document writes the working copy, never the source",
+    put.key
+  );
+  check(
+    /does not change the model|has entered the model/i.test(put.note ?? ""),
+    "and says plainly that nothing entered the model",
+    "the agent annotates; a person imports"
+  );
+
+  const listed = JSON.parse(await call("list_documents", { project: slug }));
+  check(
+    listed.some((d) => d.docId === DOC),
+    "list_documents finds it",
+    `${listed.length} document(s)`
+  );
+  check(
+    listed.every((d) => !("markdown" in d)),
+    "and returns no text",
+    "a listing is for choosing, not for reading"
+  );
+
+  const got = JSON.parse(await call("get_document", { project: slug, docId: DOC }));
+  check(got.markdown === annotated, "get_document returns exactly what was written");
+
+  // The model must be untouched by all of that: annotating is not importing.
+  check(
+    JSON.parse(await call("get_model", { project: slug })).elements.length ===
+      elementsBeforeDocuments,
+    "annotating a document changed nothing in the model",
+    `${elementsBeforeDocuments} elements, unchanged`
+  );
 } finally {
+  try {
+    await admin.mutations.purgeDocument({
+      projectSlug: slug,
+      docId: "mcp-doc-check",
+    });
+  } catch {
+    /* the document may never have been created */
+  }
   try {
     await admin.models.Project.delete({ slug });
   } catch {
     /* best effort */
   }
   await signOut();
+
+  // The row was being deleted and the model in S3 was not, so every run left a
+  // scratch abox.ttl under a project that no longer existed. Three of them had
+  // accumulated before an audit noticed — the same gap verify:bundle had, and
+  // found the same way.
+  try {
+    const bucket = JSON.parse(readFileSync(OUTPUTS, "utf8"))?.storage?.bucket_name;
+    if (bucket) {
+      execFileSync(
+        "aws",
+        ["s3", "rm", `s3://${bucket}/projects/${slug}/`, "--recursive"],
+        { stdio: "ignore" }
+      );
+    }
+  } catch {
+    console.error(`LEFT BEHIND: projects/${slug}/ in the model bucket.`);
+  }
 }
 
 console.log(`\n${failures === 0 ? "all checks passed" : `${failures} FAILED`}`);

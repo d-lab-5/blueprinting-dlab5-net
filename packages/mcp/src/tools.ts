@@ -550,6 +550,100 @@ const exportOef: Tool = {
   },
 };
 
+/* -- documents -------------------------------------------------------------- */
+
+/**
+ * The documents held for a product, so an agent can find one to annotate.
+ *
+ * Text is deliberately not included: a listing is for choosing, and returning
+ * every document's prose would put a product's whole corpus into the context
+ * window to answer "what is here".
+ */
+const listDocumentsTool: Tool = {
+  name: "list_documents",
+  description:
+    "Source documents held for a product — reports, plans, decision records. " +
+    "Returns titles and classifications, not text. Use get_document for one.",
+  schema: { project: z.string() },
+  run: async ({ project }) =>
+    json(
+      (await backend.listDocuments(String(project))).map((d) => ({
+        docId: d.docId,
+        title: d.title,
+        classification: d.classification,
+        annotated: Boolean(d.annotatedKey),
+        bytes: d.bytes ?? undefined,
+      }))
+    ),
+};
+
+const getDocumentTool: Tool = {
+  name: "get_document",
+  description:
+    "One document's markdown. Returns the annotated working copy if there is " +
+    "one and the original otherwise, so a second pass continues from the " +
+    "first rather than starting again.",
+  schema: {
+    project: z.string(),
+    docId: z.string(),
+    original: z
+      .boolean()
+      .optional()
+      .describe("Read the original as uploaded, ignoring any annotations."),
+  },
+  run: async ({ project, docId, original }) => {
+    const { markdown, classification } = await backend.loadDocument(
+      String(project),
+      String(docId),
+      original ? "source" : "annotated"
+    );
+    if (markdown === null) {
+      throw new RefusedError(
+        `no document "${docId}" in ${project}, or you cannot read it`
+      );
+    }
+    return json({ docId, classification, markdown });
+  },
+};
+
+/**
+ * Stores an annotated working copy.
+ *
+ * This is where an agent's job ends. It annotates; a person reviews the plan
+ * in the Import screen and decides what enters the model. There is deliberately
+ * no tool that writes elements from a document — one would make the preview
+ * decorative, and the preview is the only thing standing between a plausible
+ * misreading and the model.
+ */
+const putDocumentTool: Tool = {
+  name: "put_document",
+  description:
+    "Saves an annotated copy of a document. Annotations are HTML comments — " +
+    "<!-- am element type=Stakeholder id=cfo --> above a heading, and " +
+    "<!-- am rel type=influence from=cfo to=x -->. This does NOT change the " +
+    "model: a person reviews the annotations and imports them. The original " +
+    "is never overwritten. Needs a write-scoped key.",
+  schema: {
+    project: z.string(),
+    docId: z.string(),
+    markdown: z.string(),
+  },
+  run: async ({ project, docId, markdown }) => {
+    const key = await backend.saveAnnotated(
+      String(project),
+      String(docId),
+      String(markdown)
+    );
+    return json({
+      docId,
+      key,
+      note:
+        "Saved as the working copy. Nothing has entered the model — open the " +
+        "product's Import screen to review and apply it.",
+    });
+  },
+};
+
 /* -------------------------------------------------------------------------- */
 
 /** A refusal the agent should act on, as opposed to a fault. */
@@ -577,6 +671,9 @@ export const MODEL_TOOLS: Tool[] = [
   renderRoadmap,
   getRadar,
   exportOef,
+  listDocumentsTool,
+  getDocumentTool,
+  putDocumentTool,
 ];
 
 export const ALL_TOOLS: Tool[] = [...METAMODEL_TOOLS, ...MODEL_TOOLS];
