@@ -276,14 +276,21 @@ const schema = a.schema({
     .handler(a.handler.function(documentStore)),
 
   /**
-   * Removes a document, its objects and its row.
+   * Removes a document: its S3 objects AND its row, together.
+   *
+   * Named `purgeDocument`, not `deleteDocument`, for the same reason
+   * `provisionProject` is not `createProject`: `a.model("Document")` already
+   * generates a `deleteDocument`, and redeclaring it fails the CDK assembly
+   * with "Object type extension 'Mutation' cannot redeclare field". The
+   * generated one still exists and removes the row only — leaving the markdown
+   * orphaned in the bucket — so this is the one to call.
    *
    * Its own function, not a branch in documentStore: the arguments are the
    * same as requestDocumentReadUrl's, and AppSync does not populate
    * `event.info.fieldName` for these handlers. It also holds s3:DeleteObject
    * and not s3:PutObject, which documentStore has the reverse of.
    */
-  deleteDocument: a
+  purgeDocument: a
     .mutation()
     .arguments({
       projectSlug: a.string().required(),

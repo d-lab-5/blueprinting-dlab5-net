@@ -131,9 +131,9 @@ const SAVE_DOCUMENT = /* GraphQL */ `
   }
 `;
 
-const DELETE_DOCUMENT = /* GraphQL */ `
-  mutation DeleteDocument($projectSlug: String!, $docId: String!) {
-    deleteDocument(projectSlug: $projectSlug, docId: $docId)
+const PURGE_DOCUMENT = /* GraphQL */ `
+  mutation PurgeDocument($projectSlug: String!, $docId: String!) {
+    purgeDocument(projectSlug: $projectSlug, docId: $docId)
   }
 `;
 
@@ -376,6 +376,10 @@ export async function saveDocument(input: {
 /**
  * Removes a document, its stored copies and its index row.
  *
+ * Calls `purgeDocument`, not the `deleteDocument` Amplify generates for the
+ * model: the generated one removes the row and leaves the markdown orphaned in
+ * the bucket.
+ *
  * Irreversible — S3 has no undo here — which is why the caller asks first.
  */
 export async function deleteDocument(
@@ -383,9 +387,9 @@ export async function deleteDocument(
   docId: string
 ): Promise<void> {
   const result = (await client().graphql({
-    query: DELETE_DOCUMENT,
+    query: PURGE_DOCUMENT,
     variables: { projectSlug, docId },
-  })) as GraphQLResult<{ deleteDocument: boolean }>;
+  })) as GraphQLResult<{ purgeDocument: boolean }>;
   unwrap(result);
 }
 

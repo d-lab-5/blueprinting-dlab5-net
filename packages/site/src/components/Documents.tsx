@@ -1,5 +1,6 @@
 import * as React from "react";
 import { slugifyId } from "@dlab5/blueprint-core";
+import { renderMarkdown } from "../lib/markdown";
 import {
   deleteDocument,
   listDocuments,
@@ -229,7 +230,11 @@ export function Documents({ slug }: { slug: string }) {
       {open && (
         <div className="bp-documents__reader">
           <h3>{open.doc.title}</h3>
-          <pre className="bp-documents__text">{open.markdown}</pre>
+          {/* Rendered, not raw. Safe by construction — see lib/markdown.ts. */}
+          <div
+            className="bp-prose"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(open.markdown) }}
+          />
           <button
             type="button"
             className="bp-linkbutton"

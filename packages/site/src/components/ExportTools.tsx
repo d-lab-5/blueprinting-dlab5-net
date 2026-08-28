@@ -1,6 +1,7 @@
 import * as React from "react";
 import { listDocuments, loadDocument } from "../lib/data";
 import type { BpDocument } from "../lib/data";
+import { renderMarkdown } from "../lib/markdown";
 
 /**
  * Getting things out: a document as PDF, and what an export will and will not
@@ -74,8 +75,9 @@ export function ExportTools({ slug, name }: { slug: string; name: string }) {
 
       <h3>Print a document</h3>
       <p className="bp-muted">
-        Opens your browser's print dialog, where "Save as PDF" is one of the
-        destinations. Annotations are comments, so they do not appear.
+        The document is rendered — headings, tables and lists — not printed as
+        raw markdown. Opens your browser's print dialog, where "Save as PDF" is
+        one of the destinations. Annotations are stripped, not merely hidden.
       </p>
 
       <label className="bp-field">
@@ -127,9 +129,13 @@ export function ExportTools({ slug, name }: { slug: string; name: string }) {
                 {confidential ? " · Confidential" : ""}
               </p>
             </header>
-            <pre className="bp-print__body">
-              {markdown.replace(/^[ \t]*<!--\s*am\b[^>]*-->[ \t]*\r?\n?/gim, "")}
-            </pre>
+            {/* Rendered, so the PDF is a document rather than a dump of
+                source. Annotations are stripped rather than hidden: a comment
+                in the DOM is still in the file somebody saves. */}
+            <div
+              className="bp-print__body bp-prose"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(markdown) }}
+            />
           </article>
         </>
       )}

@@ -568,18 +568,87 @@ a {
   border-color: color-mix(in srgb, var(--bp-text-muted) 35%, transparent);
 }
 
-.bp-documents__text,
-.bp-print__body {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  max-height: 30rem;
-  overflow: auto;
+/* Rendered document prose. Constrained to a readable measure, because a
+   document that runs the full width of a 1400px window is not a document. */
+.bp-prose {
+  max-width: 72ch;
+  line-height: 1.6;
+}
+
+.bp-prose h1,
+.bp-prose h2,
+.bp-prose h3,
+.bp-prose h4 {
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+}
+
+.bp-prose h1:first-child,
+.bp-prose h2:first-child {
+  margin-top: 0;
+}
+
+.bp-prose p,
+.bp-prose ul,
+.bp-prose ol {
+  margin: 0 0 0.9em;
+}
+
+.bp-prose code {
+  font-size: 0.88em;
+}
+
+.bp-prose pre {
+  background: var(--bp-surface);
   border: 1px solid var(--bp-border);
   border-radius: 6px;
-  padding: 1rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+}
+
+.bp-prose blockquote {
+  margin: 0 0 0.9em;
+  padding-left: 1rem;
+  border-left: 3px solid var(--bp-border-strong);
+  color: var(--bp-text-muted);
+}
+
+/* Tables are why the renderer choice mattered. These documents are full of
+   them, and a table that overflows the page is worse than no table. */
+.bp-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 1em;
+  font-size: 0.92em;
+}
+
+.bp-prose th,
+.bp-prose td {
+  border: 1px solid var(--bp-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.bp-prose th {
   background: var(--bp-surface);
+}
+
+.bp-prose img {
+  max-width: 100%;
+}
+
+.bp-documents__reader {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-documents__reader .bp-prose {
+  max-height: 34rem;
+  overflow: auto;
 }
 
 .bp-documents__actions {
@@ -733,11 +802,24 @@ a {
   }
 
   .bp-print__body {
-    border: 0;
-    padding: 0;
+    max-width: none;
     max-height: none;
     overflow: visible;
-    background: transparent;
+  }
+
+  /* A heading should not be the last thing on a page, and a table row should
+     not be split down the middle. Both are free to ask for and neither is
+     guaranteed, but the browser honours them more often than not. */
+  .bp-print h1,
+  .bp-print h2,
+  .bp-print h3 {
+    break-after: avoid;
+  }
+
+  .bp-print tr,
+  .bp-print pre,
+  .bp-print blockquote {
+    break-inside: avoid;
   }
 }
 
