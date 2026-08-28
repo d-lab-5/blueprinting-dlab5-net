@@ -10,6 +10,20 @@ import type { DefineAuthChallengeTriggerHandler } from "aws-lambda";
 export const handler: DefineAuthChallengeTriggerHandler = async (event) => {
   const attempts = event.request.session ?? [];
 
+  // Temporary, while the flow is being got working: Cognito reports a failed
+  // custom auth as "Incorrect username or password" no matter what went wrong,
+  // so the only way to see the state machine is from inside it.
+  console.log(
+    "[defineAuthChallenge]",
+    JSON.stringify({
+      client: event.callerContext?.clientId,
+      attempts: attempts.map((a) => ({
+        name: a.challengeName,
+        result: a.challengeResult,
+      })),
+    })
+  );
+
   if (attempts.length === 0) {
     event.response.challengeName = "CUSTOM_CHALLENGE";
     event.response.issueTokens = false;

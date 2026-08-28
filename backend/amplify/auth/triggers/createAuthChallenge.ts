@@ -10,7 +10,11 @@ import type { CreateAuthChallengeTriggerHandler } from "aws-lambda";
  * both stay empty, because anything in either would be a hint.
  */
 export const handler: CreateAuthChallengeTriggerHandler = async (event) => {
-  event.response.publicChallengeParameters = {};
+  // Not empty. Cognito rejects the flow when publicChallengeParameters has no
+  // entries, which surfaces at the client as "Incorrect username or password"
+  // with every trigger having run cleanly — a genuinely misleading pair.
+  // The value carries no information: it names the challenge, nothing more.
+  event.response.publicChallengeParameters = { challenge: "api-key" };
   event.response.privateChallengeParameters = {};
   event.response.challengeMetadata = "API_KEY";
   return event;

@@ -45,6 +45,14 @@ export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
   event.response.answerCorrect = false;
 
   const answer = event.request.challengeAnswer ?? "";
+  console.log(
+    "[verifyAuthChallengeResponse]",
+    JSON.stringify({
+      client: event.callerContext?.clientId,
+      answerLength: answer.length,
+      shaped: /^bp_[a-z0-9]{8}_[a-z0-9]{32}$/.test(answer),
+    })
+  );
   const match = KEY.exec(answer);
   if (!match) return event;
 
