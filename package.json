@@ -39,7 +39,8 @@
     "verify:documents": "node scripts/verify-documents.mjs",
     "verify:api-keys": "node scripts/verify-api-keys.mjs",
     "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs",
-    "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs"
+    "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs",
+    "gen:skills-catalog": "node scripts/gen-skills-catalog.mjs"
   },
   "engines": {
     "node": ">=22"

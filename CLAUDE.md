@@ -59,6 +59,7 @@ npm run gen:sap-landscape           # regenerate docs/knowledge/sap-landscape.tt
 scripts/sync-sap-skills.sh          # refresh the vendored SAP skills
 scripts/setup-sap-diagrams.sh       # the draw.io toolchain, at a pinned commit
 npm run verify:sap-diagrams         # the toolchain end to end; renders if draw.io is installed
+npm run gen:skills-catalog          # regenerate docs/skills-catalog.md
 
 BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
 BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
@@ -247,6 +248,16 @@ These are things that will bite. Each is load-bearing and has cost someone time.
     Confirm the change actually shipped rather than trusting the build:
     `grep -ro "bp-your-class{[^}]*}" packages/site/public/*.css`. More than one
     `styles.*.css` in `public/` is the symptom.
+
+## Before pushing
+
+`.claude/skills/dlab5-git-push/SKILL.md` is the gate: which checks to run for
+what changed, the documentation each kind of change obliges you to update, the
+secret sweep a public repository needs, and the cleanup audit a live check
+needs. It runs **on push, not on every commit** — the checks are slow and some
+are live, and making commits expensive is how commits stop being made.
+
+`docs/skills-catalog.md` lists every skill; regenerate it rather than editing.
 
 ## House conventions
 
