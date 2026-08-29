@@ -55,6 +55,10 @@ BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef
 
 npm run verify:archi                # round-trip through Archi itself
 
+npm run gen:sap-landscape           # regenerate docs/knowledge/sap-landscape.ttl
+scripts/link-sap-skills.sh          # GPL-3.0 SAP skills, as gitignored symlinks
+scripts/setup-sap-diagrams.sh       # the draw.io toolchain, at a pinned commit
+
 BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
 BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
 BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
@@ -96,6 +100,20 @@ update a primary key, so there is no in-place path. ADR-0010.
 THAT, and compares the Turtle byte for byte. Going back out through S3 is the
 point: an exporter and an importer that agree with each other prove nothing.
 It creates and deletes a scratch product and its Cognito group.
+
+**Two third-party bodies of SAP material, with opposite licensing.** The SAP
+skills at sap-ai-skills.com are **GPL-3.0** and this repository is MIT and
+public, so none of them is here and none ever will be — `link-sap-skills.sh`
+symlinks them into a gitignored `.claude/skills/`. What *is* here is
+`docs/knowledge/sap-landscape.ttl`: which SAP products exist and how they group
+is fact, and each element cites the skill it was learned from. The draw.io skill
+is MIT plus Apache-2.0 and is fetched, not vendored — 20 MB is too much to
+commit, and `vendor/NOTICE` records the terms.
+
+The diagram tools **scaffold, check and score; they do not finish a diagram**.
+An unedited scaffold is a byte-for-byte copy of an SAP reference template and
+scores 100/100 against it for that reason, so the tools say so outright rather
+than leave a perfect score to be misread.
 
 An **API key** is a Cognito credential, not an API-level one: it authenticates
 through custom auth and yields an ordinary session carrying its owner's groups,

@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { connect } from "./backend.js";
-import { ALL_TOOLS, METAMODEL_TOOLS } from "./tools.js";
+import { ALL_TOOLS, DIAGRAM_TOOLS, METAMODEL_TOOLS } from "./tools.js";
 
 /**
  * An MCP server over an ArchiMate model.
@@ -77,14 +77,16 @@ async function main() {
   // asking "can a Work Package realize a Deliverable?" needs no credentials,
   // and a server that refuses to start over a missing password would take
   // that away too.
-  const tools = connected ? ALL_TOOLS : METAMODEL_TOOLS;
+  // The diagram tools need the vendored scripts, not credentials, so they are
+  // served either way. Without the scripts they refuse with an instruction.
+  const tools = connected ? ALL_TOOLS : [...METAMODEL_TOOLS, ...DIAGRAM_TOOLS];
 
   // stdout is the protocol channel; anything written there that is not JSON-RPC
   // corrupts the session. Diagnostics go to stderr.
   if (!connected) {
     console.error(
       `[archimate-mcp] not connected to a backend (${reason}). ` +
-        `Serving ${tools.length} metamodel tools only.`
+        `Serving ${tools.length} tools that need no backend.`
     );
   } else {
     console.error(

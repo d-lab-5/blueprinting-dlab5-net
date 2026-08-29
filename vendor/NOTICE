@@ -1,0 +1,28 @@
+# Third-party tooling fetched into this directory
+
+`vendor/` is gitignored. Its contents are fetched by a setup script at a pinned
+commit rather than committed, because they are large and actively maintained
+upstream — a stale copy would be worse than a pinned fetch. This file records
+what belongs here and under what terms, and IS committed.
+
+See also `ontology/NOTICE`, which covers content that *is* vendored, because it
+is small and pinned to a specific published version.
+
+## btp-drawio-skill
+
+    scripts/setup-sap-diagrams.sh
+    https://github.com/marianfoo/btp-drawio-skill
+    pinned at 2484140fb29f2083a8209dd9c22ce099ffcbe418
+
+Turns a description of an SAP architecture into an SAP-Architecture-Center-style
+`.drawio` file. Dual licensed by its author:
+
+- **Plugin code** — Python scripts, markdown, manifests — MIT, © Marian Zeis.
+- **Bundled assets** — service icons and reference templates — Apache-2.0,
+  © SAP SE or an SAP affiliate company.
+
+Both are compatible with this repository's MIT licence. The upstream carries
+its own `LICENSE` and `assets/NOTICE.md`; neither is modified.
+
+SAP and SAP BTP are trademarks of SAP SE. This project is not affiliated with
+or endorsed by SAP.
