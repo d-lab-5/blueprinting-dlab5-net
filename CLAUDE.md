@@ -56,8 +56,9 @@ BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef
 npm run verify:archi                # round-trip through Archi itself
 
 npm run gen:sap-landscape           # regenerate docs/knowledge/sap-landscape.ttl
-scripts/link-sap-skills.sh          # GPL-3.0 SAP skills, as gitignored symlinks
+scripts/sync-sap-skills.sh          # refresh the vendored SAP skills
 scripts/setup-sap-diagrams.sh       # the draw.io toolchain, at a pinned commit
+npm run verify:sap-diagrams         # the toolchain end to end; renders if draw.io is installed
 
 BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
 BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
@@ -101,14 +102,25 @@ THAT, and compares the Turtle byte for byte. Going back out through S3 is the
 point: an exporter and an importer that agree with each other prove nothing.
 It creates and deletes a scratch product and its Cognito group.
 
-**Two third-party bodies of SAP material, with opposite licensing.** The SAP
-skills at sap-ai-skills.com are **GPL-3.0** and this repository is MIT and
-public, so none of them is here and none ever will be — `link-sap-skills.sh`
-symlinks them into a gitignored `.claude/skills/`. What *is* here is
-`docs/knowledge/sap-landscape.ttl`: which SAP products exist and how they group
-is fact, and each element cites the skill it was learned from. The draw.io skill
-is MIT plus Apache-2.0 and is fetched, not vendored — 20 MB is too much to
-commit, and `vendor/NOTICE` records the terms.
+**This repository is GPL-3.0-or-later.** It was MIT until the SAP skills were
+brought in: they are GPL-3.0, which cannot be included in an MIT work, and the
+licence changed rather than the skills being kept out. `NOTICE` lists every
+source. All 1329 dependencies were checked for GPL compatibility first.
+
+The forty SAP skills live in `.claude/skills/` and are committed, each keeping
+its own front matter; `scripts/sync-sap-skills.sh` refreshes them.
+`docs/knowledge/sap-landscape.ttl` was written *from* them rather than copied
+out of them — which SAP products exist is fact, and each element cites the
+skill it was learned from. The draw.io skill is MIT plus Apache-2.0 and is
+fetched rather than vendored: 20 MB is too much to commit, and `vendor/NOTICE`
+records the terms.
+
+`verify:sap-diagrams` covers the toolchain in three layers: the description
+written from a model is unit-tested in `packages/mcp`; the scaffolder,
+validator and scorer are exercised for real; and the diagram is rendered to PNG
+**only if draw.io desktop is installed**, skipping with an explanation when it
+is not — as `verify:archi` does for Archi. That third layer is the one that
+decides whether a diagram is any good, and no assertion can stand in for it.
 
 The diagram tools **scaffold, check and score; they do not finish a diagram**.
 An unedited scaffold is a byte-for-byte copy of an SAP reference template and

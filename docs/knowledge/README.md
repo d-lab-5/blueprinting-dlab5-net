@@ -7,25 +7,23 @@ truth — you import one into a product and then own what you imported.
 They differ from `docs/practices/` (how to model well) and `docs/patterns/`
 (shapes this project proved). This directory answers "what is out there".
 
-## The licence boundary, which is load-bearing
+## Where this came from
 
-`sap-landscape.ttl` was written **from** the SAP skills at
-[sap-ai-skills.com](https://sap-ai-skills.com), maintained by Eduard Jiglau.
+`sap-landscape.ttl` was written **from** the SAP skills in `.claude/skills/`,
+maintained by Eduard Jiglau at [sap-ai-skills.com](https://sap-ai-skills.com)
+and licensed GPL-3.0 — the reason this repository is GPL-3.0-or-later rather
+than MIT.
 
-**Those skills are GPL-3.0. This repository is MIT and public.** GPL-3.0 is
-copyleft and MIT is not compatible in that direction, so none of them is in
-this repository and none ever will be — not the files, not excerpts, and not
-paraphrases close enough to be derivative.
+It is not a copy of them, and would not be even if copying were the point.
+Which SAP products exist and how they group is fact; the skills' prose is their
+authors' expression. Every element here cites the skill its existence was
+learned from in a `reference` property, the same way
+`docs/practices/engineering-practices.ttl` cites a book it never reproduces.
 
-What is here is the other thing: **which SAP products exist and how they relate
-is fact, and facts are not copyrightable.** The expression is his; the
-landscape is not. Every element cites the skill it was learned from by name, in
-a `reference` property, the way `docs/practices/engineering-practices.ttl`
-cites a licensed book it likewise never reproduces.
-
-To use the skills themselves, run `scripts/link-sap-skills.sh`. It creates
-symlinks under `.claude/skills/`, which is gitignored. Using software triggers
-no obligation; distributing it triggers all of them.
+Regenerate with `npm run gen:sap-landscape` after editing
+`scripts/gen-sap-landscape.mjs`. The file is generated so that its Turtle
+matches byte for byte what the application writes, which is what lets a seed be
+diffed against an exported model.
 
 ## No radar rings
 

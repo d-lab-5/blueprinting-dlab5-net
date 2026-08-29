@@ -2,7 +2,7 @@
   "name": "blueprinting-dlab5-net",
   "private": true,
   "description": "D-LAB-5 Blueprinting Platform \u2014 engineering governance over an ArchiMate 3.2 semantic model",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "workspaces": [
     "packages/*"
   ],
@@ -38,7 +38,8 @@
     "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs",
     "verify:documents": "node scripts/verify-documents.mjs",
     "verify:api-keys": "node scripts/verify-api-keys.mjs",
-    "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs"
+    "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs",
+    "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs"
   },
   "engines": {
     "node": ">=22"

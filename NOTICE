@@ -1,0 +1,88 @@
+# Sources
+
+`blueprinting.dlab5.net` is **GPL-3.0-or-later**. See `LICENSE` for the terms
+and `COPYRIGHT` for the statement that goes with them.
+
+It was MIT until this was written. It changed so that the SAP skills below —
+which are GPL-3.0 and could not lawfully be included in an MIT work — could be
+part of it, and so that everything here stays open source in the same sense
+they do.
+
+Everything the project depends on or includes is listed here. Where a licence
+requires its own copy, that copy travels with the files it covers.
+
+---
+
+## Included in this repository
+
+### SAP skills — `.claude/skills/`
+
+    https://sap-ai-skills.com
+    Eduard Jiglau <hello@sap-ai-skills.com>
+    GPL-3.0
+
+Forty reference skills covering ABAP, SAP BTP, HANA, SAP Analytics Cloud,
+SAPUI5, CAP and AI Core. Each carries its own `license:` and `maintainer:` in
+its front matter, and each names the SAP documentation it was compiled from.
+
+**One modification**, stated here and in the file itself as GPL-3.0 section 5
+requires. `sap-api-style/references/quality-processes.md` contained an example
+Stripe key with the `sk_live_` prefix, inside a sample captioned as a security
+risk — the lesson being not to hardcode keys. It was replaced with
+`sk_live_EXAMPLE_NOT_A_REAL_KEY` on 2026-08-29. GitHub's push protection
+blocked the original, correctly: a scanner cannot tell a teaching example from
+a leak, and nor can a reader. Nothing else is changed.
+
+`docs/knowledge/sap-landscape.ttl` was written *from* this catalogue rather than
+copied out of it: which SAP products exist and how they group is fact, and each
+element cites the skill its existence was learned from.
+
+Obtained via the KONE SAP Platform LAB, which vendors the same set. The three
+`kspf-*` skills there are specific to that lab and are not included.
+
+### ArchiMate ontology — `ontology/upstream/`
+
+    https://github.com/AlbertoDMendoza/archimate_ontology
+    Copyright (c) Alberto D. Mendoza
+    Apache-2.0
+
+The machine-readable ArchiMate 3.2 vocabulary and relationship matrix that
+`packages/metamodel/src/generated/` is generated from. An unmodified, pinned
+copy; full terms in `ontology/upstream/LICENSE`, attribution in
+`ontology/NOTICE`.
+
+---
+
+## Fetched, not included
+
+### SAP draw.io skill — `vendor/btp-drawio-skill/`
+
+    https://github.com/marianfoo/btp-drawio-skill
+    Marian Zeis — plugin code, MIT
+    SAP SE or an SAP affiliate — bundled icons and templates, Apache-2.0
+
+Fetched at a pinned commit by `scripts/setup-sap-diagrams.sh`; `vendor/` is
+gitignored. Not vendored because the bundle is 20 MB, 16 MB of it SAP reference
+templates, and because a copy of an actively maintained upstream goes stale in a
+way a pinned fetch does not. Terms in `vendor/NOTICE`.
+
+---
+
+## Dependencies
+
+1329 npm packages, all under licences compatible with GPL-3.0: MIT, ISC,
+Apache-2.0, BSD-2-Clause, BSD-3-Clause, MPL-2.0, Unlicense, CC0-1.0, 0BSD.
+Checked before the relicence; none is GPL-incompatible.
+
+---
+
+## Referenced, never reproduced
+
+**Mastering ArchiMate, 3rd edition** — Gerben Wierda. Licensed to one reader
+and not redistributable. `docs/practices/engineering-practices.ttl` implements
+ideas from it and cites them by section; none of its text, diagrams or
+catalogue structure is anywhere in this repository.
+
+**ArchiMate®** is a registered trademark of The Open Group. **SAP** and **SAP
+BTP** are trademarks of SAP SE. This project is affiliated with neither and
+endorsed by neither.

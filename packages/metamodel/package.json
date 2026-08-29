@@ -1,7 +1,7 @@
 {
   "name": "@dlab5/archimate-metamodel",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "description": "The ArchiMate 3.2 metamodel as TypeScript, generated from the OWL ontology and the Appendix B relationship matrix",
   "type": "module",
   "main": "dist/index.js",

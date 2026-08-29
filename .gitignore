@@ -208,9 +208,6 @@ packages/site/src/gatsby-types.d.ts
 __pycache__/
 *.py[cod]
 
-# Symlinks to the GPL-3.0 SAP skills (scripts/link-sap-skills.sh).
-# This repository is MIT and public; the skills are used, never distributed.
-.claude/skills/
 
 # Third-party tooling fetched at a pinned commit (scripts/setup-sap-diagrams.sh).
 # vendor/NOTICE is committed and records what belongs here.
