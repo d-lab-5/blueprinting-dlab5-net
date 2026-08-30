@@ -129,15 +129,43 @@ revocation, expiry and the hash — and not the scope. A read-only key
 authenticated on the write client and would have been handed a write token.
 `verify:api-keys` caught it: 25 of 26.
 
-## Failure direction is a decision, per trigger
+## Failure direction is a decision, and the obvious one was wrong
 
-- **`verifyAuthChallengeResponse` fails closed.** If it cannot establish the
-  scope it must not guess: let it throw, and Cognito denies.
-- **`preTokenGeneration` fails open**, and says so loudly. Its only job is to
-  *restrict* a key session; failing closed would lock every browser user out of
-  the application over a Cognito hiccup.
+`verifyAuthChallengeResponse` **fails closed**: if it cannot establish the scope
+it must not guess, so let it throw and Cognito denies.
 
-Write both reasons down where the code is. They look inconsistent otherwise.
+`preTokenGeneration` is where this gets subtle, and where the reference
+implementation had a real fail-open hole for a day.
+
+The first version returned the token untouched when it could not resolve the
+app clients, reasoning that its only job was to *restrict* a key session and
+that a browser session was unaffected either way. Both halves were true and the
+conclusion was wrong: the **key** session was also unaffected. The token then
+carried no scope claim and no group strip, and downstream a missing claim read
+as "not a key, may write" — so a read-only key became an administrator whenever
+that lookup failed.
+
+An authorization control that grants privilege on failure is the thing an audit
+exists to find.
+
+**Mark every session, not only the restricted ones.** Write `bp:scope: "web"`
+for the browser client too. The claim's *absence* then means the trigger did
+not run, which downstream can fail closed on:
+
+```ts
+if (scope === "web")   return { isKey: false, mayWrite: true };
+if (scope === "read")  return { isKey: true,  mayWrite: false };
+if (scope === "write") return { isKey: true,  mayWrite: true };
+return { isKey: false, mayWrite: false, unknown: true };   // deny
+```
+
+The failure mode becomes: a Cognito hiccup degrades **everyone to read-only**.
+Sign-in still works, reads still work, writes are refused with a message naming
+the trigger. That is worse than working and much better than either locking
+sign-in out entirely or handing out administrator sessions.
+
+Write both directions down where the code is. They look inconsistent otherwise,
+and the reason one is not the other is the whole point.
 
 ## Details that are not decoration
 

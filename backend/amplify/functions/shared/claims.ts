@@ -50,19 +50,30 @@ export function keySession(identity: unknown) {
   const cognito = identity as { claims?: Record<string, unknown> } | undefined;
   const scope = cognito?.claims?.["bp:scope"] as string | undefined;
 
-  if (scope !== "read" && scope !== "write") {
-    return { isKey: false, mayWrite: true };
-  }
-  return { isKey: true, mayWrite: scope === "write" };
+  // "web" is a browser session and may write. "read"/"write" are key sessions.
+  // ANYTHING ELSE — including the claim being absent — means preTokenGeneration
+  // did not run, so nothing here knows what this session is, and a control that
+  // does not know must not permit. Writes are denied until it runs again.
+  if (scope === "web") return { isKey: false, mayWrite: true };
+  if (scope === "read") return { isKey: true, mayWrite: false };
+  if (scope === "write") return { isKey: true, mayWrite: true };
+  return { isKey: false, mayWrite: false, unknown: true };
 }
 
 /** Throws unless this session may change things. */
 export function requireWrite(identity: unknown, what: string): void {
-  const { isKey, mayWrite } = keySession(identity);
+  const { isKey, mayWrite, unknown } = keySession(identity);
   if (isKey && !mayWrite) {
     throw new Error(
       `This API key is read-only, so it cannot ${what}. Create a key with ` +
         `write scope, or sign in.`
+    );
+  }
+  if (unknown) {
+    throw new Error(
+      `This session carries no scope, which means the token was issued while ` +
+        `preTokenGeneration could not run. Writing is refused until it can. ` +
+        `Sign in again; if that does not help, check that trigger's logs.`
     );
   }
 }
