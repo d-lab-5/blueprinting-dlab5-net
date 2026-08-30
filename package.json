@@ -41,7 +41,8 @@
     "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs",
     "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs",
     "gen:skills-catalog": "node scripts/gen-skills-catalog.mjs",
-    "gen:platform-model": "node scripts/gen-platform-model.mjs"
+    "gen:platform-model": "node scripts/gen-platform-model.mjs",
+    "check:gpl": "node scripts/check-gpl-compatibility.mjs"
   },
   "engines": {
     "node": ">=22"

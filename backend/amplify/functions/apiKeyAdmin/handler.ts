@@ -9,6 +9,8 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
+import { keySession } from "../shared/claims";
+
 /**
  * Minting, listing and revoking a user's API keys.
  *
@@ -87,7 +89,6 @@ function claimsOf(identity: unknown) {
   return {
     sub: (cognito?.claims?.sub as string | undefined) ?? cognito?.username,
     email: cognito?.claims?.email as string | undefined,
-    scope: cognito?.claims?.["bp:scope"] as string | undefined,
   };
 }
 
@@ -105,15 +106,27 @@ const view = (item: Record<string, unknown>): ApiKeyView => ({
 export const handler = async (
   event: AppSyncResolverEvent<Args>
 ): Promise<ApiKeyView[]> => {
-  const { sub, email, scope } = claimsOf(event.identity);
+  const { sub, email } = claimsOf(event.identity);
   if (!sub) throw new Error("Not signed in.");
 
   // A key cannot mint another key, whatever its scope. Otherwise a leaked
   // read-only key becomes a write key in one call, and revoking the one you
   // know about leaves the one you do not.
-  if (scope) {
+  //
+  // Tested against the shared helper rather than "is bp:scope set", which was
+  // true only while browser sessions carried no claim. They carry "web" now —
+  // so the old test refused everybody, and minting stopped working the moment
+  // the fail-closed fix deployed. One definition of what a key session is.
+  const { isKey, unknown } = keySession(event.identity);
+  if (isKey) {
     throw new Error(
       "API keys cannot manage API keys. Sign in to create or revoke one."
+    );
+  }
+  if (unknown) {
+    throw new Error(
+      "This session carries no scope, so it cannot be identified as a person " +
+        "rather than a key. Sign in again."
     );
   }
 
