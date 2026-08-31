@@ -21,7 +21,15 @@ if (!existsSync(root)) {
   process.exit(2);
 }
 
-/** One-way compatible INTO GPL-3.0. Not a complete list; a working one. */
+/**
+ * One-way compatible INTO GPL-3.0. Not a complete list; a working one.
+ *
+ * CC-BY-4.0 is here and CC-BY-3.0 is deliberately not: Creative Commons
+ * declared 4.0 one-way compatible with GPLv3 and 3.0 is not. That distinction
+ * is invisible until something trips it — `spdx-exceptions` is CC-BY-3.0 and
+ * reaches the production tree of a Gatsby site through
+ * gatsby-plugin-robots-txt, five levels down.
+ */
 const COMPATIBLE = new Set([
   "MIT", "MIT-0", "ISC", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause",
   "0BSD", "Unlicense", "CC0-1.0", "MPL-2.0", "Zlib", "Python-2.0",
@@ -80,9 +88,17 @@ if (unknown.length) {
   }
 }
 
-console.log(
-  blocked.length
-    ? `\nBLOCKED — not GPL-3.0 compatible:\n${blocked.map(([n, l]) => `  ${n} (${l})`).join("\n")}`
-    : "\nnothing blocks a move to GPL-3.0."
-);
+if (blocked.length) {
+  console.log(`\nBLOCKED — not GPL-3.0 compatible:`);
+  for (const [n, l] of blocked) console.log(`  ${n} (${l})`);
+  console.log(
+    "\nCheck whether each is genuinely in the production tree before treating\n" +
+      "it as fatal: `npm ls <name> --omit=dev`. Build tooling that is never\n" +
+      "linked into the shipped program is a weaker conflict than a library —\n" +
+      "but weaker is not none, and the call is a licensing one, not a technical\n" +
+      "one."
+  );
+} else {
+  console.log("\nnothing blocks a move to GPL-3.0.");
+}
 process.exit(blocked.length ? 1 : 0);
