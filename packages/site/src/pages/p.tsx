@@ -23,6 +23,13 @@ import { BlocklyEditor } from "../components/BlocklyEditor";
 import { D2View } from "../components/D2View";
 import { RadarChart } from "../components/RadarChart";
 import { useModel } from "../hooks/useModel";
+import { useProject } from "../hooks/useProject";
+import { ProductSettings } from "../components/ProductSettings";
+import { loadDocument } from "../lib/data";
+import { MarkdownImport } from "../components/MarkdownImport";
+import { Documents } from "../components/Documents";
+import { ExportTools } from "../components/ExportTools";
+import { useSession } from "../components/AuthGate";
 
 type Tab =
   | "roadmap"
@@ -32,7 +39,10 @@ type Tab =
   | "domains"
   | "blueprint"
   | "orgs"
-  | "blocks";
+  | "blocks"
+  | "documents"
+  | "import"
+  | "export";
 
 /**
  * URL section to tab. `model` is kept as an alias for `domains`: the screen
@@ -50,6 +60,9 @@ const SECTIONS: Record<string, Tab> = {
   blueprint: "blueprint",
   orgs: "orgs",
   blocks: "blocks",
+  documents: "documents",
+  import: "import",
+  export: "export",
 };
 
 /**
@@ -76,29 +89,87 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
     reload,
   } = useModel(slug ?? "");
 
+  const { project, loading: projectLoading, setProject } = useProject(slug ?? "");
+  const session = useSession();
+
+  // What a reader is shown wherever the product is named — the page
+  // title, the rail, and every diagram title. ADR-0009.
+  const heading = project?.name ?? (projectLoading ? "…" : (slug ?? ""));
+
+  /** Screens that hold records rather than the model, and want none of its chrome. */
+  const records = tab === "documents" || tab === "export";
+
+  // Import can be opened against a stored document: /p/<id>/import/?doc=<docId>.
+  // Documents links here, which is the path that did not exist before —
+  // annotating a stored document meant pasting it back in by hand.
+  const requestedDoc =
+    typeof location.search === "string"
+      ? new URLSearchParams(location.search).get("doc")
+      : null;
+  const [docSource, setDocSource] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (!slug || !requestedDoc) {
+      setDocSource(undefined);
+      return;
+    }
+    let live = true;
+    // The working copy if there is one, the source if not: annotation is
+    // iterative, and reopening should not discard the last pass.
+    loadDocument(slug, requestedDoc, "annotated")
+      .then(({ markdown }) =>
+        markdown !== null ? markdown : loadDocument(slug, requestedDoc, "source").then((r) => r.markdown)
+      )
+      .then((markdown) => live && setDocSource(markdown ?? undefined))
+      .catch(() => live && setDocSource(undefined));
+    return () => {
+      live = false;
+    };
+  }, [slug, requestedDoc]);
+
   if (!slug) {
     return (
       <Shell>
-        <h1>No project selected</h1>
+        <h1>No product selected</h1>
         <p>
-          <a href="/">Back to projects</a>
+          <a href="/">Back to products</a>
         </p>
       </Shell>
     );
   }
 
   return (
-    <Shell project={{ slug, active: tab }}>
-      <h1>{slug}</h1>
+    <Shell project={{ slug, name: project?.name, active: tab }}>
+      {/* The name, never the id. Under ADR-0009 the id in the URL is
+          opaque, so titling the page with it would say nothing a reader can
+          use. It is still the fallback when the row cannot be read, because a
+          wrong-looking title beats no title at all. */}
+      <h1>{heading}</h1>
+      {project?.description && (
+        <p className="bp-product__blurb">{project.description}</p>
+      )}
+      {project && session.isAdmin && (
+        <ProductSettings project={project} onRenamed={setProject} />
+      )}
 
-      {error && (
+      {error && !records && (
         <p className="bp-error" role="alert">
           {error}
         </p>
       )}
-      {loading && <p className="bp-muted">Loading model…</p>}
+      {loading && !records && <p className="bp-muted">Loading model…</p>}
 
-      {model && (
+      {/* Outside the model gate on purpose. A product created this morning has
+          no blueprint yet, and the report that will become one has to be able
+          to land somewhere before there is anything to import it into.
+
+          The model's own chrome is withheld here for the same reason: these
+          screens do not touch the model, and a Save button under a list of
+          documents invites the reading that the documents are what it saves. */}
+      {tab === "documents" && <Documents slug={slug} />}
+      {tab === "export" && <ExportTools slug={slug} name={heading} />}
+
+      {model && !records && (
         <>
           <SaveBar
             dirty={dirty}
@@ -112,14 +183,26 @@ const ProjectPage: React.FC<PageProps> = ({ location }) => {
 
           {tab === "roadmap" && (
             <>
-              <Roadmap model={model} slug={slug} />
+              <Roadmap model={model} slug={slug} title={heading} />
               <h2>Edit</h2>
               <RoadmapEditor model={model} onChange={update} />
+            </>
+          )}
+          {tab === "import" && (
+            <>
+              <MarkdownImport
+                model={model}
+                onChange={update}
+                slug={slug}
+                documentId={requestedDoc ?? undefined}
+                initialSource={docSource}
+              />
               <GanttImport model={model} onChange={update} />
             </>
           )}
-          {tab === "releases" && <Releases model={model} slug={slug} />}
-          {tab === "views" && <Views model={model} />}
+
+          {tab === "releases" && <Releases model={model} slug={slug} title={heading} />}
+          {tab === "views" && <Views model={model} title={heading} />}
           {tab === "radar" && (
             <>
               <p className="bp-lede">
@@ -222,12 +305,21 @@ function Findings({
   );
 }
 
-function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
+function Roadmap({
+  model,
+  slug,
+  title,
+}: {
+  model: AbModel;
+  /** Opaque id (ADR-0009) — for the DOM id only, never for a label. */
+  slug: string;
+  title: string;
+}) {
   // Regenerated on every model change, so the Gantt is a view of the graph
   // rather than a stored artefact that can drift from it.
   const script = React.useMemo(
-    () => toMermaidGantt(model, { title: slug }),
-    [model, slug]
+    () => toMermaidGantt(model, { title }),
+    [model, title]
   );
   return (
     <>
@@ -255,10 +347,19 @@ function Roadmap({ model, slug }: { model: AbModel; slug: string }) {
  * change" — and an engineer reads a branch-and-merge picture faster than a
  * list of realization relationships.
  */
-function Releases({ model, slug }: { model: AbModel; slug: string }) {
+function Releases({
+  model,
+  slug,
+  title,
+}: {
+  model: AbModel;
+  /** Opaque id (ADR-0009) — for the DOM id only, never for a label. */
+  slug: string;
+  title: string;
+}) {
   const script = React.useMemo(
-    () => toMermaidGitgraph(model, { title: slug }),
-    [model, slug]
+    () => toMermaidGitgraph(model, { title }),
+    [model, title]
   );
 
   const plateaus = model.elements.filter((e) => e.type === "Plateau").length;
@@ -266,7 +367,7 @@ function Releases({ model, slug }: { model: AbModel; slug: string }) {
   if (plateaus === 0) {
     return (
       <div className="bp-empty">
-        <p>This project has no plateaus.</p>
+        <p>This product has no plateaus.</p>
         <p className="bp-muted">
           A plateau is a stable, frozen baseline — the state the architecture
           reaches when a batch of work lands. Add one on the Roadmap tab and
@@ -295,7 +396,7 @@ function Releases({ model, slug }: { model: AbModel; slug: string }) {
   );
 }
 
-function Views({ model }: { model: AbModel }) {
+function Views({ model, title }: { model: AbModel; title: string }) {
   const [domains, setDomains] = React.useState<LayerId[] | null>(null);
   /** Element to centre the structure view on, or null for the whole model. */
   const [focus, setFocus] = React.useState<string>("");
@@ -308,6 +409,8 @@ function Views({ model }: { model: AbModel }) {
    * WASM compiles, and a page you scroll past half of.
    */
   const [kind, setKind] = React.useState<"structure" | "behaviour">("structure");
+  /** Which flow the sequence draws. Empty means every flow in the model. */
+  const [flow, setFlow] = React.useState("");
 
   const present = React.useMemo(() => {
     const seen = new Set<LayerId>();
@@ -330,13 +433,32 @@ function Views({ model }: { model: AbModel }) {
   }, [model, focus, depth]);
 
   const d2 = React.useMemo(
-    () => toD2(shown, { title: shown.projectSlug, domains: selected }),
-    [shown, selected]
+    () => toD2(shown, { title, domains: selected }),
+    [shown, selected, title]
   );
   const sequence = React.useMemo(
-    () => toMermaidSequence(model, { title: model.projectSlug }),
-    [model]
+    () => toMermaidSequence(model, { title, from: flow || undefined }),
+    [model, flow, title]
   );
+
+  /**
+   * Behaviours that start something — the sensible places to begin reading.
+   *
+   * A product's ABox holds more than one flow once it documents both a roadmap
+   * and a runtime sequence, and drawing them together is unreadable. These are
+   * the entry points: a behaviour that triggers something and is triggered by
+   * nothing.
+   */
+  const starts = React.useMemo(() => {
+    const triggers = model.relationships.filter(
+      (r) => r.type === "triggering" || r.type === "flow"
+    );
+    const sources = new Set(triggers.map((r) => r.source));
+    const targets = new Set(triggers.map((r) => r.target));
+    return model.elements
+      .filter((e) => sources.has(e.id) && !targets.has(e.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [model]);
 
   const toggle = (layer: LayerId) =>
     setDomains((current) => {
@@ -455,6 +577,28 @@ function Views({ model }: { model: AbModel }) {
             assignment relationship — ArchiMate already records who performs
             each step, which is why this can be derived rather than drawn.
           </p>
+
+          {starts.length > 1 && (
+            <div className="bp-focus">
+              <label className="bp-field">
+                <span>Start from</span>
+                <select value={flow} onChange={(e) => setFlow(e.target.value)}>
+                  <option value="">Every flow in this product</option>
+                  {starts.map((el) => (
+                    <option key={el.id} value={el.id}>
+                      {el.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="bp-muted bp-focus__count">
+                {flow
+                  ? "Only what this step reaches is drawn."
+                  : `${starts.length} flows begin in this model. Drawing them together is rarely readable.`}
+              </p>
+            </div>
+          )}
+
           <DiagramViewport>
             <MermaidView script={sequence} id={`seq-${model.projectSlug}`} />
           </DiagramViewport>
@@ -493,4 +637,4 @@ function Blocks({
 
 export default ProjectPage;
 
-export const Head: HeadFC = () => <title>Project — D-LAB-5 Blueprinting</title>;
+export const Head: HeadFC = () => <title>Product — D-LAB-5 Blueprinting</title>;

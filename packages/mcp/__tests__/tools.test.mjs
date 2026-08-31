@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { ALL_TOOLS, METAMODEL_TOOLS, MODEL_TOOLS } from "../dist/tools.js";
+import { DIAGRAM_TOOLS, ALL_TOOLS, METAMODEL_TOOLS, MODEL_TOOLS } from "../dist/tools.js";
+import { describeForScaffold } from "../dist/sapDiagrams.js";
 
 /**
  * The metamodel tools need no backend and no credentials, which is exactly
@@ -24,7 +25,13 @@ test("every tool is named, described and schema'd", () => {
     assert.equal(typeof tool.run, "function");
   }
   assert.equal(new Set(ALL_TOOLS.map((t) => t.name)).size, ALL_TOOLS.length);
-  assert.equal(ALL_TOOLS.length, METAMODEL_TOOLS.length + MODEL_TOOLS.length);
+  // Three groups now: needs nothing, needs the draw.io toolchain, needs a
+  // backend. This assertion exists so a tool cannot be added to ALL_TOOLS
+  // without landing in exactly one of them.
+  assert.equal(
+    ALL_TOOLS.length,
+    METAMODEL_TOOLS.length + DIAGRAM_TOOLS.length + MODEL_TOOLS.length
+  );
 });
 
 test("metamodel tools need no backend", async () => {
@@ -154,4 +161,103 @@ test("model tools refuse clearly when there is no backend", async () => {
       `${tool.name} should say it is not connected`
     );
   }
+});
+
+test("diagram tools need the toolchain, not a backend", async () => {
+  // Nothing has called connect(), and these must not care. What they do need
+  // is the vendored scripts — and when those are absent the refusal has to say
+  // how to get them, because "not installed" with no instruction is a dead end.
+  const previous = process.env.BP_SAP_DIAGRAM_SCRIPTS;
+  process.env.BP_SAP_DIAGRAM_SCRIPTS = "/nonexistent-on-purpose";
+  try {
+    for (const tool of DIAGRAM_TOOLS) {
+      await assert.rejects(
+        () => tool.run({ file: "x.drawio", out: "y.drawio", description: "a" }),
+        /setup-sap-diagrams|BP_SAP_DIAGRAM_SCRIPTS/,
+        `${tool.name} should say how to install the toolchain`
+      );
+    }
+  } finally {
+    if (previous === undefined) delete process.env.BP_SAP_DIAGRAM_SCRIPTS;
+    else process.env.BP_SAP_DIAGRAM_SCRIPTS = previous;
+  }
+});
+
+test("a diagram tool with no path refuses instead of writing to 'undefined'", async () => {
+  // String(undefined) is "undefined", which is a valid filename — so a missing
+  // argument once wrote a 387 kB diagram to a file called `undefined` and it
+  // turned up staged for commit. The refusal has to come before the toolchain
+  // check, or this passes for the wrong reason on a machine without it.
+  const previous = process.env.BP_SAP_DIAGRAM_SCRIPTS;
+  delete process.env.BP_SAP_DIAGRAM_SCRIPTS;
+  try {
+    for (const tool of DIAGRAM_TOOLS) {
+      await assert.rejects(
+        () => tool.run({ description: "an architecture" }),
+        /required|not installed/,
+        `${tool.name} should refuse a missing path`
+      );
+    }
+  } finally {
+    if (previous !== undefined) process.env.BP_SAP_DIAGRAM_SCRIPTS = previous;
+  }
+});
+
+/* -- the description the scaffolder ranks templates against ---------------- */
+
+const sapModel = {
+  projectSlug: "sap-test",
+  elements: [
+    { id: "ecc", type: "SystemSoftware", name: "SAP ECC 6.0", properties: {} },
+    { id: "db2", type: "SystemSoftware", name: "IBM Db2", properties: {} },
+    { id: "svc", type: "TechnologyService", name: "ZS2 runtime", properties: {} },
+    { id: "vm1", type: "Node", name: "App server 1", properties: {} },
+    { id: "goal", type: "Goal", name: "Reduce cost", properties: {} },
+    { id: "wp", type: "WorkPackage", name: "Phase A", properties: {} },
+  ],
+  relationships: [
+    { id: "a", type: "assignment", source: "vm1", target: "svc", properties: {} },
+    { id: "b", type: "association", source: "ecc", target: "db2", properties: {} },
+  ],
+};
+
+test("the scaffold description is drawn from what a solution diagram shows", () => {
+  const out = describeForScaffold(sapModel);
+  for (const name of ["SAP ECC 6.0", "IBM Db2", "ZS2 runtime", "App server 1"]) {
+    assert.ok(out.includes(name), `${name} should be described`);
+  }
+  // Motivation and implementation elements say why and when, not what is
+  // deployed. Including them skews the template match towards the wrong
+  // references, which is the whole thing this selection exists to avoid.
+  assert.ok(!out.includes("Reduce cost"), "a Goal is not on a solution diagram");
+  assert.ok(!out.includes("Phase A"), "a WorkPackage is not on a solution diagram");
+});
+
+test("it carries relationships, so the ranking sees structure and not only nouns", () => {
+  const out = describeForScaffold(sapModel);
+  assert.match(out, /App server 1 assignment ZS2 runtime/);
+});
+
+test("the limit is honoured, so a large model does not become a wall of nouns", () => {
+  const all = ["SAP ECC 6.0", "IBM Db2", "ZS2 runtime", "App server 1"];
+  const two = describeForScaffold(sapModel, { limit: 2 });
+  assert.equal(
+    all.filter((n) => two.includes(n)).length,
+    2,
+    `expected two of the four drawable elements, got: ${two}`
+  );
+  const four = describeForScaffold(sapModel, { limit: 4 });
+  assert.equal(all.filter((n) => four.includes(n)).length, 4);
+});
+
+test("a model with nothing to draw refuses, and says what is missing", () => {
+  assert.throws(
+    () =>
+      describeForScaffold({
+        projectSlug: "roadmap-only",
+        elements: [{ id: "wp", type: "WorkPackage", name: "Phase A", properties: {} }],
+        relationships: [],
+      }),
+    /nothing a solution diagram is drawn from/
+  );
 });

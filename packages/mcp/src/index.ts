@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { connect } from "./backend.js";
-import { ALL_TOOLS, METAMODEL_TOOLS } from "./tools.js";
+import { ALL_TOOLS, DIAGRAM_TOOLS, METAMODEL_TOOLS } from "./tools.js";
 
 /**
  * An MCP server over an ArchiMate model.
@@ -26,6 +26,19 @@ import { ALL_TOOLS, METAMODEL_TOOLS } from "./tools.js";
  *                          starts and serves the metamodel tools, which need
  *                          no backend at all — useful for asking ArchiMate
  *                          questions with no project to hand.
+ *   BP_API_KEY             An API key, with BP_USER naming the account it
+ *                          belongs to. Read-only unless BP_API_KEY_WRITE=1,
+ *                          which selects the write app client and which a
+ *                          read-only key is refused on. Preferred over the two
+ *                          below: keys are named, listed, revoked one at a
+ *                          time, and expire. ADR-0012.
+ *   BP_REFRESH_TOKEN       A Cognito refresh token, for a server running where
+ *                          nobody can type a password. Takes precedence over
+ *                          the pair above. It carries the user's own identity
+ *                          and groups, so every authorization check behaves as
+ *                          it does in the app — but it IS the account for
+ *                          thirty days, not a scoped key. Revoke with Cognito's
+ *                          RevokeToken, or by signing out of the app.
  *   BP_OUTPUTS             Path to amplify_outputs.json. Defaults to
  *                          backend/amplify_outputs.json relative to the repo.
  *
@@ -40,17 +53,20 @@ async function main() {
   );
   const username = process.env.BP_USER;
   const password = process.env.BP_PASSWORD;
+  const refreshToken = process.env.BP_REFRESH_TOKEN;
+  const apiKey = process.env.BP_API_KEY;
 
   let connected = false;
   let reason = "";
 
-  if (!username || !password) {
-    reason = "BP_USER and BP_PASSWORD are not set";
+  if (!apiKey && !refreshToken && (!username || !password)) {
+    reason =
+      "none of BP_API_KEY, BP_REFRESH_TOKEN or BP_USER/BP_PASSWORD are set";
   } else if (!existsSync(outputsPath)) {
     reason = `no amplify_outputs.json at ${outputsPath}`;
   } else {
     try {
-      await connect({ outputsPath, username, password });
+      await connect({ outputsPath, username, password, refreshToken, apiKey });
       connected = true;
     } catch (err) {
       reason = err instanceof Error ? err.message : String(err);
@@ -61,18 +77,21 @@ async function main() {
   // asking "can a Work Package realize a Deliverable?" needs no credentials,
   // and a server that refuses to start over a missing password would take
   // that away too.
-  const tools = connected ? ALL_TOOLS : METAMODEL_TOOLS;
+  // The diagram tools need the vendored scripts, not credentials, so they are
+  // served either way. Without the scripts they refuse with an instruction.
+  const tools = connected ? ALL_TOOLS : [...METAMODEL_TOOLS, ...DIAGRAM_TOOLS];
 
   // stdout is the protocol channel; anything written there that is not JSON-RPC
   // corrupts the session. Diagnostics go to stderr.
   if (!connected) {
     console.error(
       `[archimate-mcp] not connected to a backend (${reason}). ` +
-        `Serving ${tools.length} metamodel tools only.`
+        `Serving ${tools.length} tools that need no backend.`
     );
   } else {
     console.error(
-      `[archimate-mcp] connected as ${username}. Serving ${tools.length} tools.`
+      `[archimate-mcp] connected as ${username ?? "a refresh token"}. ` +
+        `Serving ${tools.length} tools.`
     );
   }
 

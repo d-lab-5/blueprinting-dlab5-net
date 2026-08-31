@@ -2,6 +2,7 @@ import * as React from "react";
 import { toRadar, toRadarLayout, validateRadar } from "@dlab5/blueprint-core";
 import type { AbModel, RadarBlip } from "@dlab5/blueprint-core";
 import { ELEMENTS } from "@dlab5/archimate-metamodel";
+import { DiagramViewport } from "./DiagramViewport";
 
 /**
  * The Technology Radar, drawn from the model.
@@ -17,6 +18,18 @@ import { ELEMENTS } from "@dlab5/archimate-metamodel";
  */
 
 const SIZE = 620;
+/**
+ * Horizontal room for the quadrant labels.
+ *
+ * A quadrant's label sits just outside the rim at the middle of its sector.
+ * With four quadrants those middles fall on the diagonals and everything fits;
+ * with TWO they fall at due left and due right, and the labels ran off the
+ * edge of a square viewBox — "Platforms" rendering as "Pla". The box is wider
+ * than it is tall so a label at either extreme has somewhere to go.
+ */
+const SIDE_ROOM = 90;
+const WIDTH = SIZE + SIDE_ROOM * 2;
+const CX = WIDTH / 2;
 const CENTRE = SIZE / 2;
 /** Leaves room for blip labels at the rim. */
 const RADIUS = CENTRE - 34;
@@ -38,7 +51,7 @@ const RING_COLOUR: Record<string, string> = {
 };
 
 const toSvg = (x: number, y: number) => ({
-  cx: CENTRE + x * RADIUS,
+  cx: CX + x * RADIUS,
   cy: CENTRE + y * RADIUS,
 });
 
@@ -50,7 +63,7 @@ function sectorArc(
   outer: number
 ): string {
   const point = (angle: number, r: number) => [
-    CENTRE + Math.sin(angle) * r * RADIUS,
+    CX + Math.sin(angle) * r * RADIUS,
     CENTRE - Math.cos(angle) * r * RADIUS,
   ];
   const [x1, y1] = point(startAngle, outer);
@@ -67,14 +80,55 @@ function sectorArc(
   ].join(" ");
 }
 
+const RINGS = ["adopt", "trial", "assess", "hold"] as const;
+
 export function RadarChart({ model }: { model: AbModel }) {
   const [selected, setSelected] = React.useState<RadarBlip | null>(null);
+  const [rings, setRings] = React.useState<Set<string>>(new Set(RINGS));
+  const [hidden, setHidden] = React.useState<Set<string>>(new Set());
+  const [needle, setNeedle] = React.useState("");
 
-  const quadrants = React.useMemo(() => toRadar(model), [model]);
+  const all = React.useMemo(() => toRadar(model), [model]);
+
+  /**
+   * Filtering removes blips, never sectors or rings.
+   *
+   * A radar whose shape changes as you filter is disorienting: the whole point
+   * of the figure is that a given position means the same thing every time.
+   * So every quadrant keeps its sector and every ring its band, and what
+   * changes is which entries are drawn in them.
+   */
+  const quadrants = React.useMemo(() => {
+    const search = needle.trim().toLowerCase();
+    return all.map((q) => ({
+      ...q,
+      entries: hidden.has(q.id)
+        ? []
+        : q.entries.filter(
+            (e) =>
+              rings.has(e.ring) &&
+              (!search || e.label.toLowerCase().includes(search))
+          ),
+    }));
+  }, [all, rings, hidden, needle]);
+
+  const total = React.useMemo(
+    () => all.reduce((n, q) => n + q.entries.length, 0),
+    [all]
+  );
+  const shown = quadrants.reduce((n, q) => n + q.entries.length, 0);
+
   const layout = React.useMemo(() => toRadarLayout(quadrants), [quadrants]);
   const findings = React.useMemo(() => validateRadar(model), [model]);
 
-  if (layout.blips.length === 0) {
+  const toggle = (set: Set<string>, value: string, next: (s: Set<string>) => void) => {
+    const copy = new Set(set);
+    if (copy.has(value)) copy.delete(value);
+    else copy.add(value);
+    next(copy);
+  };
+
+  if (total === 0) {
     return (
       <div className="bp-empty">
         <p>Nothing on the radar yet.</p>
@@ -90,9 +144,65 @@ export function RadarChart({ model }: { model: AbModel }) {
 
   return (
     <div className="bp-radar">
+      <div className="bp-radar__filters">
+        <div className="bp-radar__filterrow" role="group" aria-label="Rings shown">
+          {RINGS.map((ring) => (
+            <button
+              key={ring}
+              type="button"
+              className={`bp-chip${rings.has(ring) ? " bp-chip--on" : ""}`}
+              aria-pressed={rings.has(ring)}
+              onClick={() => toggle(rings, ring, setRings)}
+            >
+              <span
+                className="bp-radar__dot"
+                style={{ background: RING_COLOUR[ring] }}
+                aria-hidden="true"
+              />
+              {ring}
+            </button>
+          ))}
+        </div>
+
+        <div className="bp-radar__filterrow" role="group" aria-label="Quadrants shown">
+          {all.map((q) => (
+            <button
+              key={q.id}
+              type="button"
+              className={`bp-chip${hidden.has(q.id) ? "" : " bp-chip--on"}`}
+              aria-pressed={!hidden.has(q.id)}
+              onClick={() => toggle(hidden, q.id, setHidden)}
+            >
+              {q.name}
+              <span className="bp-radar__num">{q.entries.length}</span>
+            </button>
+          ))}
+        </div>
+
+        <label className="bp-field bp-radar__search">
+          <span>Find</span>
+          <input
+            type="search"
+            value={needle}
+            placeholder="name contains…"
+            onChange={(e) => setNeedle(e.target.value)}
+          />
+        </label>
+
+        <p className="bp-muted bp-radar__count">
+          {shown === total
+            ? `${total} entr${total === 1 ? "y" : "ies"}`
+            : `${shown} of ${total} shown`}
+        </p>
+      </div>
+
       <div className="bp-radar__chart">
+        {/* The same viewport the other diagrams use, so zoom, fit, scroll and
+            full screen behave identically here. A radar with forty entries is
+            exactly the case full screen exists for. */}
+        <DiagramViewport>
         <svg
-          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          viewBox={`0 0 ${WIDTH} ${SIZE}`}
           role="img"
           aria-label={`Technology radar with ${layout.blips.length} entries`}
         >
@@ -126,7 +236,7 @@ export function RadarChart({ model }: { model: AbModel }) {
             return (
               <text
                 key={ring}
-                x={CENTRE}
+                x={CX}
                 y={CENTRE - mid}
                 textAnchor="middle"
                 className="bp-radar__ringlabel"
@@ -141,7 +251,7 @@ export function RadarChart({ model }: { model: AbModel }) {
           {layout.sectors.map((sector) => {
             const mid = (sector.startAngle + sector.endAngle) / 2;
             const r = RADIUS + 18;
-            const x = CENTRE + Math.sin(mid) * r;
+            const x = CX + Math.sin(mid) * r;
             const y = CENTRE - Math.cos(mid) * r;
             return (
               <text
@@ -175,6 +285,16 @@ export function RadarChart({ model }: { model: AbModel }) {
                 }}
                 aria-label={`${blip.label}, ${blip.ring}, ${blip.quadrant}`}
               >
+                {/* A blip is a number until you hover it. The title carries
+                    what the side list would tell you, so the chart can be read
+                    without clicking through every point. */}
+                <title>
+                  {`${blip.number}. ${blip.label}\n${blip.ring.toUpperCase()} · ${blip.quadrant} · ${
+                    ELEMENTS[blip.type].label
+                  }${blip.moved !== "none" ? `\nmoved ${blip.moved}` : ""}${
+                    blip.description ? `\n\n${blip.description}` : ""
+                  }`}
+                </title>
                 {/* Movement is drawn as a triangle, as Thoughtworks does:
                     a blip that has moved says more than one that has not. */}
                 {blip.moved === "none" ? (
@@ -207,9 +327,16 @@ export function RadarChart({ model }: { model: AbModel }) {
             );
           })}
         </svg>
+        </DiagramViewport>
       </div>
 
       <div className="bp-radar__side">
+        {shown === 0 && (
+          <p className="bp-muted">
+            Nothing matches. The rings and quadrants are still drawn, so the
+            shape stays comparable — it is the entries that are filtered out.
+          </p>
+        )}
         {selected ? (
           <div className="bp-radar__detail">
             <h3>

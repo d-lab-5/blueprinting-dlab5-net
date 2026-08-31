@@ -1,12 +1,17 @@
 import * as React from "react";
-import { slugifyId } from "@dlab5/blueprint-core";
+import { mintProductId } from "@dlab5/blueprint-core";
 import { createProject } from "../lib/data";
 import type { Project } from "../lib/data";
 
 /**
- * Creating a project is an administrative act, because it creates a Cognito
+ * Creating a product is an administrative act, because it creates a Cognito
  * group as well as a row. The button is hidden for non-admins for tidiness;
  * the actual check is in the Lambda.
+ *
+ * There is no slug field any more. The id is minted (ADR-0009) rather than
+ * derived from the name, so that renaming later is free — a derived id becomes
+ * a lie the moment the product is renamed, and it cannot be corrected because
+ * it is the DynamoDB partition key.
  */
 export function NewProjectForm({
   onCreated,
@@ -15,16 +20,22 @@ export function NewProjectForm({
 }) {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [slug, setSlug] = React.useState("");
-  const [slugTouched, setSlugTouched] = React.useState(false);
   const [description, setDescription] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // The slug follows the name until someone edits it, then stops — surprising
-  // a user by rewriting a slug they deliberately chose is worse than making
-  // them type it.
-  const effectiveSlug = slugTouched ? slug : slugifyId(name);
+  // Minted once per opening of the form, not per keystroke and not inside
+  // submit(): the hint below shows the Cognito group this will create, and a
+  // group name that changed while you read it would be worse than useless.
+  const [id, setId] = React.useState(mintProductId);
+
+  function close() {
+    setOpen(false);
+    setName("");
+    setDescription("");
+    setError(null);
+    setId(mintProductId());
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -32,16 +43,12 @@ export function NewProjectForm({
     setError(null);
     try {
       const project = await createProject({
-        slug: effectiveSlug,
+        slug: id,
         name: name.trim(),
         description: description.trim() || undefined,
       });
       onCreated(project);
-      setOpen(false);
-      setName("");
-      setSlug("");
-      setSlugTouched(false);
-      setDescription("");
+      close();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -56,14 +63,14 @@ export function NewProjectForm({
         className="bp-button bp-newproject__open"
         onClick={() => setOpen(true)}
       >
-        New project
+        New product
       </button>
     );
   }
 
   return (
     <form className="bp-newproject" onSubmit={submit}>
-      <h2>New project</h2>
+      <h2>New product</h2>
 
       <label className="bp-field">
         <span>Name</span>
@@ -72,19 +79,6 @@ export function NewProjectForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="SAP ECC Upgrade"
-          required
-        />
-      </label>
-
-      <label className="bp-field">
-        <span>Slug</span>
-        <input
-          value={effectiveSlug}
-          onChange={(e) => {
-            setSlugTouched(true);
-            setSlug(slugifyId(e.target.value));
-          }}
-          pattern="[a-z0-9][a-z0-9-]{1,48}[a-z0-9]"
           required
         />
       </label>
@@ -99,9 +93,14 @@ export function NewProjectForm({
       </label>
 
       <p className="bp-muted bp-editor__hint">
-        This also creates the Cognito group <code>bp-{effectiveSlug || "…"}</code>{" "}
-        and adds you to it. Everyone else who needs the project has to be added
-        to that group.
+        The name and description can be changed later. The id <code>{id}</code>{" "}
+        cannot — it is what the model, the storage and the permissions are keyed
+        on, so it is deliberately meaningless.
+      </p>
+
+      <p className="bp-muted bp-editor__hint">
+        This also creates the Cognito group <code>bp-{id}</code> and adds you to
+        it. Everyone else who needs the product has to be added to that group.
       </p>
 
       {error && (
@@ -112,12 +111,12 @@ export function NewProjectForm({
 
       <div className="bp-newproject__actions">
         <button className="bp-button" type="submit" disabled={busy || !name}>
-          {busy ? "Creating…" : "Create project"}
+          {busy ? "Creating…" : "Create product"}
         </button>
         <button
           type="button"
           className="bp-linkbutton"
-          onClick={() => setOpen(false)}
+          onClick={close}
           disabled={busy}
         >
           Cancel

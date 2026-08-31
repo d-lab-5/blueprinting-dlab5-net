@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import { z } from "zod";
 import {
   CONVENTIONS,
@@ -26,6 +28,7 @@ import {
 import type { AbModel } from "@dlab5/blueprint-core";
 import { toOpenExchange } from "@dlab5/archimate-exchange";
 import * as backend from "./backend.js";
+import * as sap from "./sapDiagrams.js";
 
 /**
  * The tools an agent gets.
@@ -550,6 +553,247 @@ const exportOef: Tool = {
   },
 };
 
+/* -- SAP draw.io diagrams ---------------------------------------------------- */
+
+/**
+ * The repository root, from this file's location in dist/.
+ *
+ * The same shape index.ts uses to find amplify_outputs.json, and overridable
+ * for the same reason: an installed server may not sit in the repository.
+ */
+const repoRoot = () => resolve(import.meta.dirname, "../../..");
+
+function requireScripts(): string {
+  const dir = sap.scriptsDir(repoRoot());
+  if (!dir) throw new sap.NotInstalledError();
+  return dir;
+}
+
+/**
+ * What to say about a file that is still the template.
+ *
+ * Immediately after scaffolding it always is, and score_corpus.py then reports
+ * 100/100 against that same template — the highest score available. Read alone
+ * that looks like success; it means the opposite, so it is said plainly.
+ */
+const UNEDITED =
+  "This file is currently a byte-for-byte copy of the reference template and " +
+  "contains NONE of the model's content. It will score 100/100 against that " +
+  "template for exactly that reason, so the score means nothing yet. Open it " +
+  "in draw.io, relabel the service cards from the elements listed above, and " +
+  "adjust the connectors. Only then is a score worth reading.";
+
+/** Every diagram tool carries this, because none of them is a whole diagram. */
+const NOT_FINISHED =
+  "This scaffolds a diagram from a reference template; it does not finish " +
+  "one. The upstream is explicit that roughly two thirds need 10-20 minutes " +
+  "of editing in draw.io desktop before they reach the quality gate.";
+
+const sapDiagramScaffold: Tool = {
+  name: "sap_diagram_scaffold",
+  description:
+    "Picks the closest SAP reference template for a described architecture and " +
+    "copies it to a .drawio file. " + NOT_FINISHED,
+  schema: {
+    description: z.string().describe("The architecture, in plain English."),
+    out: z.string().describe("Where to write the .drawio file."),
+    template: z.string().optional().describe("Force a specific template file."),
+  },
+  run: async ({ description, out, template }) => {
+    const dir = requireScripts();
+    const args = [
+      sap.requirePath(description, "description"),
+      "--out",
+      sap.requirePath(out, "out"),
+      "--json",
+      "--force",
+    ];
+    if (template) args.push("--template", String(template));
+    const scaffolded = JSON.parse(await sap.scaffold(dir, args));
+    return json({
+      scaffold: scaffolded,
+      unedited: sap.isUneditedCopy(String(out), scaffolded.template),
+      next: UNEDITED,
+    });
+  },
+};
+
+/**
+ * The one that earns its place.
+ *
+ * The scaffolder ranks templates against a description, so the description
+ * decides the outcome — and a description typed from memory is where a model
+ * loses things. This writes the description from the model instead.
+ */
+const sapDiagramFromModel: Tool = {
+  name: "sap_diagram_from_model",
+  description:
+    "Scaffolds an SAP diagram from a product's ArchiMate model rather than " +
+    "from a typed description: the components, technology services and their " +
+    "relationships are read from the model and used to choose the template. " +
+    NOT_FINISHED,
+  schema: {
+    project: z.string(),
+    out: z.string().describe("Where to write the .drawio file."),
+    limit: z
+      .number()
+      .optional()
+      .describe("How many elements to describe, most-connected first. Default 24."),
+  },
+  run: async ({ project, out, limit }) => {
+    const dir = requireScripts();
+    const { model } = await backend.loadModel(String(project));
+    const description = sap.describeForScaffold(model, {
+      limit: limit === undefined ? undefined : Number(limit),
+    });
+    const result = await sap.scaffold(dir, [
+      description,
+      "--out",
+      sap.requirePath(out, "out"),
+      "--json",
+      "--force",
+    ]);
+    const scaffolded = JSON.parse(result);
+    const unedited = sap.isUneditedCopy(String(out), scaffolded.template);
+    return json({
+      describedFromModel: description,
+      scaffold: scaffolded,
+      unedited,
+      next: unedited ? UNEDITED : NOT_FINISHED,
+    });
+  },
+};
+
+const sapDiagramValidate: Tool = {
+  name: "sap_diagram_validate",
+  description:
+    "Repairs what can be repaired automatically, then reports what cannot: " +
+    "bent connectors, overflowing labels, off-vocabulary pill verbs, dark " +
+    "backgrounds. Edits the file in place.",
+  schema: { file: z.string() },
+  run: async ({ file }) => {
+    const dir = requireScripts();
+    const target = sap.requirePath(file, "file");
+    const fixed = await sap.autofix(dir, target);
+    const checked = await sap.validate(dir, target);
+    return `${fixed}\n\n${checked}`.trim();
+  },
+};
+
+const sapDiagramScore: Tool = {
+  name: "sap_diagram_score",
+  description:
+    "Scores a diagram against the SAP reference corpus. The gate is 90. The " +
+    "score measures structural style — palette, fonts, zones — and not whether " +
+    "the diagram is correct, which only a person can judge. An UNEDITED " +
+    "scaffold scores 100 against the template it was copied from, so a high " +
+    "score on a file nobody has edited means nothing.",
+  schema: {
+    file: z.string(),
+    min: z.number().optional().describe("Gate to score against. Default 90."),
+  },
+  run: async ({ file, min }) =>
+    sap.score(
+      requireScripts(),
+      sap.requirePath(file, "file"),
+      min === undefined ? 90 : Number(min)
+    ),
+};
+
+/* -- documents -------------------------------------------------------------- */
+
+/**
+ * The documents held for a product, so an agent can find one to annotate.
+ *
+ * Text is deliberately not included: a listing is for choosing, and returning
+ * every document's prose would put a product's whole corpus into the context
+ * window to answer "what is here".
+ */
+const listDocumentsTool: Tool = {
+  name: "list_documents",
+  description:
+    "Source documents held for a product — reports, plans, decision records. " +
+    "Returns titles and classifications, not text. Use get_document for one.",
+  schema: { project: z.string() },
+  run: async ({ project }) =>
+    json(
+      (await backend.listDocuments(String(project))).map((d) => ({
+        docId: d.docId,
+        title: d.title,
+        classification: d.classification,
+        annotated: Boolean(d.annotatedKey),
+        bytes: d.bytes ?? undefined,
+      }))
+    ),
+};
+
+const getDocumentTool: Tool = {
+  name: "get_document",
+  description:
+    "One document's markdown. Returns the annotated working copy if there is " +
+    "one and the original otherwise, so a second pass continues from the " +
+    "first rather than starting again.",
+  schema: {
+    project: z.string(),
+    docId: z.string(),
+    original: z
+      .boolean()
+      .optional()
+      .describe("Read the original as uploaded, ignoring any annotations."),
+  },
+  run: async ({ project, docId, original }) => {
+    const { markdown, classification } = await backend.loadDocument(
+      String(project),
+      String(docId),
+      original ? "source" : "annotated"
+    );
+    if (markdown === null) {
+      throw new RefusedError(
+        `no document "${docId}" in ${project}, or you cannot read it`
+      );
+    }
+    return json({ docId, classification, markdown });
+  },
+};
+
+/**
+ * Stores an annotated working copy.
+ *
+ * This is where an agent's job ends. It annotates; a person reviews the plan
+ * in the Import screen and decides what enters the model. There is deliberately
+ * no tool that writes elements from a document — one would make the preview
+ * decorative, and the preview is the only thing standing between a plausible
+ * misreading and the model.
+ */
+const putDocumentTool: Tool = {
+  name: "put_document",
+  description:
+    "Saves an annotated copy of a document. Annotations are HTML comments — " +
+    "<!-- am element type=Stakeholder id=cfo --> above a heading, and " +
+    "<!-- am rel type=influence from=cfo to=x -->. This does NOT change the " +
+    "model: a person reviews the annotations and imports them. The original " +
+    "is never overwritten. Needs a write-scoped key.",
+  schema: {
+    project: z.string(),
+    docId: z.string(),
+    markdown: z.string(),
+  },
+  run: async ({ project, docId, markdown }) => {
+    const key = await backend.saveAnnotated(
+      String(project),
+      String(docId),
+      String(markdown)
+    );
+    return json({
+      docId,
+      key,
+      note:
+        "Saved as the working copy. Nothing has entered the model — open the " +
+        "product's Import screen to review and apply it.",
+    });
+  },
+};
+
 /* -------------------------------------------------------------------------- */
 
 /** A refusal the agent should act on, as opposed to a fault. */
@@ -577,6 +821,33 @@ export const MODEL_TOOLS: Tool[] = [
   renderRoadmap,
   getRadar,
   exportOef,
+  listDocumentsTool,
+  getDocumentTool,
+  putDocumentTool,
+  // Only this one reads the model. The other three take a file or a
+  // description and are served without credentials, below.
+  sapDiagramFromModel,
 ];
 
-export const ALL_TOOLS: Tool[] = [...METAMODEL_TOOLS, ...MODEL_TOOLS];
+/**
+ * Tools needing the vendored draw.io toolchain, but no backend.
+ *
+ * A third kind, because they are neither of the other two. They take a file or
+ * a description rather than a project, so credentials are irrelevant to them —
+ * but they do need something installed, and when it is not there they say so
+ * rather than being quietly absent from the list.
+ *
+ * `sap_diagram_from_model` is NOT here: it reads a model, so it belongs with
+ * the tools that need a backend.
+ */
+export const DIAGRAM_TOOLS: Tool[] = [
+  sapDiagramScaffold,
+  sapDiagramValidate,
+  sapDiagramScore,
+];
+
+export const ALL_TOOLS: Tool[] = [
+  ...METAMODEL_TOOLS,
+  ...DIAGRAM_TOOLS,
+  ...MODEL_TOOLS,
+];

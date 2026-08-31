@@ -54,13 +54,106 @@ BP_USER=… BP_PASSWORD=… npm run seed                 # the platform's own ro
 BP_USER=… BP_PASSWORD=… npm run export -- --project <slug> [--format ttl|oef]
 
 npm run verify:archi                # round-trip through Archi itself
+
+npm run gen:sap-landscape           # regenerate docs/knowledge/sap-landscape.ttl
+scripts/sync-sap-skills.sh          # refresh the vendored SAP skills
+scripts/setup-sap-diagrams.sh       # the draw.io toolchain, at a pinned commit
+npm run verify:sap-diagrams         # the toolchain end to end; renders if draw.io is installed
+npm run gen:skills-catalog          # regenerate docs/skills-catalog.md
+npm run gen:platform-model          # model this workstation and the pipeline (not committed)
+npm run check:gpl                   # dependency licences, before any relicensing
+
+BP_USER=… BP_PASSWORD=… npm run bundle:export -- --product <id> --out <dir>
+BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-run]
+BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
+BP_USER=… BP_PASSWORD=… npm run verify:documents # the document store, live
+BP_USER=… BP_PASSWORD=… npm run verify:api-keys  # scopes and refusals, live
+
+npm run setup:python                # once: a venv for the MCP client check
+npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
+
+The MCP server takes `BP_USER`/`BP_PASSWORD`, or **`BP_REFRESH_TOKEN`** for a
+server running where nobody can type a password. The refresh token carries the
+user's own identity and groups, so every authorization check downstream behaves
+exactly as it does in the app — but it IS the account for thirty days, not a
+scoped key. Revoke it with Cognito's `RevokeToken`; signing out of the app
+revokes it too, which is worth knowing in both directions.
+
+`verify:mcp-client` is the only thing that exercises the MCP **protocol**.
+Everything else calls `tool.run(args)` directly, which skips the stdio framing,
+the registration and the zod-to-JSON-Schema conversion. It is Python against
+the official SDK deliberately: a second implementation in another language
+cannot share our misunderstandings. Without credentials it verifies the
+degraded, metamodel-only path, which is a feature rather than a lesser run.
 
 `verify:archi` drives a real Archi installation: it imports our Open Exchange
 export, re-exports it, and compares. Schema validity says a document matches
 the XSD; it does not say Archi will open it or that anything survives. Install
 Archi from archimatetool.com — a user-local unpack under `~/opt/Archi` is
 enough — and the check skips cleanly when it is absent.
+
+A **product transfer bundle** is how a product moves between environments and
+how structural changes are made: export, transform the files, reload. Four
+files — `MANIFEST.json`, `product.json`, `model.ttl`, `model.xml` — with the
+Turtle authoritative and the XML re-derived and compared on import. `--reid`
+mints a fresh id, which is how a re-identification happens; DynamoDB cannot
+update a primary key, so there is no in-place path. ADR-0010.
+
+`verify:bundle` exports a real product, imports it under a minted id, exports
+THAT, and compares the Turtle byte for byte. Going back out through S3 is the
+point: an exporter and an importer that agree with each other prove nothing.
+It creates and deletes a scratch product and its Cognito group.
+
+**This repository is GPL-3.0-or-later.** It was MIT until the SAP skills were
+brought in: they are GPL-3.0, which cannot be included in an MIT work, and the
+licence changed rather than the skills being kept out. `NOTICE` lists every
+source. All 1329 dependencies were checked for GPL compatibility first.
+
+The forty SAP skills live in `.claude/skills/` and are committed, each keeping
+its own front matter; `scripts/sync-sap-skills.sh` refreshes them.
+`docs/knowledge/sap-landscape.ttl` was written *from* them rather than copied
+out of them — which SAP products exist is fact, and each element cites the
+skill it was learned from. The draw.io skill is MIT plus Apache-2.0 and is
+fetched rather than vendored: 20 MB is too much to commit, and `vendor/NOTICE`
+records the terms.
+
+`verify:sap-diagrams` covers the toolchain in three layers: the description
+written from a model is unit-tested in `packages/mcp`; the scaffolder,
+validator and scorer are exercised for real; and the diagram is rendered to PNG
+**only if draw.io desktop is installed**, skipping with an explanation when it
+is not — as `verify:archi` does for Archi. That third layer is the one that
+decides whether a diagram is any good, and no assertion can stand in for it.
+
+The diagram tools **scaffold, check and score; they do not finish a diagram**.
+An unedited scaffold is a byte-for-byte copy of an SAP reference template and
+scores 100/100 against it for that reason, so the tools say so outright rather
+than leave a perfect score to be misread.
+
+An **API key** is a Cognito credential, not an API-level one: it authenticates
+through custom auth and yields an ordinary session carrying its owner's groups,
+minus `bp-admins`. So every authorization rule downstream is untouched, and a
+key can never do something its owner could not. Read-only is the default and is
+enforced in three places — the app client the key authenticated against, the
+`bp:scope` claim the five writing Lambdas check, and the group strip that closes
+the generated-mutation route. ADR-0012.
+
+**Never pass an app client id to a function as an environment variable.** The
+clients live in the auth stack, which already references the trigger functions,
+so the reference closes a CloudFormation cycle — ADR-0006, and it cost a build.
+`preTokenGeneration` resolves them by name at runtime instead.
+
+A product also holds **documents** — reports, plans, decision records — beside
+its model. They are evidence about an architecture rather than part of one, so
+they live in S3 under `projects/<id>/documents/` with a `Document` row as the
+index. `classification` decides how far one travels: `shared` goes with the
+model, `confidential` never leaves in an export and comes out only as a local
+download. **Unclassified means confidential** — sharing is a decision someone
+makes. A document whose text matches a credential shape is refused outright,
+and a stored source is never rewritten.
+
+`verify:documents` proves those four promises against a real backend, because
+each of them is something the UI claims and only the Lambda can keep.
 
 `verify:model-store` creates a scratch project, proves the authorization
 boundary and the ETag conflict against real AWS, then deletes it. Both live
@@ -158,6 +251,16 @@ These are things that will bite. Each is load-bearing and has cost someone time.
     `grep -ro "bp-your-class{[^}]*}" packages/site/public/*.css`. More than one
     `styles.*.css` in `public/` is the symptom.
 
+## Before pushing
+
+`.claude/skills/dlab5-git-push/SKILL.md` is the gate: which checks to run for
+what changed, the documentation each kind of change obliges you to update, the
+secret sweep a public repository needs, and the cleanup audit a live check
+needs. It runs **on push, not on every commit** — the checks are slow and some
+are live, and making commits expensive is how commits stop being made.
+
+`docs/skills-catalog.md` lists every skill; regenerate it rather than editing.
+
 ## House conventions
 
 - **TypeScript**, npm workspaces, Node 22 (`.nvmrc`).
@@ -168,6 +271,21 @@ These are things that will bite. Each is load-bearing and has cost someone time.
   choices** — they are the standard pastels Archi uses, so a Blockly block, a
   D2 node and a legend swatch all agree with what a reader sees in Archi.
 - One shell component. The DHC Portal ended up with two and the seam still shows.
+- **A product's id is minted, never derived from its name.** `p-` plus ten
+  characters, from `mintProductId()`. Names change; ids cannot, because the id
+  is the DynamoDB partition key, the Cognito group and the S3 prefix are
+  computed from it, and every IRI in the model embeds it. **Never show an id
+  where a name belongs** — `verify:ui` asserts no product page renders its own
+  id as text. The settings panel is the one exception, and it is asserted too,
+  so that the first assertion cannot pass by the panel failing to render.
+  ADR-0009.
+- **A blueprint belongs to a *Product*, and the code calls it a `Project`.**
+  The interface says Product everywhere a person reads it; the schema, the
+  GraphQL API, the MCP tool names, the `/p/<slug>/` route and the `bp-<slug>`
+  Cognito groups all still say project. That split is deliberate — renaming
+  the data model would be a migration across six live groups and every stored
+  row, for a word. Do not "fix" one side to match the other without doing all
+  of it.
 - Record decisions as ADRs in `docs/adr/`, numbered, with the *consequences*
   section actually filled in.
 - Commits: see the `git-commit` skill. `stage` is the integration branch; `main`

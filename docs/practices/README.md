@@ -42,6 +42,13 @@ offers relations the specification does not, a viewpoint constraining silently
 — and no check can catch them. They are here because the library would be
 dishonest if it only contained what happens to be automatable.
 
+## Where the entries come from
+
+Most cite a published argument. Two do not: the pair under **what belongs on a
+radar** were settled in practice on this platform and are marked as D-LAB-5
+practice rather than dressed up with a citation they do not have. A library
+that pretends every rule came from a book is less trustworthy, not more.
+
 ## Sources, and what may not be copied
 
 Every element carries a `reference` property naming where the argument lives.

@@ -42,6 +42,14 @@ _:p-e-assessment-metamodel-relations-are-between-types-0 a archimate:Property;
 _:p-e-assessment-nesting-without-relations-0 a archimate:Property;
     archimate:propertyKey "reference";
     archimate:propertyValue "ArchiMate to explain SAP — Wim Van Hooste, 2020 (published article)".
+<https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-a-radar-entry-is-the-element-in-use> a archimate:Constraint;
+    archimate:identifier "constraint-a-radar-entry-is-the-element-in-use";
+    archimate:name "The entry is the element the architecture uses, not a copy of it";
+    archimate:documentation "If the radar names a technology, the architecture should show that same element in use — usually as the thing the running instances specialize. Kept apart, the two drift, and a product ends up at ADOPT on the radar while the diagrams quietly use something else.";
+    archimate:hasProperty _:p-e-constraint-a-radar-entry-is-the-element-in-use-0.
+_:p-e-constraint-a-radar-entry-is-the-element-in-use-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "D-LAB-5 practice; enforced by construction, since toRadar reads the model rather than a second list".
 <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-do-not-assert-a-derived-relation> a archimate:Constraint;
     archimate:identifier "constraint-do-not-assert-a-derived-relation";
     archimate:name "A derived relation is implied, not asserted";
@@ -74,6 +82,10 @@ _:p-e-constraint-properties-for-what-cannot-be-modelled-0 a archimate:Property;
     archimate:identifier "practice-reading-the-metamodel";
     archimate:name "Practice: reading the metamodel";
     archimate:documentation "Two pitfalls that are about the modeller rather than the model, so no check can catch them.".
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-what-goes-on-a-radar> a archimate:Grouping;
+    archimate:identifier "practice-what-goes-on-a-radar";
+    archimate:name "Practice: what belongs on a radar";
+    archimate:documentation "A radar records decisions about technology. Most of a model is not that.".
 <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-a-party-is-an-element> a archimate:Principle;
     archimate:identifier "principle-a-party-is-an-element";
     archimate:name "A party is an element, not a property";
@@ -106,6 +118,14 @@ _:p-e-principle-model-the-transport-path-0 a archimate:Property;
 _:p-e-principle-prefer-the-specific-relation-0 a archimate:Property;
     archimate:propertyKey "reference";
     archimate:propertyValue "Mastering ArchiMate, 3rd edition — Gerben Wierda §16.2; enforced by the vague-relationship check".
+<https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-radar-holds-technologies-not-instances> a archimate:Principle;
+    archimate:identifier "principle-radar-holds-technologies-not-instances";
+    archimate:name "A radar entry is a technology, not an instance of one";
+    archimate:documentation "You adopt SAP ECC; you run ZS2. An instance has no adoption status — the question was answered once, for the product, and every instance inherits it. Putting instances on the radar makes it a server inventory, and a server inventory is the one thing a radar must not become, because it stops being a decision record and nobody reads it twice.";
+    archimate:hasProperty _:p-e-principle-radar-holds-technologies-not-instances-0.
+_:p-e-principle-radar-holds-technologies-not-instances-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "D-LAB-5 practice; the ring is a Property, so an instance simply does not carry one".
 <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment> a archimate:Principle;
     archimate:identifier "principle-separate-the-product-from-its-deployment";
     archimate:name "Separate what the product is from where it runs";
@@ -120,21 +140,33 @@ _:p-e-principle-separate-the-product-from-its-deployment-0 a archimate:Property;
     bp:relationshipType archimate:aggregation;
     bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-choosing-a-relationship>;
     bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-prefer-the-specific-relation>.
-<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-what-goes-on-a-radar> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-radar-holds-technologies-not-instances>.
 <https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r10> a archimate:Relationship;
     archimate:identifier "r10";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-what-goes-on-a-radar>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-radar-holds-technologies-not-instances>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-what-goes-on-a-radar> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-a-radar-entry-is-the-element-in-use>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r11> a archimate:Relationship;
+    archimate:identifier "r11";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-what-goes-on-a-radar>;
+    bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Constraint/constraint-a-radar-entry-is-the-element-in-use>.
+<https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations>.
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r12> a archimate:Relationship;
+    archimate:identifier "r12";
     bp:relationshipType archimate:aggregation;
     bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
     bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Assessment/assessment-nesting-without-relations>.
 <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment>.
-<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r11> a archimate:Relationship;
-    archimate:identifier "r11";
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r13> a archimate:Relationship;
+    archimate:identifier "r13";
     bp:relationshipType archimate:aggregation;
     bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
     bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-separate-the-product-from-its-deployment>.
 <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system> archimate:aggregation <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-model-the-transport-path>.
-<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r12> a archimate:Relationship;
-    archimate:identifier "r12";
+<https://blueprinting.dlab5.net/i/engineering-practices/aggregation/r14> a archimate:Relationship;
+    archimate:identifier "r14";
     bp:relationshipType archimate:aggregation;
     bp:source <https://blueprinting.dlab5.net/i/engineering-practices/Grouping/practice-modelling-a-packaged-system>;
     bp:target <https://blueprinting.dlab5.net/i/engineering-practices/Principle/principle-model-the-transport-path>.
