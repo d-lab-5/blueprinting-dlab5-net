@@ -56,6 +56,38 @@ serves the specification and not only the data, ETag-guarded whole-file writes
 exclusion is the point: without the bar this becomes a list of everything
 anyone has done, which nobody trusts and nobody reads.
 
+## The cloud and edge platform
+
+`cloud-edge-platform.ttl` is a second, larger grouping: the **blueprint** for
+products made of a cloud and the edges that link to it. It aggregates four
+patterns, each with two instances (the Mediathek and DigitalHome.Cloud):
+
+| Pattern | What it settles |
+|---|---|
+| A tenant with spaces | one minted tenant id per family, home or team; spaces decide who reads what; operators read no content |
+| An edge linked by device flow | a person approves every edge (RFC 8628); a version gate (426); a deleted item is not a revoke (410 with its own code) |
+| Knowledge as a graph per space | an A-Box per space, typed by a versioned ontology, synced three ways (409 on a stale write) |
+| A local agent on the edge, over MCP | the agent proposes, a person confirms; private data stays on the edge |
+
+The edge comes in three kinds, each a specialization of the `Edge` node: a
+**human** edge (a PC app), an **IoT** edge (Node-RED backbone) and a **robot**
+edge (ROS 2 backbone). The robot edge has no instance yet and is marked
+`status: candidate`, by the bar above.
+
+Two artifacts realize the blueprint, and a new product starts from them:
+`template-dlab5-cloud` and `template-dlab5-edge`.
+
+```bash
+BP_USER=… BP_PASSWORD=… npm run seed -- \
+  --project cloud-edge --from docs/patterns/cloud-edge-platform.ttl \
+  --name "Cloud and edge platform"
+```
+
+It carries ten deliberate `derived-relationship` warnings, for the same reason
+as above: a reference architecture states that a component accesses a data
+object or that a template realizes a component, without modelling the
+functions and interfaces in between.
+
 ## Regenerating
 
 `engineering-patterns.ttl` is written by `packages/core`'s Turtle writer, so it
