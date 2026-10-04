@@ -22,7 +22,7 @@ metadata:
 
 - **dlab5-cognito-api-keys** — build the keys this consumes. Read that first if
   the server needs to run unattended.
-- **dlab5-fullstack-template** — the framework assumed here.
+- **dlab5-cloud-template** — the framework assumed here.
 - **dlab5-git-push** — the gate before pushing.
 
 ## stdio, and when to reconsider

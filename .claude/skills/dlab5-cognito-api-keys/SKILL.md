@@ -23,7 +23,7 @@ metadata:
 ## Related skills
 
 - **dlab5-mcp-server** — the client that consumes these keys.
-- **dlab5-fullstack-template** — the framework this assumes: npm workspaces, a
+- **dlab5-cloud-template** — the framework this assumes: npm workspaces, a
   non-workspace `backend/`, Cognito groups, a Gatsby site behind one gate.
 - **dlab5-git-push** — the gate to run before pushing any of this.
 
