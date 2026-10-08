@@ -30,6 +30,7 @@ packages/site/    The Gatsby 5 app (@dlab5/blueprint-site).
 ontology/         Pinned Apache-2.0 copy of the ArchiMate OWL/SHACL ontology.
 docs/adr/         Architecture Decision Records. Read these first.
 docs/audits/      Security audit reports, YYYY-MM-DD-audit.md.
+mcp/project-docs/ Remote MCP document store (Python, SAM). Own stack; ADR-0013.
 ```
 
 Planned packages, added when their work package starts, not scaffolded empty:
@@ -68,6 +69,9 @@ BP_USER=… BP_PASSWORD=… npm run bundle:import -- --in <dir> [--reid] [--dry-
 BP_USER=… BP_PASSWORD=… npm run verify:bundle   # the whole round trip, live
 BP_USER=… BP_PASSWORD=… npm run verify:documents # the document store, live
 BP_USER=… BP_PASSWORD=… npm run verify:api-keys  # scopes and refusals, live
+
+(cd mcp/project-docs && .venv/bin/python -m pytest -q tests)   # project-docs store
+(cd mcp/project-docs && sam build && sam deploy)               # see its README
 
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
@@ -250,6 +254,14 @@ These are things that will bite. Each is load-bearing and has cost someone time.
     Confirm the change actually shipped rather than trusting the build:
     `grep -ro "bp-your-class{[^}]*}" packages/site/public/*.css`. More than one
     `styles.*.css` in `public/` is the symptom.
+
+**`mcp/project-docs/` is a second, separate document store**, for working
+files shared between claude.ai and Claude Code: Python, its own SAM stack,
+reachable over HTTPS with a bearer key. A space is a product id, read from the
+Project table, which is never written. It is not an npm workspace and not part
+of the Amplify app. `samconfig.toml` is gitignored because it carries the Web
+Adapter layer ARN and the table name. The MCP Python SDK there is **v2**:
+`MCPServer`, not `FastMCP`. ADR-0013.
 
 ## Before pushing
 

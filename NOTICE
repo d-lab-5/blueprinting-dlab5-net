@@ -74,6 +74,10 @@ way a pinned fetch does not. Terms in `vendor/NOTICE`.
 Apache-2.0, BSD-2-Clause, BSD-3-Clause, MPL-2.0, Unlicense, CC0-1.0, 0BSD.
 Checked before the relicence; none is GPL-incompatible.
 
+`mcp/project-docs/` bundles 35 Python packages into its Lambda (`sam build`
+from `src/requirements.txt`): MIT, MIT-0, BSD-3-Clause, Apache-2.0 and
+PSF-2.0, all GPL-3.0-compatible. Checked with `pip-licenses` on 2026-10-08.
+
 ---
 
 ## Referenced, never reproduced

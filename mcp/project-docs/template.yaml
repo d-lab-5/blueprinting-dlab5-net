@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  project-docs — a shared document store for Claude Code and claude.ai, served
+  as a remote MCP server. One Lambda behind a Function URL, one private
+  versioned bucket. See README.md. Separate from the Amplify app; it only
+  reads blueprinting's Project table to know which products (spaces) exist.
+
+Parameters:
+  AdapterLayerArn:
+    Type: String
+    Description: >
+      AWS Lambda Web Adapter layer for arm64 (LambdaAdapterLayerArm64) in this
+      region. Published by AWS in the awslabs/aws-lambda-web-adapter README.
+      Kept out of the repository: it carries an account number.
+  ProjectTableName:
+    Type: String
+    Description: >
+      The blueprinting Amplify environment's Project table
+      (Project-<api id>-NONE). Read-only; its products are the spaces.
+  KeyParameterName:
+    Type: String
+    Default: /project-docs-mcp/api-key
+    Description: SSM SecureString holding the bearer key. Created by hand, never by this stack.
+
+Resources:
+  DocsBucket:
+    Type: AWS::S3::Bucket
+    # History lives here. Deleting the stack must not delete the documents.
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  DocsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DocsBucket
+      PolicyDocument:
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt DocsBucket.Arn
+              - !Sub "${DocsBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  ServerLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/project-docs-mcp
+      RetentionInDays: 30
+
+  Server:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: project-docs-mcp
+      CodeUri: src/
+      Handler: run.sh
+      Runtime: python3.12
+      Architectures: [arm64]
+      MemorySize: 512
+      Timeout: 30
+      Layers:
+        - !Ref AdapterLayerArn
+      LoggingConfig:
+        LogGroup: !Ref ServerLogs
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          AWS_LWA_PORT: "8000"
+          AWS_LWA_READINESS_CHECK_PATH: /healthz
+          BUCKET: !Ref DocsBucket
+          PROJECT_TABLE: !Ref ProjectTableName
+          KEY_PARAM: !Ref KeyParameterName
+      FunctionUrlConfig:
+        # NONE on purpose: the app checks a bearer key on every request
+        # (src/auth.py). Phase 2 adds Cognito OAuth beside it.
+        AuthType: NONE
+      Policies:
+        - Statement:
+            - Sid: ReadWriteDocuments
+              Effect: Allow
+              # No DeleteObject anywhere: nothing is ever hard-deleted.
+              Action: [s3:GetObject, s3:GetObjectVersion, s3:PutObject]
+              Resource: !Sub "${DocsBucket.Arn}/docs/*"
+            - Sid: ListDocuments
+              Effect: Allow
+              Action: [s3:ListBucket, s3:ListBucketVersions]
+              Resource: !GetAtt DocsBucket.Arn
+              Condition:
+                StringLike:
+                  s3:prefix: ["docs/*"]
+            - Sid: ReadProducts
+              Effect: Allow
+              Action: [dynamodb:Scan, dynamodb:GetItem]
+              Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ProjectTableName}"
+            - Sid: ReadApiKey
+              Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${KeyParameterName}"
+
+Outputs:
+  McpUrl:
+    Description: The MCP endpoint. Not committed anywhere — it is the address of a write path.
+    Value: !Sub "${ServerUrl.FunctionUrl}mcp"
+  BucketName:
+    Value: !Ref DocsBucket

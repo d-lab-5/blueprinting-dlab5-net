@@ -213,3 +213,10 @@ __pycache__/
 # vendor/NOTICE is committed and records what belongs here.
 vendor/*
 !vendor/NOTICE
+
+# -- project-docs MCP server (mcp/project-docs) -----------------------------
+# samconfig.toml holds the Lambda Web Adapter layer ARN (an account number)
+# and the live Project table name; samconfig.example.toml is the template.
+.aws-sam/
+mcp/project-docs/samconfig.toml
+.pytest_cache/
