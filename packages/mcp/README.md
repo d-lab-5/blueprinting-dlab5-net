@@ -73,3 +73,39 @@ update the precondition prevents. The agent is told to read again and redecide.
 npm test -w @dlab5/archimate-mcp          # metamodel tools
 BP_USER=… BP_PASSWORD=… npm run verify:mcp  # model tools, live backend
 ```
+
+## Testing it
+
+Three layers, and they test different things:
+
+| | What it covers |
+|---|---|
+| `packages/mcp/__tests__` | the tool functions, called directly |
+| `npm run verify:mcp` | the same functions against a live backend — the group check and the ETag precondition, which cannot be mocked without testing the mock |
+| `npm run verify:mcp-client` | **the protocol**, from a Python client |
+
+The third exists because the first two both call `tool.run(args)` and never
+send a `tools/list` or a `tools/call`. That skips the stdio framing, the
+registration, and whether each zod schema converts into a JSON Schema a client
+can actually read — so a miswired `registerTool` or a schema that fails to
+serialise would leave every existing test passing and the server broken for
+every real client.
+
+It is written in Python against the official SDK on purpose. A second
+implementation in another language cannot share our misunderstandings, which is
+the same reason Turtle is checked with rdflib, Open Exchange with Archi, and D2
+with the real compiler. It found the difference immediately: the Python SDK
+exposes `server_info`, `is_error` and `input_schema` where the wire format has
+`serverInfo`, `isError` and `inputSchema`.
+
+```bash
+npm run setup:python        # once — a venv, gitignored
+npm run verify:mcp-client   # 13 checks, metamodel only
+
+BP_USER=… BP_PASSWORD=… npm run verify:mcp-client   # 17 checks, all 16 tools
+```
+
+Running it **without** credentials is not a lesser run: it verifies the
+degraded path, which is a real feature. An agent asking what ArchiMate permits
+needs no account, and the check asserts that no model tool is offered when
+there is no backend to serve it.

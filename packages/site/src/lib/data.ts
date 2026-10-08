@@ -24,6 +24,43 @@ export interface Project {
   lockedAt?: string | null;
 }
 
+/**
+ * Where a document may go. The axis is destination, not sensitivity.
+ *
+ *                   in a bundle   safe in a public repo
+ *   confidential         no              no
+ *   collaboration       yes              no
+ *   shared              yes             yes
+ */
+export type Classification = "confidential" | "collaboration" | "shared";
+
+/**
+ * A source document held beside the model.
+ *
+ * `classification` decides how far it travels: `shared` documents go with the
+ * model in a transfer bundle, `confidential` ones never do and come out only
+ * as a local download. Anything unclassified is confidential.
+ */
+export interface BpDocument {
+  docId: string;
+  projectSlug: string;
+  title: string;
+  classification: Classification;
+  sourceKey: string;
+  annotatedKey?: string | null;
+  bytes?: number | null;
+  uploadedAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface DocumentAccess {
+  docId: string;
+  key: string;
+  url?: string | null;
+  exists: boolean;
+  classification: string;
+}
+
 export interface ModelAccess {
   url?: string | null;
   etag?: string | null;
@@ -47,6 +84,131 @@ const LIST_PROJECTS = /* GraphQL */ `
         lockedBy
         lockedAt
       }
+    }
+  }
+`;
+
+const API_KEY_FIELDS = `
+      keyId
+      name
+      scope
+      createdAt
+      expiresAt
+      lastUsedAt
+      revokedAt
+      secret
+`;
+
+const CREATE_API_KEY = /* GraphQL */ `
+  mutation CreateApiKey($name: String!, $scope: String, $days: Int) {
+    createApiKey(name: $name, scope: $scope, days: $days) {${API_KEY_FIELDS}}
+  }
+`;
+
+const LIST_API_KEYS = /* GraphQL */ `
+  mutation ListApiKeys {
+    listApiKeys {${API_KEY_FIELDS}}
+  }
+`;
+
+const REVOKE_API_KEY = /* GraphQL */ `
+  mutation RevokeApiKey($keyId: String!) {
+    revokeApiKey(keyId: $keyId) {${API_KEY_FIELDS}}
+  }
+`;
+
+const LIST_DOCUMENTS = /* GraphQL */ `
+  query ListDocuments($projectSlug: String!) {
+    listDocuments(projectSlug: $projectSlug) {
+      items {
+        docId
+        projectSlug
+        title
+        classification
+        sourceKey
+        annotatedKey
+        bytes
+        uploadedAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+const SAVE_DOCUMENT = /* GraphQL */ `
+  mutation SaveDocument(
+    $projectSlug: String!
+    $docId: String!
+    $markdown: String!
+    $title: String
+    $classification: String
+    $kind: String
+  ) {
+    saveDocument(
+      projectSlug: $projectSlug
+      docId: $docId
+      markdown: $markdown
+      title: $title
+      classification: $classification
+      kind: $kind
+    ) {
+      docId
+      key
+      exists
+      classification
+    }
+  }
+`;
+
+const PURGE_DOCUMENT = /* GraphQL */ `
+  mutation PurgeDocument($projectSlug: String!, $docId: String!) {
+    purgeDocument(projectSlug: $projectSlug, docId: $docId)
+  }
+`;
+
+const READ_DOCUMENT = /* GraphQL */ `
+  mutation RequestDocumentReadUrl(
+    $projectSlug: String!
+    $docId: String!
+    $kind: String
+  ) {
+    requestDocumentReadUrl(
+      projectSlug: $projectSlug
+      docId: $docId
+      kind: $kind
+    ) {
+      docId
+      key
+      url
+      exists
+      classification
+    }
+  }
+`;
+
+const GET_PROJECT = /* GraphQL */ `
+  query GetProject($slug: ID!) {
+    getProject(slug: $slug) {
+      slug
+      name
+      description
+      group
+      ttlKey
+      version
+      lockedBy
+      lockedAt
+    }
+  }
+`;
+
+const RENAME_PROJECT = /* GraphQL */ `
+  mutation RenameProject($slug: String!, $name: String!, $description: String) {
+    renameProject(slug: $slug, name: $name, description: $description) {
+      slug
+      name
+      description
+      group
+      ttlKey
     }
   }
 `;
@@ -125,6 +287,23 @@ export async function listProjects(): Promise<Project[]> {
 }
 
 /**
+ * One product's metadata row.
+ *
+ * Separate from `listProjects` because a product page needs the row itself —
+ * its name is what the page is titled with, and under ADR-0009 the id in the
+ * URL is opaque and says nothing a reader can use. Returns null when the row
+ * does not exist or the caller may not see it; AppSync does not distinguish
+ * the two, and neither should the UI.
+ */
+export async function getProject(slug: string): Promise<Project | null> {
+  const result = (await client().graphql({
+    query: GET_PROJECT,
+    variables: { slug },
+  })) as GraphQLResult<{ getProject: Project | null }>;
+  return unwrap(result).getProject ?? null;
+}
+
+/**
  * Creates a project and its Cognito group.
  *
  * Calls `provisionProject`, not the `createProject` that Amplify generates for
@@ -158,6 +337,155 @@ export async function createProject(input: {
  * present, and without it the save would have to be unconditional, which the
  * backend refuses.
  */
+/**
+ * Changes a product's name and description.
+ *
+ * Calls `renameProject`, not the generated `updateProject`, so that the
+ * Cognito group's description is kept in step — under ADR-0009 the group name
+ * is opaque, and that description is the only thing in the console that says
+ * which product it belongs to.
+ *
+ * The id is not changeable. Re-identifying a product is an export and a
+ * reload (ADR-0010).
+ */
+export async function renameProject(input: {
+  slug: string;
+  name: string;
+  description?: string;
+}): Promise<Project> {
+  const result = (await client().graphql({
+    query: RENAME_PROJECT,
+    variables: {
+      slug: input.slug,
+      name: input.name,
+      description: input.description ?? null,
+    },
+  })) as GraphQLResult<{ renameProject: Project }>;
+  return unwrap(result).renameProject;
+}
+
+/**
+ * An API key as its owner may see it.
+ *
+ * `secret` is set exactly once, by `createApiKey`, and is the only copy that
+ * will ever exist — only its hash is stored. Nothing can ask for it again.
+ */
+export interface ApiKeyView {
+  keyId: string;
+  name: string;
+  scope: "read" | "write";
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+  secret?: string | null;
+}
+
+export async function listApiKeys(): Promise<ApiKeyView[]> {
+  const result = (await client().graphql({
+    query: LIST_API_KEYS,
+  })) as GraphQLResult<{ listApiKeys: ApiKeyView[] }>;
+  return unwrap(result).listApiKeys ?? [];
+}
+
+/** Returns the one and only copy of the key in `secret`. */
+export async function createApiKey(input: {
+  name: string;
+  scope: "read" | "write";
+  days: number;
+}): Promise<ApiKeyView> {
+  const result = (await client().graphql({
+    query: CREATE_API_KEY,
+    variables: input,
+  })) as GraphQLResult<{ createApiKey: ApiKeyView[] }>;
+  const [key] = unwrap(result).createApiKey ?? [];
+  if (!key) throw new Error("the key was not created");
+  return key;
+}
+
+export async function revokeApiKey(keyId: string): Promise<void> {
+  const result = (await client().graphql({
+    query: REVOKE_API_KEY,
+    variables: { keyId },
+  })) as GraphQLResult<{ revokeApiKey: ApiKeyView[] }>;
+  unwrap(result);
+}
+
+/** Every document held for a product. */
+export async function listDocuments(projectSlug: string): Promise<BpDocument[]> {
+  const result = (await client().graphql({
+    query: LIST_DOCUMENTS,
+    variables: { projectSlug },
+  })) as GraphQLResult<{ listDocuments: { items: BpDocument[] } }>;
+  return unwrap(result).listDocuments.items;
+}
+
+/**
+ * Stores a document, or its annotated working copy.
+ *
+ * `classification` is omitted rather than defaulted here: the function treats
+ * an omitted value as "leave as it is" on an update and as confidential on a
+ * first write, and a default in the browser would quietly override that.
+ */
+export async function saveDocument(input: {
+  projectSlug: string;
+  docId: string;
+  markdown: string;
+  title?: string;
+  classification?: Classification;
+  kind?: "source" | "annotated";
+}): Promise<DocumentAccess> {
+  const result = (await client().graphql({
+    query: SAVE_DOCUMENT,
+    variables: {
+      projectSlug: input.projectSlug,
+      docId: input.docId,
+      markdown: input.markdown,
+      title: input.title ?? null,
+      classification: input.classification ?? null,
+      kind: input.kind ?? "source",
+    },
+  })) as GraphQLResult<{ saveDocument: DocumentAccess }>;
+  return unwrap(result).saveDocument;
+}
+
+/**
+ * Removes a document, its stored copies and its index row.
+ *
+ * Calls `purgeDocument`, not the `deleteDocument` Amplify generates for the
+ * model: the generated one removes the row and leaves the markdown orphaned in
+ * the bucket.
+ *
+ * Irreversible — S3 has no undo here — which is why the caller asks first.
+ */
+export async function deleteDocument(
+  projectSlug: string,
+  docId: string
+): Promise<void> {
+  const result = (await client().graphql({
+    query: PURGE_DOCUMENT,
+    variables: { projectSlug, docId },
+  })) as GraphQLResult<{ purgeDocument: boolean }>;
+  unwrap(result);
+}
+
+/** The markdown itself, through a short-lived pre-signed URL. */
+export async function loadDocument(
+  projectSlug: string,
+  docId: string,
+  kind: "source" | "annotated" = "source"
+): Promise<{ markdown: string | null; access: DocumentAccess }> {
+  const result = (await client().graphql({
+    query: READ_DOCUMENT,
+    variables: { projectSlug, docId, kind },
+  })) as GraphQLResult<{ requestDocumentReadUrl: DocumentAccess }>;
+  const access = unwrap(result).requestDocumentReadUrl;
+  if (!access.exists || !access.url) return { markdown: null, access };
+  const response = await fetch(access.url);
+  if (!response.ok) return { markdown: null, access };
+  return { markdown: await response.text(), access };
+}
+
 export async function loadModel(
   projectSlug: string
 ): Promise<{ model: AbModel; etag: string | null }> {

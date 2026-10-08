@@ -1,0 +1,20 @@
+# Copy to samconfig.toml (gitignored) and fill in the two values.
+# They stay out of the repository: one carries an AWS account number, the
+# other identifies a live table.
+version = 0.1
+
+[default.global.parameters]
+stack_name = "project-docs-mcp"
+region = "eu-central-1"
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = true
+parameter_overrides = [
+  # LambdaAdapterLayerArm64 from the awslabs/aws-lambda-web-adapter README,
+  # with the region filled in.
+  "AdapterLayerArn=arn:aws:lambda:eu-central-1:<publisher>:layer:LambdaAdapterLayerArm64:<version>",
+  # The blueprinting environment whose products are the spaces.
+  "ProjectTableName=Project-<api id>-NONE",
+]

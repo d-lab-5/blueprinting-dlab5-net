@@ -1,4 +1,4 @@
-import type { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
+import type { AppSyncResolverEvent } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
@@ -8,16 +8,19 @@ import {
   GroupExistsException,
 } from "@aws-sdk/client-cognito-identity-provider";
 
+import { ADMIN_GROUP, SLUG, claimsOf, requireWrite } from "../shared/claims";
+
 /**
- * Creates a project: a Project row and its Cognito group, together.
+ * Creates a product: a Project row and its Cognito group, together.
  *
- * Only bp-admins may call this. Creating a project grants access to a new
+ * Only bp-admins may call this. Creating a product grants access to a new
  * slice of the platform, and the caller is added to the new group so that the
- * person who made the project can immediately open it.
+ * person who made it can immediately open it.
+ *
+ * Renaming lives in its own function, not a second branch here — see
+ * projectRename/resource.ts for why.
  */
 
-const ADMIN_GROUP = "bp-admins";
-const SLUG = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/;
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const idp = new CognitoIdentityProviderClient({});
@@ -38,27 +41,6 @@ export interface CreatedProject {
   ttlKey: string;
 }
 
-function claimsOf(identity: unknown) {
-  const cognito = identity as AppSyncIdentityCognito | undefined;
-  const claim = cognito?.claims?.["cognito:groups"];
-  const groups = Array.isArray(claim)
-    ? (claim as string[])
-    : typeof claim === "string"
-      ? claim.split(/[\s,]+/).filter(Boolean)
-      : [];
-  return {
-    groups,
-    username: cognito?.username ?? (cognito?.claims?.sub as string | undefined),
-    /**
-     * The user pool is recovered from the token's issuer rather than passed in
-     * an environment variable. An env var would mean referencing the auth
-     * stack from the data stack, which is the CloudFormation cycle described
-     * in ADR-0006 — and the issuer is authoritative anyway, since it is the
-     * pool that actually signed this request.
-     */
-    userPoolId: (cognito?.issuer ?? "").split("/").pop(),
-  };
-}
 
 export const handler = async (
   event: AppSyncResolverEvent<Args>
@@ -66,8 +48,10 @@ export const handler = async (
   const { groups, username, userPoolId } = claimsOf(event.identity);
 
   if (!groups.includes(ADMIN_GROUP)) {
-    throw new Error("Only platform administrators can create projects.");
+    throw new Error("Only platform administrators can create products.");
   }
+
+  requireWrite(event.identity, "create a product");
 
   const slug = (event.arguments.slug ?? "").trim().toLowerCase();
   const name = (event.arguments.name ?? "").trim();

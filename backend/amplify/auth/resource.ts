@@ -1,4 +1,8 @@
 import { defineAuth } from "@aws-amplify/backend";
+import { createAuthChallenge } from "./triggers/createAuthChallenge.resource";
+import { defineAuthChallenge } from "./triggers/defineAuthChallenge.resource";
+import { preTokenGeneration } from "./triggers/preTokenGeneration.resource";
+import { verifyAuthChallengeResponse } from "./triggers/verifyAuthChallengeResponse.resource";
 
 /**
  * Cognito User Pool for the D-LAB-5 Blueprinting Platform.
@@ -40,4 +44,24 @@ export const auth = defineAuth({
   },
   groups: ["bp-admins"],
   accountRecovery: "EMAIL_ONLY",
+
+  /**
+   * Custom authentication, used only by API keys (ADR-0012).
+   *
+   * The three challenge triggers let a key be exchanged for an ordinary
+   * Cognito session carrying the user's real groups, which is what keeps every
+   * authorization rule downstream unchanged. preTokenGeneration then removes
+   * bp-admins from a key session, because the generated model rules cannot
+   * tell a key from a browser and would otherwise let a read-only key write
+   * rows directly.
+   *
+   * The browser never touches any of this: its app client does not allow
+   * CUSTOM_AUTH, and the challenge triggers answer nothing without a key.
+   */
+  triggers: {
+    defineAuthChallenge,
+    createAuthChallenge,
+    verifyAuthChallengeResponse,
+    preTokenGeneration,
+  },
 });

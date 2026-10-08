@@ -1,0 +1,5 @@
+# Bundled into the Lambda package by `sam build`. boto3 is pinned here on
+# purpose: the runtime's own copy may predate S3 conditional writes (If-Match).
+mcp==2.3.0
+boto3==1.43.109
+uvicorn==0.54.0

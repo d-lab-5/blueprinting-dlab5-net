@@ -154,6 +154,58 @@ function Mark() {
 }
 
 
+
+/**
+ * Tools, kept apart from the views on purpose.
+ *
+ * The Workspace section answers "what does the architecture look like"; these
+ * answer "how do things get in and out of it". Mixing them made the rail a
+ * list of eleven things with no shape, and put a Gantt import inside the
+ * Roadmap screen where nobody looking for an importer would think to check.
+ */
+export function toolItems(slug: string): RailItem[] {
+  return [
+    {
+      key: "documents",
+      label: "Documents",
+      href: `/p/${slug}/documents/`,
+      // Pages, one behind the other: a record, not a view.
+      icon: icon(
+        <>
+          <path d="M9 4h7l4 4v9a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+          <path d="M16 4v4h4" />
+          <path d="M5 8v11a1 1 0 0 0 1 1h9" />
+        </>
+      ),
+    },
+    {
+      key: "import",
+      label: "Import",
+      href: `/p/${slug}/import/`,
+      // An arrow entering a tray.
+      icon: icon(
+        <>
+          <path d="M12 3v10" />
+          <path d="m8 9 4 4 4-4" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </>
+      ),
+    },
+    {
+      key: "export",
+      label: "Export",
+      href: `/p/${slug}/export/`,
+      icon: icon(
+        <>
+          <path d="M12 13V3" />
+          <path d="m8 7 4-4 4 4" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </>
+      ),
+    },
+  ];
+}
+
 /**
  * Choosing a project.
  *
@@ -176,7 +228,7 @@ function ProjectSwitcher({ slug }: { slug?: string }) {
   return (
     <div className="bp-rail__switcher">
       <label className="bp-rail__switcherlabel" htmlFor="bp-project">
-        {slug ? "Project" : "Open a project"}
+        {slug ? "Product" : "Open a product"}
       </label>
       <select
         id="bp-project"
@@ -197,14 +249,14 @@ function ProjectSwitcher({ slug }: { slug?: string }) {
             {projects === null
               ? "Loading…"
               : empty
-                ? "No projects yet"
+                ? "No products yet"
                 : `Choose one of ${projects.length}…`}
           </option>
         )}
         {/* The current project is always an option, even before the list
             arrives, so the control never renders empty or wrong. */}
         {slug && !projects?.some((p) => p.slug === slug) && (
-          <option value={slug}>{slug}</option>
+          <option value={slug}>{projects === null ? "Loading…" : slug}</option>
         )}
         {projects?.map((p) => (
           <option key={p.slug} value={p.slug}>
@@ -257,7 +309,8 @@ function ThemeSegments() {
 interface ShellProps {
   children: React.ReactNode;
   /** Present inside a project; absent at `/`, which is the launcher. */
-  project?: { slug: string; active: string };
+  /** `name` is what a reader sees; `slug` is the opaque id (ADR-0009). */
+  project?: { slug: string; name?: string | null; active: string };
 }
 
 export function Shell({ children, project }: ShellProps) {
@@ -265,12 +318,13 @@ export function Shell({ children, project }: ShellProps) {
   const [railOpen, setRailOpen] = React.useState(true);
 
   const items = project ? railItems(project.slug) : [];
+  const tools = project ? toolItems(project.slug) : [];
 
   return (
     <div className="bp-shell bp-shell--railed">
       <nav
         className={`bp-rail${railOpen ? "" : " bp-rail--closed"}`}
-        aria-label={project ? "Project views" : "Workspace"}
+        aria-label={project ? "Product views" : "Workspace"}
       >
         <Link className="bp-rail__brand" to="/">
           <Mark />
@@ -303,14 +357,34 @@ export function Shell({ children, project }: ShellProps) {
                 ))}
               </ul>
             </RailSection>
+            <RailSection label="Tools">
+              <ul className="bp-rail__items bp-rail__items--tools">
+                {tools.map((item) => (
+                  <li key={item.key}>
+                    <a
+                      href={item.href}
+                      className={`bp-rail__item${
+                        item.key === project.active ? " bp-rail__item--on" : ""
+                      }`}
+                      aria-current={item.key === project.active ? "page" : undefined}
+                    >
+                      {item.icon}
+                      {item.label}
+                      {item.key === project.active && (
+                        <span className="bp-rail__dot" aria-hidden="true" />
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </RailSection>
           </>
         ) : (
-          // At the launcher the rail lists projects rather than views. The
-          // views all act on a project, so showing them here would be six
-          // controls that cannot do anything until one is chosen.
-          // The switcher carries its own label, so wrapping it in a section
-          // would stack "Projects" above "Open a project" saying one thing
-          // twice.
+          // At the launcher the rail lists products rather than views. The
+          // views all act on a product, so showing them here would be six
+          // controls that cannot do anything until one is chosen. The
+          // switcher carries its own label, so a section wrapper would say
+          // the same word twice.
           <ProjectSwitcher />
         )}
 
@@ -320,6 +394,20 @@ export function Shell({ children, project }: ShellProps) {
 
         <RailSection label="Account">
           <ul className="bp-rail__items">
+            <li>
+              {/* A key belongs to a person, not a product — it carries its
+                  owner's groups and reaches everything they reach. So it lives
+                  beside the account, not inside a product. */}
+              <Link className="bp-rail__item" to="/keys/">
+                {icon(
+                  <>
+                    <path d="M15 7a4 4 0 1 1-3.9 5H7v3H4v-3H2v-2h9.1A4 4 0 0 1 15 7Z" />
+                    <path d="M16.5 10.5h.01" />
+                  </>
+                )}
+                API keys
+              </Link>
+            </li>
             <li>
               <a
                 className="bp-rail__item"
@@ -368,7 +456,7 @@ export function Shell({ children, project }: ShellProps) {
             ☰
           </button>
           <span className="bp-shell__title">
-            {project ? project.slug : "Blueprinting"}
+            {project ? (project.name ?? project.slug) : "Blueprinting"}
           </span>
           <span className="bp-shell__meta">/ internal · admin-provisioned</span>
           <span className="bp-shell__spacer" />

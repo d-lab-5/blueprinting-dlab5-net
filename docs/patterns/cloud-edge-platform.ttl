@@ -1,0 +1,764 @@
+@prefix archimate: <https://purl.org/archimate#>.
+@prefix bp: <https://blueprinting.dlab5.net/ns#>.
+
+<https://blueprinting.dlab5.net/i/cloud-edge/model> bp:languageVersion "3.2".
+<https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-operator> a archimate:BusinessActor;
+    archimate:identifier "actor-operator";
+    archimate:name "Operator";
+    archimate:documentation "Runs the platform: creates tenants, releases edges, purges on request.".
+<https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-tenant-admin> a archimate:BusinessActor;
+    archimate:identifier "actor-tenant-admin";
+    archimate:name "Tenant admin";
+    archimate:documentation "Curates the tenant's spaces, members and edges.".
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-domain-ontology> a archimate:Artifact;
+    archimate:identifier "artifact-domain-ontology";
+    archimate:name "Domain ontology (T-Box)";
+    archimate:documentation "Versioned Turtle, with SHACL shapes the A-Box is checked against.";
+    archimate:hasProperty _:p-e-artifact-domain-ontology-0.
+_:p-e-artifact-domain-ontology-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "digitalhome-cloud-darkfactory repos/core/schema; mediathek-digitalhome-cloud ontology".
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud> a archimate:Artifact;
+    archimate:identifier "artifact-template-cloud";
+    archimate:name "template-dlab5-cloud";
+    archimate:documentation "Gatsby 5 and Amplify Gen 2 with the tenant, the edge registry and the graph store. rename.mjs gives a product its own nouns.";
+    archimate:hasProperty _:p-e-artifact-template-cloud-0.
+_:p-e-artifact-template-cloud-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "https://github.com/d-lab-5/template-dlab5-cloud".
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge> a archimate:Artifact;
+    archimate:identifier "artifact-template-edge";
+    archimate:name "template-dlab5-edge";
+    archimate:documentation "A Copier layer over the ERP-LAB-5 python-tool-template: cloud link, knowledge sync, chat, jobs, first start, installer; edge_kind human, iot or robot.";
+    archimate:hasProperty _:p-e-artifact-template-edge-0.
+_:p-e-artifact-template-edge-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "https://github.com/d-lab-5/template-dlab5-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-household-is-a-smarthome> a archimate:Assessment;
+    archimate:identifier "assessment-household-is-a-smarthome";
+    archimate:name "Two products arrived at the same tenant shape";
+    archimate:documentation "The Mediathek household and the DigitalHome SmartHome were designed apart and ended up with the same structure: a minted tenant id, admins, readers and per-tenant content.";
+    archimate:hasProperty _:p-e-assessment-household-is-a-smarthome-0.
+_:p-e-assessment-household-is-a-smarthome-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-cloud; digitalhome-cloud-darkfactory".
+<https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-tombstone-would-unlink> a archimate:Assessment;
+    archimate:identifier "assessment-tombstone-would-unlink";
+    archimate:name "A tombstone almost unlinked every edge";
+    archimate:documentation "The first version of permanent deletion answered 410 for a purged item, which the edge read as its token being revoked. Found in review before release.";
+    archimate:hasProperty _:p-e-assessment-tombstone-would-unlink-0.
+_:p-e-assessment-tombstone-would-unlink-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> a archimate:Grouping;
+    archimate:identifier "blueprint-cloud-edge";
+    archimate:name "Blueprint: Cloud and edge platform";
+    archimate:documentation "A cloud that holds tenants and their spaces, and edges that people, homes or robots run locally and link to it. The cloud is the shared catalog and the place where people approve; the edge is where data is made and where private data stays.";
+    archimate:hasProperty _:p-e-blueprint-cloud-edge-0.
+_:p-e-blueprint-cloud-edge-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-cloud + mediathek-digitalhome-edge; digitalhome-cloud-darkfactory + digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:hasProperty _:p-e-blueprint-cloud-edge-1.
+_:p-e-blueprint-cloud-edge-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud; template-dlab5-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:hasProperty _:p-e-blueprint-cloud-edge-2.
+_:p-e-blueprint-cloud-edge-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel> a archimate:ApplicationComponent;
+    archimate:identifier "component-chat-panel";
+    archimate:name "Chat panel";
+    archimate:documentation "The edge page's AI chat, running a local agent with only the edge's MCP tools.";
+    archimate:hasProperty _:p-e-component-chat-panel-0.
+_:p-e-component-chat-panel-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-edge edge/chat.py".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app> a archimate:ApplicationComponent;
+    archimate:identifier "component-edge-app";
+    archimate:name "Edge application";
+    archimate:documentation "Runs on the edge node: links to one or more clouds, syncs knowledge, serves the MCP tools and the chat.";
+    archimate:hasProperty _:p-e-component-edge-app-0.
+_:p-e-component-edge-app-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> a archimate:ApplicationComponent;
+    archimate:identifier "component-edge-registry";
+    archimate:name "Edge registry";
+    archimate:documentation "Device codes, approvals, tokens with expiry and rotation, telemetry, and the version gate.";
+    archimate:hasProperty _:p-e-component-edge-registry-0.
+_:p-e-component-edge-registry-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud backend/amplify/functions/edge-shared".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store> a archimate:ApplicationComponent;
+    archimate:identifier "component-graph-store";
+    archimate:name "Graph store";
+    archimate:documentation "Stores each space's A-Box with its version; refuses stale writes.";
+    archimate:hasProperty _:p-e-component-graph-store-0.
+_:p-e-component-graph-store-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud backend/amplify/functions/graphs".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> a archimate:ApplicationComponent;
+    archimate:identifier "component-tenant-service";
+    archimate:name "Tenant service";
+    archimate:documentation "Creates tenants and spaces, manages their groups, and keeps the same ids on a second site (stage and prod share the store).";
+    archimate:hasProperty _:p-e-component-tenant-service-0.
+_:p-e-component-tenant-service-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud backend/amplify/functions/tenants".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-groups-are-the-access-rule> a archimate:Constraint;
+    archimate:identifier "constraint-groups-are-the-access-rule";
+    archimate:name "Tenant admins and space readers are groups, created by one function";
+    archimate:documentation "Static storage and data rules cannot name a tenant that did not exist at deploy time, so access is by groups (admins per tenant, readers per space) and one function is the only writer of them.";
+    archimate:hasProperty _:p-e-constraint-groups-are-the-access-rule-0.
+_:p-e-constraint-groups-are-the-access-rule-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-cloud backend/amplify/functions/households; template-dlab5-cloud functions/tenants".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-operators-read-no-content> a archimate:Constraint;
+    archimate:identifier "constraint-operators-read-no-content";
+    archimate:name "Operators run the platform and read no tenant content";
+    archimate:documentation "Operators create tenants and see names and edges; content needs membership of a space group, which an operator does not get by being one.";
+    archimate:hasProperty _:p-e-constraint-operators-read-no-content-0.
+_:p-e-constraint-operators-read-no-content-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-cloud docs/adr/0010; backend/amplify/data/resource.ts".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-private-data-stays-local> a archimate:Constraint;
+    archimate:identifier "constraint-private-data-stays-local";
+    archimate:name "Private data stays on the edge";
+    archimate:documentation "Biometrics, raw sensor data and anything the tenant marks private never go to the cloud or to the model. The agent sees catalog data and names, and a picture only when asked.";
+    archimate:hasProperty _:p-e-constraint-private-data-stays-local-0.
+_:p-e-constraint-private-data-stays-local-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-edge README (privacy)".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-sync-is-three-way> a archimate:Constraint;
+    archimate:identifier "constraint-sync-is-three-way";
+    archimate:name "Sync merges three ways; a stale write is a 409";
+    archimate:documentation "Each side keeps the version it last saw. A write against an older version is refused and merged, never overwritten.";
+    archimate:hasProperty _:p-e-constraint-sync-is-three-way-0.
+_:p-e-constraint-sync-is-three-way-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-edge sync.py; mediathek-digitalhome-cloud backend/amplify/functions/graphs".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke> a archimate:Constraint;
+    archimate:identifier "constraint-tombstone-is-not-a-revoke";
+    archimate:name "A deleted item answers 410 with its own code, not a revoke";
+    archimate:documentation "An edge treats a bare 410 as its link being revoked. A permanently deleted item must say so in its own error code, or an edge unlinks itself.";
+    archimate:hasProperty _:p-e-constraint-tombstone-is-not-a-revoke-0.
+_:p-e-constraint-tombstone-is-not-a-revoke-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-edge cloud.py (deleted_in_mediathek)".
+<https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-version-gate> a archimate:Constraint;
+    archimate:identifier "constraint-version-gate";
+    archimate:name "A cloud refuses edges older than its minimum";
+    archimate:documentation "Every edge call names the edge version; below the minimum the cloud answers 426, so an edge without the latest fixes cannot work.";
+    archimate:hasProperty _:p-e-constraint-version-gate-0.
+_:p-e-constraint-version-gate-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-cloud backend/amplify/functions/edge-shared/http.ts".
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox> a archimate:DataObject;
+    archimate:identifier "data-abox";
+    archimate:name "A-Box per space";
+    archimate:documentation "Turtle, versioned, one per space.".
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space> a archimate:DataObject;
+    archimate:identifier "data-space";
+    archimate:name "Space";
+    archimate:documentation "Minted id, kind, readers group; holds the tenant's content.".
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant> a archimate:DataObject;
+    archimate:identifier "data-tenant";
+    archimate:name "Tenant";
+    archimate:documentation "Minted id, name, admins group.".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api> a archimate:ApplicationInterface;
+    archimate:identifier "interface-edge-api";
+    archimate:name "Edge API (/edge/v1)";
+    archimate:documentation "HTTP API for edges, separate from the site's GraphQL API.";
+    archimate:hasProperty _:p-e-interface-edge-api-0.
+_:p-e-interface-edge-api-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud docs/specs/edge-cloud-api.md".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp> a archimate:ApplicationInterface;
+    archimate:identifier "interface-edge-mcp";
+    archimate:name "Edge MCP server";
+    archimate:documentation "The edge's tools for agents, local only.".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge> a archimate:Node;
+    archimate:identifier "node-edge";
+    archimate:name "Edge";
+    archimate:documentation "A computer the tenant runs, linked to a cloud.".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge> a archimate:Node;
+    archimate:identifier "node-human-edge";
+    archimate:name "Human edge";
+    archimate:documentation "A PC app a person uses: prepares and publishes content, names what the AI found.";
+    archimate:hasProperty _:p-e-node-human-edge-0.
+_:p-e-node-human-edge-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge> archimate:hasProperty _:p-e-node-human-edge-1.
+_:p-e-node-human-edge-1 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge> a archimate:Node;
+    archimate:identifier "node-iot-edge";
+    archimate:name "IoT edge";
+    archimate:documentation "A home server with a Node-RED backbone that owns the devices.";
+    archimate:hasProperty _:p-e-node-iot-edge-0.
+_:p-e-node-iot-edge-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge> archimate:hasProperty _:p-e-node-iot-edge-1.
+_:p-e-node-iot-edge-1 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge> a archimate:Node;
+    archimate:identifier "node-robot-edge";
+    archimate:name "Robot edge";
+    archimate:documentation "A robot with a ROS 2 backbone. No instance yet: a candidate, not a pattern.";
+    archimate:hasProperty _:p-e-node-robot-edge-0.
+_:p-e-node-robot-edge-0 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "candidate".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> a archimate:Grouping;
+    archimate:identifier "pattern-edge-agent";
+    archimate:name "Pattern: A local agent on the edge, over MCP";
+    archimate:documentation "The edge exposes its capabilities as MCP tools; an AI chat on the edge uses them. What leaves the edge is decided by the edge, not by the model.";
+    archimate:hasProperty _:p-e-pattern-edge-agent-0.
+_:p-e-pattern-edge-agent-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-edge; digitalhome-edge (dhc-mcp)".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:hasProperty _:p-e-pattern-edge-agent-1.
+_:p-e-pattern-edge-agent-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:hasProperty _:p-e-pattern-edge-agent-2.
+_:p-e-pattern-edge-agent-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> a archimate:Grouping;
+    archimate:identifier "pattern-edge-link";
+    archimate:name "Pattern: An edge linked by device flow";
+    archimate:documentation "An edge asks for a code, a tenant admin approves it in the cloud, and the edge receives a device token bound to that tenant (OAuth 2.0 device authorization grant, RFC 8628).";
+    archimate:hasProperty _:p-e-pattern-edge-link-0.
+_:p-e-pattern-edge-link-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-edge; digitalhome-edge (dhc-sync)".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:hasProperty _:p-e-pattern-edge-link-1.
+_:p-e-pattern-edge-link-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud docs/specs/edge-cloud-api.md".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:hasProperty _:p-e-pattern-edge-link-2.
+_:p-e-pattern-edge-link-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> a archimate:Grouping;
+    archimate:identifier "pattern-knowledge-sync";
+    archimate:name "Pattern: Knowledge as a graph per space, synced with the edge";
+    archimate:documentation "What a tenant knows (people, places, rooms, devices, events) is an RDF A-Box per space, typed by a versioned domain ontology, and kept the same on the cloud and its edges.";
+    archimate:hasProperty _:p-e-pattern-knowledge-sync-0.
+_:p-e-pattern-knowledge-sync-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-cloud + mediathek-digitalhome-edge; digitalhome-cloud-darkfactory + digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:hasProperty _:p-e-pattern-knowledge-sync-1.
+_:p-e-pattern-knowledge-sync-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-cloud docs/adr/0008".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:hasProperty _:p-e-pattern-knowledge-sync-2.
+_:p-e-pattern-knowledge-sync-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> a archimate:Grouping;
+    archimate:identifier "pattern-tenant-spaces";
+    archimate:name "Pattern: A tenant with spaces";
+    archimate:documentation "One tenant per family, home or team, with spaces inside it that decide who may read what. The Mediathek calls them household and vaults; DigitalHome calls the tenant a SmartHome.";
+    archimate:hasProperty _:p-e-pattern-tenant-spaces-0.
+_:p-e-pattern-tenant-spaces-0 a archimate:Property;
+    archimate:propertyKey "instances";
+    archimate:propertyValue "mediathek-digitalhome-cloud; digitalhome-cloud-darkfactory".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:hasProperty _:p-e-pattern-tenant-spaces-1.
+_:p-e-pattern-tenant-spaces-1 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template-dlab5-cloud docs/adr (tenancy)".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:hasProperty _:p-e-pattern-tenant-spaces-2.
+_:p-e-pattern-tenant-spaces-2 a archimate:Property;
+    archimate:propertyKey "status";
+    archimate:propertyValue "adopted".
+<https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-a-person-approves> a archimate:Principle;
+    archimate:identifier "principle-a-person-approves";
+    archimate:name "A person approves every edge";
+    archimate:documentation "An edge ships with no secret. It becomes trusted when an admin of the tenant approves its code, and it can be revoked there.";
+    archimate:hasProperty _:p-e-principle-a-person-approves-0.
+_:p-e-principle-a-person-approves-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-cloud docs/adr/0006".
+<https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-agent-proposes> a archimate:Principle;
+    archimate:identifier "principle-agent-proposes";
+    archimate:name "The agent proposes; a person confirms";
+    archimate:documentation "Changes the chat suggests are shown as proposals and carried out only when the person confirms them.";
+    archimate:hasProperty _:p-e-principle-agent-proposes-0.
+_:p-e-principle-agent-proposes-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "mediathek-digitalhome-edge chat.py".
+<https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-ids-not-names> a archimate:Principle;
+    archimate:identifier "principle-ids-not-names";
+    archimate:name "The graph holds ids; names are labels";
+    archimate:documentation "Ids are minted and survive renames and merges; a name is a label on an id.";
+    archimate:hasProperty _:p-e-principle-ids-not-names-0.
+_:p-e-principle-ids-not-names-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "template docs/adr/0003".
+<https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-tenant-is-the-partition> a archimate:Principle;
+    archimate:identifier "principle-tenant-is-the-partition";
+    archimate:name "The tenant is the partition";
+    archimate:documentation "Every row, object and graph carries its tenant id, minted and never derived from a name. Like a client in an ERP system.";
+    archimate:hasProperty _:p-e-principle-tenant-is-the-partition-0.
+_:p-e-principle-tenant-is-the-partition-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "digitalhome-cloud-darkfactory CLAUDE.md (SmartHome id); mediathek-digitalhome-cloud docs/adr/0010".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationProcess/process-link-edge> a archimate:ApplicationProcess;
+    archimate:identifier "process-link-edge";
+    archimate:name "Link an edge";
+    archimate:documentation "Code, approval, token, rotation before expiry.".
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync> a archimate:ApplicationService;
+    archimate:identifier "service-graph-sync";
+    archimate:name "Graph sync";
+    archimate:documentation "Get, put with version, list.".
+<https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-nodered> a archimate:SystemSoftware;
+    archimate:identifier "sw-nodered";
+    archimate:name "Node-RED";
+    archimate:documentation "Flows own the devices; everything else calls the flows.";
+    archimate:hasProperty _:p-e-sw-nodered-0.
+_:p-e-sw-nodered-0 a archimate:Property;
+    archimate:propertyKey "reference";
+    archimate:propertyValue "digitalhome-edge".
+<https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-ros2> a archimate:SystemSoftware;
+    archimate:identifier "sw-ros2";
+    archimate:name "ROS 2";
+    archimate:documentation "Topics and services, bridged to MCP tools.".
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-tenant-is-the-partition>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r1> a archimate:Relationship;
+    archimate:identifier "r1";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-tenant-is-the-partition>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:access <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/access/r10> a archimate:Relationship;
+    archimate:identifier "r10";
+    bp:relationshipType archimate:access;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:serving <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-tenant-admin>.
+<https://blueprinting.dlab5.net/i/cloud-edge/serving/r11> a archimate:Relationship;
+    archimate:identifier "r11";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-tenant-admin>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:serving <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-operator>.
+<https://blueprinting.dlab5.net/i/cloud-edge/serving/r12> a archimate:Relationship;
+    archimate:identifier "r12";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-operator>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-operators-read-no-content>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r13> a archimate:Relationship;
+    archimate:identifier "r13";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-operators-read-no-content>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-groups-are-the-access-rule>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r14> a archimate:Relationship;
+    archimate:identifier "r14";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-groups-are-the-access-rule>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-household-is-a-smarthome> archimate:influence <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-tenant-is-the-partition>.
+<https://blueprinting.dlab5.net/i/cloud-edge/influence/r15> a archimate:Relationship;
+    archimate:identifier "r15";
+    bp:relationshipType archimate:influence;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-household-is-a-smarthome>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-tenant-is-the-partition>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-a-person-approves>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r16> a archimate:Relationship;
+    archimate:identifier "r16";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-a-person-approves>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-version-gate>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r17> a archimate:Relationship;
+    archimate:identifier "r17";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-version-gate>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r18> a archimate:Relationship;
+    archimate:identifier "r18";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-tombstone-would-unlink>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r19> a archimate:Relationship;
+    archimate:identifier "r19";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-tombstone-would-unlink>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-operators-read-no-content>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r2> a archimate:Relationship;
+    archimate:identifier "r2";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-operators-read-no-content>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r20> a archimate:Relationship;
+    archimate:identifier "r20";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r21> a archimate:Relationship;
+    archimate:identifier "r21";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationProcess/process-link-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r22> a archimate:Relationship;
+    archimate:identifier "r22";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationProcess/process-link-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r23> a archimate:Relationship;
+    archimate:identifier "r23";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> archimate:assignment <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationProcess/process-link-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/assignment/r24> a archimate:Relationship;
+    archimate:identifier "r24";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationProcess/process-link-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-version-gate>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r25> a archimate:Relationship;
+    archimate:identifier "r25";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-version-gate>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r26> a archimate:Relationship;
+    archimate:identifier "r26";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-tombstone-would-unlink> archimate:influence <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/influence/r27> a archimate:Relationship;
+    archimate:identifier "r27";
+    bp:relationshipType archimate:influence;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-tombstone-would-unlink>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-tombstone-is-not-a-revoke>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry> archimate:association <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.
+<https://blueprinting.dlab5.net/i/cloud-edge/association/r28> a archimate:Relationship;
+    archimate:identifier "r28";
+    bp:relationshipType archimate:association;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-ids-not-names>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r29> a archimate:Relationship;
+    archimate:identifier "r29";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-ids-not-names>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-groups-are-the-access-rule>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r3> a archimate:Relationship;
+    archimate:identifier "r3";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-groups-are-the-access-rule>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-sync-is-three-way>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r30> a archimate:Relationship;
+    archimate:identifier "r30";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-sync-is-three-way>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-domain-ontology>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r31> a archimate:Relationship;
+    archimate:identifier "r31";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-domain-ontology>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r32> a archimate:Relationship;
+    archimate:identifier "r32";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r33> a archimate:Relationship;
+    archimate:identifier "r33";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r34> a archimate:Relationship;
+    archimate:identifier "r34";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r35> a archimate:Relationship;
+    archimate:identifier "r35";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync> archimate:access <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/access/r36> a archimate:Relationship;
+    archimate:identifier "r36";
+    bp:relationshipType archimate:access;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-sync-is-three-way>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r37> a archimate:Relationship;
+    archimate:identifier "r37";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-sync-is-three-way>.
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox> archimate:association <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-domain-ontology>.
+<https://blueprinting.dlab5.net/i/cloud-edge/association/r38> a archimate:Relationship;
+    archimate:identifier "r38";
+    bp:relationshipType archimate:association;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-domain-ontology>.
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space> archimate:association <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/association/r39> a archimate:Relationship;
+    archimate:identifier "r39";
+    bp:relationshipType archimate:association;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-abox>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-household-is-a-smarthome>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r4> a archimate:Relationship;
+    archimate:identifier "r4";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Assessment/assessment-household-is-a-smarthome>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-agent-proposes>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r40> a archimate:Relationship;
+    archimate:identifier "r40";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Principle/principle-agent-proposes>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-private-data-stays-local>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r41> a archimate:Relationship;
+    archimate:identifier "r41";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-private-data-stays-local>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r42> a archimate:Relationship;
+    archimate:identifier "r42";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r43> a archimate:Relationship;
+    archimate:identifier "r43";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp> archimate:serving <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/serving/r44> a archimate:Relationship;
+    archimate:identifier "r44";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-private-data-stays-local>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r45> a archimate:Relationship;
+    archimate:identifier "r45";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Constraint/constraint-private-data-stays-local>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge> archimate:specialization <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/specialization/r46> a archimate:Relationship;
+    archimate:identifier "r46";
+    bp:relationshipType archimate:specialization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge> archimate:specialization <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/specialization/r47> a archimate:Relationship;
+    archimate:identifier "r47";
+    bp:relationshipType archimate:specialization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge> archimate:specialization <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/specialization/r48> a archimate:Relationship;
+    archimate:identifier "r48";
+    bp:relationshipType archimate:specialization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-nodered>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r49> a archimate:Relationship;
+    archimate:identifier "r49";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-nodered>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r5> a archimate:Relationship;
+    archimate:identifier "r5";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-ros2>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r50> a archimate:Relationship;
+    archimate:identifier "r50";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/SystemSoftware/sw-ros2>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r51> a archimate:Relationship;
+    archimate:identifier "r51";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-chat-panel>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r52> a archimate:Relationship;
+    archimate:identifier "r52";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-mcp>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api> archimate:serving <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/serving/r53> a archimate:Relationship;
+    archimate:identifier "r53";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationInterface/interface-edge-api>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync> archimate:serving <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/serving/r54> a archimate:Relationship;
+    archimate:identifier "r54";
+    bp:relationshipType archimate:serving;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationService/service-graph-sync>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r55> a archimate:Relationship;
+    archimate:identifier "r55";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r56> a archimate:Relationship;
+    archimate:identifier "r56";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-registry>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r57> a archimate:Relationship;
+    archimate:identifier "r57";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-graph-store>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge> archimate:realization <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/realization/r58> a archimate:Relationship;
+    archimate:identifier "r58";
+    bp:relationshipType archimate:realization;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge> archimate:assignment <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/assignment/r59> a archimate:Relationship;
+    archimate:identifier "r59";
+    bp:relationshipType archimate:assignment;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r6> a archimate:Relationship;
+    archimate:identifier "r6";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r60> a archimate:Relationship;
+    archimate:identifier "r60";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r61> a archimate:Relationship;
+    archimate:identifier "r61";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-link>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r62> a archimate:Relationship;
+    archimate:identifier "r62";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-knowledge-sync>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r63> a archimate:Relationship;
+    archimate:identifier "r63";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-edge-agent>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r64> a archimate:Relationship;
+    archimate:identifier "r64";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-edge-app>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r65> a archimate:Relationship;
+    archimate:identifier "r65";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r66> a archimate:Relationship;
+    archimate:identifier "r66";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-human-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r67> a archimate:Relationship;
+    archimate:identifier "r67";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-iot-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r68> a archimate:Relationship;
+    archimate:identifier "r68";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Node/node-robot-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r69> a archimate:Relationship;
+    archimate:identifier "r69";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-cloud>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r7> a archimate:Relationship;
+    archimate:identifier "r7";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/pattern-tenant-spaces>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r70> a archimate:Relationship;
+    archimate:identifier "r70";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/Artifact/artifact-template-edge>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-tenant-admin>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r71> a archimate:Relationship;
+    archimate:identifier "r71";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-tenant-admin>.
+<https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge> archimate:aggregation <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-operator>.
+<https://blueprinting.dlab5.net/i/cloud-edge/aggregation/r72> a archimate:Relationship;
+    archimate:identifier "r72";
+    bp:relationshipType archimate:aggregation;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/Grouping/blueprint-cloud-edge>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/BusinessActor/actor-operator>.
+<https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant> archimate:composition <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/composition/r8> a archimate:Relationship;
+    archimate:identifier "r8";
+    bp:relationshipType archimate:composition;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-space>.
+<https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service> archimate:access <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.
+<https://blueprinting.dlab5.net/i/cloud-edge/access/r9> a archimate:Relationship;
+    archimate:identifier "r9";
+    bp:relationshipType archimate:access;
+    bp:source <https://blueprinting.dlab5.net/i/cloud-edge/ApplicationComponent/component-tenant-service>;
+    bp:target <https://blueprinting.dlab5.net/i/cloud-edge/DataObject/data-tenant>.

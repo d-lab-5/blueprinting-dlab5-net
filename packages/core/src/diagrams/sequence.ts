@@ -21,7 +21,13 @@ import type { AbModel, AbElement } from "../types.js";
 
 export interface SequenceOptions {
   title?: string;
-  /** Start from this element id. Defaults to every behaviour with no predecessor. */
+  /**
+   * Start from this element id, and draw ONLY what it reaches.
+   *
+   * Defaults to every behaviour with no predecessor, which draws everything.
+   * A model that holds two unrelated flows — a roadmap and a runtime
+   * sequence, say — is unreadable that way, and this is how one is isolated.
+   */
   from?: string;
   emptyMessage?: string;
 }
@@ -119,8 +125,14 @@ export function toMermaidSequence(
     }
   };
   for (const root of roots.length ? roots : [steps[0].source]) walk(root);
-  // A cycle would leave steps unvisited; append them so nothing is dropped.
-  for (const step of steps) {
+
+  // A cycle would leave steps unvisited, so anything unreached is appended
+  // rather than silently dropped — but ONLY when no start was asked for.
+  //
+  // With `from`, unreached steps are not part of the flow the caller asked
+  // about, and appending them made the option do nothing: a model holding two
+  // unrelated flows drew both however it was called.
+  if (!options.from) for (const step of steps) {
     const key = `${step.source}->${step.target}:${step.type}`;
     if (!seen.has(key)) {
       seen.add(key);

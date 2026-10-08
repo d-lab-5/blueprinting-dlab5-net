@@ -48,7 +48,7 @@ const IndexPage: React.FC<PageProps> = () => {
           <dl className="bp-stats">
             <div className="bp-stat">
               <dt>{projects?.length ?? "—"}</dt>
-              <dd>Blueprints</dd>
+              <dd>Products</dd>
             </div>
             <div className="bp-stat">
               <dt>{session.groups.filter((g) => g.startsWith("bp-")).length}</dt>
@@ -78,9 +78,10 @@ const IndexPage: React.FC<PageProps> = () => {
 
       {/* The page heading, now that the hero carries none. A page whose only
           headings are h2s has no subject. */}
-      <h1 className="bp-cards__heading">
-        Blueprints
-      </h1>
+      {/* A product is the thing you open; its blueprint is the model inside
+          it. Both words stay meaningful that way, which is why this heading
+          changed and the word "blueprint" did not disappear. */}
+      <h1 className="bp-cards__heading">Products</h1>
 
       {error && (
         <p className="bp-error" role="alert">
@@ -94,15 +95,15 @@ const IndexPage: React.FC<PageProps> = () => {
         <div className="bp-empty">
           <p>
             {session.isAdmin
-              ? "No projects yet."
-              : "You do not have access to any project."}
+              ? "No products yet."
+              : "You do not have access to any product."}
           </p>
           <p className="bp-muted">
             {session.isAdmin ? (
-              <>Use &ldquo;New project&rdquo; above to create the first one.</>
+              <>Use &ldquo;New product&rdquo; above to create the first one.</>
             ) : (
               <>
-                Access is granted by adding your account to a project&rsquo;s{" "}
+                Access is granted by adding your account to a product&rsquo;s{" "}
                 <code>bp-&lt;slug&gt;</code> group in Cognito. Ask a platform
                 administrator.
               </>
@@ -184,4 +185,4 @@ function HeroHexagon() {
 
 export default IndexPage;
 
-export const Head: HeadFC = () => <title>Projects — D-LAB-5 Blueprinting</title>;
+export const Head: HeadFC = () => <title>Products — D-LAB-5 Blueprinting</title>;

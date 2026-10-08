@@ -1,7 +1,7 @@
 {
   "name": "@dlab5/blueprint-core",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "description": "ArchiMate ABox model, Turtle I/O and validation. Pure TypeScript, no React, no AWS.",
   "type": "module",
   "main": "dist/index.js",

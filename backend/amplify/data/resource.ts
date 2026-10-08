@@ -1,6 +1,10 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { modelStorageProxy } from "../functions/modelStorageProxy/resource";
 import { projectAdmin } from "../functions/projectAdmin/resource";
+import { projectRename } from "../functions/projectRename/resource";
+import { documentStore } from "../functions/documentStore/resource";
+import { documentDelete } from "../functions/documentDelete/resource";
+import { apiKeyAdmin } from "../functions/apiKeyAdmin/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -81,7 +85,66 @@ const schema = a.schema({
     .secondaryIndexes((index) => [index("projectSlug")])
     .authorization((allow) => [
       allow.group("bp-admins"),
-      allow.groupDefinedIn("group"),
+      allow.groupDefinedIn("group").to(["read"]),
+    ]),
+
+  /**
+   * A source document held for the record: a report, a plan, an ADR.
+   *
+   * Intake reads annotated markdown into the model (ADR-0011), but the
+   * document itself is evidence rather than architecture, so it is stored
+   * beside the model rather than in it. The prose lives in S3; this row is the
+   * index — what exists, what it is called, and crucially how far it may
+   * travel.
+   *
+   * `classification` is the load-bearing field, and its axis is WHERE A
+   * DOCUMENT MAY GO rather than how secret it is:
+   *
+   *                    in a bundle   safe in a public repo
+   *   confidential          no              no
+   *   collaboration        yes              no
+   *   shared               yes             yes
+   *
+   * The middle tier is the one that is easy to leave out and expensive to
+   * lack. Sprint notes and working documents have to travel between
+   * environments with the product, and must not end up on a public GitHub
+   * page — two properties that a two-valued field cannot express at once.
+   *
+   * **The default is confidential**, and that direction is deliberate. Sharing
+   * is opt-in, so a document nobody classified stays put; the other way round,
+   * one forgotten field puts commercial terms in a file destined for a public
+   * repository.
+   */
+  Document: a
+    .model({
+      docId: a.id().required(),
+      projectSlug: a.string().required(),
+      title: a.string().required(),
+      classification: a.enum(["confidential", "collaboration", "shared"]),
+      /** `projects/<product>/documents/<docId>/source.md` — never rewritten. */
+      sourceKey: a.string().required(),
+      /** The annotated working copy, once someone has made one. */
+      annotatedKey: a.string(),
+      /** Of the source, so a re-upload of the same bytes is recognisable. */
+      sha256: a.string(),
+      bytes: a.integer(),
+      uploadedAt: a.datetime(),
+      /** Copied from the product so group authorization applies here too. */
+      group: a.string().required(),
+    })
+    // Composite, so a document id is unique WITHIN a product rather than
+    // across all of them. A global docId meant two products could not both
+    // hold a "sprint-notes", and that copying a product into another
+    // environment failed the moment a document id was already taken —
+    // which is exactly what a product copy does.
+    .identifier(["projectSlug", "docId"])
+    // Members read the index; they do not write rows. Storing a document goes
+    // through documentStore and removing one through purgeDocument, because
+    // both own S3 objects that a bare row write would leave orphaned — and
+    // because a read-only API key (ADR-0012) must not have a second way in.
+    .authorization((allow) => [
+      allow.group("bp-admins"),
+      allow.groupDefinedIn("group").to(["read"]),
     ]),
 
   /** What modelStorageProxy hands back for both reads and writes. */
@@ -151,6 +214,147 @@ const schema = a.schema({
     .returns(a.ref("CreatedProject"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(projectAdmin)),
+
+  /**
+   * Renames a product, and keeps its Cognito group description in step.
+   *
+   * The generated `updateProject` can change these same two fields, and is
+   * still there. This exists because the group's description is the only thing
+   * in the Cognito console that says which product an opaque `bp-p-…` group
+   * belongs to (ADR-0009), and updating it needs permissions the browser must
+   * never hold.
+   *
+   * The id is not an argument. It is the partition key; re-identifying a
+   * product is an export and a reload (ADR-0010), not an update.
+   */
+  renameProject: a
+    .mutation()
+    .arguments({
+      slug: a.string().required(),
+      name: a.string().required(),
+      description: a.string(),
+    })
+    .returns(a.ref("CreatedProject"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(projectRename)),
+
+  /** What documentStore hands back for both reads and writes. */
+  DocumentAccess: a.customType({
+    docId: a.string().required(),
+    key: a.string().required(),
+    /** Pre-signed GET. Absent on writes and when the document is not there. */
+    url: a.string(),
+    exists: a.boolean().required(),
+    classification: a.string().required(),
+  }),
+
+  /**
+   * Stores a document, or its annotated working copy.
+   *
+   * `classification` defaults to confidential inside the function, not here:
+   * an omitted argument must mean "do not share", and a default in the schema
+   * would be easy to read as advisory.
+   */
+  saveDocument: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+      markdown: a.string().required(),
+      title: a.string(),
+      classification: a.string(),
+      kind: a.string(),
+    })
+    .returns(a.ref("DocumentAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentStore)),
+
+  requestDocumentReadUrl: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+      kind: a.string(),
+    })
+    .returns(a.ref("DocumentAccess"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentStore)),
+
+  /**
+   * Removes a document: its S3 objects AND its row, together.
+   *
+   * Named `purgeDocument`, not `deleteDocument`, for the same reason
+   * `provisionProject` is not `createProject`: `a.model("Document")` already
+   * generates a `deleteDocument`, and redeclaring it fails the CDK assembly
+   * with "Object type extension 'Mutation' cannot redeclare field". The
+   * generated one still exists and removes the row only — leaving the markdown
+   * orphaned in the bucket — so this is the one to call.
+   *
+   * Its own function, not a branch in documentStore: the arguments are the
+   * same as requestDocumentReadUrl's, and AppSync does not populate
+   * `event.info.fieldName` for these handlers. It also holds s3:DeleteObject
+   * and not s3:PutObject, which documentStore has the reverse of.
+   */
+  purgeDocument: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      docId: a.string().required(),
+    })
+    .returns(a.boolean())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(documentDelete)),
+
+  /**
+   * One API key, as its owner may see it — which never includes the key.
+   *
+   * `secret` is populated exactly once, by createApiKey, and is the only time
+   * the key exists anywhere but in the caller's hands. Nothing can ask for it
+   * again, because only its hash was stored.
+   */
+  ApiKeyView: a.customType({
+    keyId: a.string().required(),
+    name: a.string().required(),
+    scope: a.string().required(),
+    createdAt: a.string().required(),
+    expiresAt: a.string().required(),
+    lastUsedAt: a.string(),
+    revokedAt: a.string(),
+    secret: a.string(),
+  }),
+
+  /**
+   * Mints a key. Read-only unless `scope: "write"` is asked for.
+   *
+   * Not a model, so there is no generated CRUD over a row holding a key hash.
+   * All three of these share one function, dispatched on their arguments —
+   * create has a name, revoke has a keyId, list has neither — because AppSync
+   * does not populate `event.info.fieldName` for these handlers.
+   */
+  createApiKey: a
+    .mutation()
+    .arguments({
+      name: a.string().required(),
+      scope: a.string(),
+      days: a.integer(),
+    })
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
+
+  listApiKeys: a
+    .mutation()
+    .arguments({})
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
+
+  revokeApiKey: a
+    .mutation()
+    .arguments({ keyId: a.string().required() })
+    .returns(a.ref("ApiKeyView").array())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(apiKeyAdmin)),
 
   saveModel: a
     .mutation()

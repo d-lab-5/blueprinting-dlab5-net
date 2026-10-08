@@ -9,6 +9,8 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+import { requireWrite } from "../shared/claims";
+
 /**
  * Per-project access to the ArchiMate ABox in S3.
  *
@@ -127,9 +129,14 @@ export const handler = async (
   const fieldName = event.info?.fieldName;
   const action: Action =
     fieldName === "saveModel" || typeof turtle === "string" ? "write" : "read";
+
   if (fieldName !== "saveModel" && fieldName !== "requestModelReadUrl") {
     console.warn("[modelStorageProxy] unexpected fieldName", fieldName);
   }
+
+  // Before the product is even resolved: a read-only key must be refused
+  // whether or not the product it named exists.
+  if (action === "write") requireWrite(event.identity, "save a model");
 
   if (!projectSlug) throw new Error("projectSlug is required");
 

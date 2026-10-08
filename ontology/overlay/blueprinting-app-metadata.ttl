@@ -136,6 +136,29 @@ bp:debt a owl:AnnotationProperty ;
     rdfs:range xsd:decimal ;
     bp:propertyKey "debt" .
 
+# ── Document intake ─────────────────────────────────────────
+# Where an element came from, when it came from a document
+# rather than from someone drawing it. Intake reads annotated
+# markdown (ADR-0011); these two make the origin visible, so a
+# re-import can tell which elements it is responsible for and a
+# reader can find the paragraph an element was written from.
+#
+# They are deliberately properties rather than relationships.
+# The document is not part of the architecture — it is evidence
+# about it, and modelling every source report as an Artifact
+# would fill the model with elements nobody wants to see on a
+# view.
+
+bp:sourceDocument a owl:AnnotationProperty ;
+    rdfs:label "Source document"@en ;
+    rdfs:comment "The id of the document this element was imported from. Set by intake, and what a later import of the same document matches on to decide whether an element is new, changed, or no longer present. An element without it was drawn by hand and intake will never touch it."@en ;
+    bp:propertyKey "sourceDocument" .
+
+bp:sourceSection a owl:AnnotationProperty ;
+    rdfs:label "Source section"@en ;
+    rdfs:comment "The slug of the heading this element was written from. A pointer back into the document, so an element's prose can be read in the context it came from. It follows the heading text, so editing a heading changes it — which is why a change to it alone is not treated as a conflict."@en ;
+    bp:propertyKey "sourceSection" .
+
 # ── Technology Radar ────────────────────────────────────────
 # Quadrants are archimate:Grouping elements aggregating their
 # members, because the element type cannot carry the quadrant:

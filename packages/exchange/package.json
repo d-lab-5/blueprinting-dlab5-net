@@ -1,8 +1,8 @@
 {
   "name": "@dlab5/archimate-exchange",
   "version": "0.1.0",
-  "license": "MIT",
-  "description": "ArchiMate Model Exchange File Format — export to and import from Archi",
+  "license": "GPL-3.0-or-later",
+  "description": "ArchiMate Model Exchange File Format \u2014 export to and import from Archi",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

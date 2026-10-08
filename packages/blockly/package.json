@@ -1,7 +1,7 @@
 {
   "name": "@dlab5/blueprint-blockly",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "description": "Blockly blocks generated from the ArchiMate metamodel, and workspace/ABox transforms",
   "type": "module",
   "main": "dist/index.js",

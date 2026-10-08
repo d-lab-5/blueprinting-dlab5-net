@@ -364,7 +364,11 @@ async function visit(
       { expression: `JSON.stringify((() => { ${evaluate} })())`, returnByValue: true },
       sessionId
     );
-    if (exceptionDetails) throw new Error(exceptionDetails.text);
+    if (exceptionDetails) {
+      throw new Error(
+        exceptionDetails.exception?.description ?? exceptionDetails.text
+      );
+    }
     value = JSON.parse(result.value);
   }
 
@@ -385,6 +389,19 @@ const PROBE = `
   const rail = document.querySelector(".bp-rail");
   return {
     h1s: document.querySelectorAll("h1").length,
+    h1Text: (document.querySelector("h1")?.textContent ?? "").trim(),
+    // Visible text only: innerText ignores href attributes and DOM ids,
+    // where the opaque id legitimately belongs.
+    bodyText: document.body?.innerText ?? "",
+    hasSaveBar: !!document.querySelector(".bp-savebar"),
+    // Text drawn inside a diagram, used to prove the check above can see into
+    // an SVG at all. Without this the id-leak assertion would pass vacuously
+    // if innerText ever stopped descending into SVG — which is precisely how
+    // a check goes green while the thing it guards is broken.
+    svgText: (() => {
+      const t = document.querySelector("svg text, svg tspan");
+      return (t?.textContent ?? "").trim();
+    })(),
     h1: document.querySelector("h1")?.textContent ?? null,
     theme: document.documentElement.getAttribute("data-bp-theme"),
     bodyBackground: style(document.body, "background-color"),
@@ -451,7 +468,306 @@ const ROUTES = [
   // link made before the rename still resolves.
   { path: "/p/dlab5-blueprint/model/", name: "project · model (alias)" },
   { path: "/p/dlab5-blueprint/blocks/", name: "project · blocks" },
+  // The Tools section. Import needs no backend beyond the model; documents and
+  // export are added once documentStore is deployed.
+  { path: "/p/dlab5-blueprint/import/", name: "project · import" },
+  { path: "/p/dlab5-blueprint/documents/", name: "project · documents" },
+  { path: "/p/dlab5-blueprint/export/", name: "project · export" },
+  // Not under /p/ at all: a key belongs to a person and reaches every product
+  // they can, so it is not scoped to one.
+  { path: "/keys/", name: "api keys" },
 ];
+
+/**
+ * The radar: filters, hover information, and its own viewport.
+ *
+ * A radar gets unreadable fast, so the filters are the feature. The one
+ * property worth asserting hardest is that filtering removes BLIPS and never
+ * sectors — a figure whose shape changes as you filter cannot be compared
+ * against itself.
+ */
+/**
+ * Product settings: the panel that makes a product renameable (ADR-0009).
+ *
+ * It is also the one place the opaque id is shown on purpose, so this doubles
+ * as the proof that the "id is never shown as text" assertion is not passing
+ * merely because the panel failed to render.
+ */
+/**
+ * A stored document, rendered.
+ *
+ * The reader and the print view showed raw markdown before, which made the
+ * "well-formatted PDF" impossible. The assertions worth having are the ones
+ * that would fail silently: that a table becomes a table, that an annotation
+ * is gone rather than merely invisible, and that nothing in a document can
+ * produce markup of its own.
+ */
+async function documentRendering(cdp) {
+  console.log("\ndocument rendering");
+
+  const OPEN = `
+    const row = [...document.querySelectorAll(".bp-documents__index tbody tr")]
+      .find((tr) => tr.textContent.includes("render-check"));
+    row?.querySelector("button.bp-linkbutton")?.click();
+  `;
+
+  const READ = `
+    const prose = document.querySelector(".bp-documents__reader .bp-prose");
+    return {
+      rendered: Boolean(prose),
+      headings: prose?.querySelectorAll("h1, h2, h3").length ?? 0,
+      tables: prose?.querySelectorAll("table").length ?? 0,
+      rows: prose?.querySelectorAll("table tr").length ?? 0,
+      code: prose?.querySelectorAll("pre code").length ?? 0,
+      quotes: prose?.querySelectorAll("blockquote").length ?? 0,
+      lists: prose?.querySelectorAll("ul li").length ?? 0,
+      // The annotation must be gone from the DOM, not just not displayed.
+      annotationInHtml: (prose?.innerHTML ?? "").includes("am element"),
+      text: (prose?.innerText ?? "").slice(0, 4000),
+      // Nothing in the document may have produced a tag of its own.
+      scripts: prose?.querySelectorAll("script").length ?? 0,
+      // marked does not sanitize URLs. Every href and src that survived must
+      // be one a browser cannot execute.
+      badHrefs: [...(prose?.querySelectorAll("[href], [src]") ?? [])]
+        .map((n) => n.getAttribute("href") ?? n.getAttribute("src") ?? "")
+        .filter((u) => !/^(https?:|mailto:|tel:|#|\\/|\\.)/i.test(u)),
+      goodLinks: prose?.querySelectorAll('a[href^="https://"]').length ?? 0,
+      // Set by any payload that managed to run.
+      pwned: window.__pwned ?? null,
+    };
+  `;
+
+  let value;
+  try {
+    ({ value } = await visit(cdp, "/p/dlab5-blueprint/documents/", {
+      awaitSelector: SIGNED_IN,
+      then: OPEN,
+      evaluate: READ,
+      shot: "document-rendered.png",
+    }));
+  } catch (error) {
+    check(false, "a document opens", error.message);
+    return;
+  }
+
+  if (!value.rendered) {
+    // The fixture is a document in the environment, not something this script
+    // creates, so an environment without it should say so rather than fail.
+    console.log(
+      '  SKIP  no "render-check" document here.\n' +
+        "        Upload one on Documents with a table, a blockquote, a fenced\n" +
+        "        block and a javascript: link to exercise the renderer."
+    );
+    return;
+  }
+  check(true, "the document renders as prose, not raw markdown");
+  check(value.headings >= 3, "headings become headings", `${value.headings} found`);
+  check(value.tables === 1, "a markdown table becomes a table", `${value.tables} found`);
+  check(value.rows >= 3, "with its header and rows", `${value.rows} rows`);
+  check(value.code >= 1, "a fenced block becomes code", `${value.code} found`);
+  check(value.quotes >= 1, "a blockquote becomes a quote");
+  check(value.lists >= 3, "a list becomes a list", `${value.lists} items`);
+  check(
+    !value.annotationInHtml,
+    "the annotation is stripped from the DOM, not merely hidden",
+    "a comment left in the DOM is still in whatever gets saved"
+  );
+  check(value.scripts === 0, "the document produced no markup of its own");
+  check(
+    value.pwned === null,
+    "no payload in the document executed",
+    value.pwned === null ? "window.__pwned unset" : `EXECUTED: ${value.pwned}`
+  );
+  check(
+    value.badHrefs.length === 0,
+    "no link or image survived with a protocol a browser can execute",
+    value.badHrefs.length ? value.badHrefs.join(" | ") : "javascript:, data: and smuggled variants all neutralised"
+  );
+  check(
+    value.goodLinks >= 1,
+    "and an ordinary https link still works",
+    `${value.goodLinks} kept`
+  );
+  check(
+    !value.text.includes("| ---"),
+    "no raw markdown syntax survives into the text",
+    "table pipes would mean the renderer did not run"
+  );
+}
+
+async function productSettings(cdp) {
+  console.log("\nproduct settings");
+
+  const OPEN = `
+    const panel = document.querySelector(".bp-settings");
+    if (panel) panel.open = true;
+  `;
+
+  const READ = `
+    const panel = document.querySelector(".bp-settings");
+    const form = panel?.querySelector(".bp-settings__form");
+    const inputs = [...(form?.querySelectorAll("input, textarea") ?? [])];
+    return {
+      exists: Boolean(panel),
+      summary: panel?.querySelector("summary")?.textContent.trim() ?? null,
+      open: Boolean(panel?.open),
+      fields: inputs.map((i) => ({
+        label: i.closest(".bp-field")?.querySelector("span")?.textContent.trim() ?? null,
+        value: i.value,
+      })),
+      // Nothing to save until something changes: a Save that is always live
+      // invites a write that changes nothing and bumps the row for no reason.
+      saveDisabled: [...(form?.querySelectorAll("button") ?? [])]
+        .find((b) => b.textContent.trim().startsWith("Save"))?.disabled ?? null,
+      shownText: panel?.innerText ?? "",
+      // Only the name is editable; there must be no id field to type into.
+      idIsEditable: inputs.some((i) => i.value === "dlab5-blueprint"),
+    };
+  `;
+
+  let value;
+  try {
+    ({ value } = await visit(cdp, "/p/dlab5-blueprint/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      before: undefined,
+      then: OPEN,
+      evaluate: READ,
+      shot: "product-settings.png",
+    }));
+  } catch (error) {
+    check(false, "the settings panel renders", error.message);
+    return;
+  }
+
+  check(value.exists, "an administrator gets a settings panel", value.summary ?? "missing");
+  check(value.open, "it opens");
+  check(
+    value.fields.some((f) => f.label === "Name" && f.value === "DLAB5 Blueprint"),
+    "the name field holds the current name",
+    JSON.stringify(value.fields.map((f) => f.label))
+  );
+  check(
+    value.fields.some((f) => f.label === "Description" && f.value.length > 0),
+    "the description field holds the current description"
+  );
+  check(
+    value.saveDisabled === true,
+    "Save is inert until something changes",
+    `disabled=${value.saveDisabled}`
+  );
+  check(
+    !value.idIsEditable,
+    "the id is not editable",
+    "it is the partition key; re-identifying is an export and a reload"
+  );
+  // The counterpart to the id-leak assertion: the id IS shown here, on purpose,
+  // and only here. If this fails, the leak assertion has been passing for the
+  // wrong reason.
+  check(
+    value.shownText.includes("dlab5-blueprint"),
+    "the id is shown here, where identity is the point",
+    "and nowhere else"
+  );
+}
+
+async function radar(cdp) {
+  console.log("\nradar");
+
+  const READ = `
+    const chips = [...document.querySelectorAll(".bp-radar__filterrow .bp-chip")];
+    return {
+      entries: document.querySelectorAll(".bp-radar__blip").length,
+      sectors: document.querySelectorAll(".bp-radar__quadrantlabel").length,
+      count: document.querySelector(".bp-radar__count")?.textContent.trim() ?? null,
+      chips: chips.map((c) => c.textContent.trim()),
+      // Hovering a numbered blip should say what it is without a click.
+      titled: document.querySelectorAll(".bp-radar__blip title").length,
+      firstTitle: document.querySelector(".bp-radar__blip title")?.textContent.trim() ?? null,
+      viewportButtons: [...document.querySelectorAll(".bp-viewport__controls button")]
+        .map((b) => b.textContent.trim()),
+      labelsInside: [...document.querySelectorAll(".bp-radar__quadrantlabel")].every((t) => {
+        const svg = document.querySelector(".bp-radar__chart svg").getBoundingClientRect();
+        const r = t.getBoundingClientRect();
+        return r.left >= svg.left - 1 && r.right <= svg.right + 1;
+      }),
+      after: window.__afterFilter ?? null,
+    };
+  `;
+
+  const FILTER =
+    "(async () => {" +
+    "  const chip = (t) => [...document.querySelectorAll('.bp-radar__filterrow .bp-chip')]" +
+    "    .find((b) => b.textContent.trim().toLowerCase().startsWith(t));" +
+    "  const sectors = () => document.querySelectorAll('.bp-radar__quadrantlabel').length;" +
+    "  const before = { blips: document.querySelectorAll('.bp-radar__blip').length, sectors: sectors() };" +
+    "  chip('adopt')?.click();" +
+    "  await new Promise((r) => setTimeout(r, 500));" +
+    "  window.__afterFilter = { before, blips: document.querySelectorAll('.bp-radar__blip').length," +
+    "    sectors: sectors()," +
+    "    count: document.querySelector('.bp-radar__count')?.textContent.trim() ?? null };" +
+    "})()";
+
+  let result;
+  try {
+    result = await visit(cdp, "/p/dlab5-blueprint/radar/", {
+      awaitSelector: SIGNED_IN,
+      awaitGone: "Loading model",
+      then: FILTER,
+      evaluate: READ,
+      shot: "radar.png",
+    });
+  } catch (error) {
+    check(false, "the radar renders", error.message);
+    return;
+  }
+
+  const v = result.value;
+  check(v.entries > 0 || v.after?.before.blips > 0, "the radar draws entries");
+  // Read AFTER the filter ran, so it compares against what is drawn now —
+  // not against the pre-filter count, which is a different number and was
+  // this check's first mistake.
+  check(
+    v.titled === v.entries && v.entries > 0,
+    "every blip drawn carries hover information",
+    `${v.titled} titled of ${v.entries} drawn`
+  );
+  check(
+    /^\d+\. \S/.test(v.firstTitle ?? ""),
+    "the hover text names the entry",
+    (v.firstTitle ?? "").split("\n")[0]
+  );
+  check(
+    v.labelsInside,
+    "quadrant labels sit inside the drawing",
+    "a label at due left or right must not be clipped"
+  );
+  for (const label of ["Fit", "Full screen"]) {
+    check(
+      v.viewportButtons.includes(label),
+      `the radar offers ${label}`,
+      v.viewportButtons.join(" ")
+    );
+  }
+
+  if (v.after) {
+    check(
+      v.after.blips < v.after.before.blips,
+      "a ring filter removes entries",
+      `${v.after.before.blips} -> ${v.after.blips}`
+    );
+    check(
+      v.after.sectors === v.after.before.sectors,
+      "filtering never changes the radar's shape",
+      `${v.after.before.sectors} sectors before, ${v.after.sectors} after`
+    );
+    check(
+      /of \d+ shown/.test(v.after.count ?? ""),
+      "it says how much is hidden",
+      v.after.count ?? ""
+    );
+  }
+}
 
 /**
  * Zoom, fit, pan and full screen.
@@ -655,37 +971,41 @@ async function ganttImport(cdp) {
 
   const paste =
     "(async () => {" +
-    "  document.querySelector('.bp-import')?.setAttribute('open','');" +
+    "  document.querySelector('.bp-import--gantt')?.setAttribute('open','');" +
     "  await new Promise((r) => setTimeout(r, 150));" +
-    "  const area = document.querySelector('.bp-import textarea');" +
+    "  const area = document.querySelector('.bp-import--gantt textarea');" +
     "  const setter = Object.getOwnPropertyDescriptor(" +
     "    window.HTMLTextAreaElement.prototype, 'value').set;" +
     "  setter.call(area, " + JSON.stringify(CHART) + ");" +
     "  area.dispatchEvent(new Event('input', { bubbles: true }));" +
     "  await new Promise((r) => setTimeout(r, 400));" +
-    "  window.__before = document.querySelectorAll('.bp-editor__item').length;" +
+    "  window.__beforeDirty = !!document.querySelector('.bp-savebar .bp-muted');" +
     // Read the preview BEFORE applying: applying clears the textarea, which
     // correctly tears the preview down, so reading afterwards finds nothing.
-    "  window.__preview = document.querySelector('.bp-import__summary')?.textContent.trim() ?? null;" +
-    "  window.__skipped = document.querySelector('.bp-import__skipped summary')?.textContent.trim() ?? null;" +
-    "  document.querySelector('.bp-import .bp-button')?.click();" +
+    "  window.__preview = document.querySelector('.bp-import--gantt .bp-import__summary')?.textContent.trim() ?? null;" +
+    "  window.__skipped = document.querySelector('.bp-import--gantt .bp-import__skipped summary')?.textContent.trim() ?? null;" +
+    "  document.querySelector('.bp-import--gantt .bp-button')?.click();" +
     "  await new Promise((r) => setTimeout(r, 600));" +
     "})()";
 
   const READ = `
     return {
-      before: window.__before ?? null,
-      after: document.querySelectorAll(".bp-editor__item").length,
+      beforeDirty: window.__beforeDirty ?? null,
+      // The importers moved to Tools, so the roadmap editor's list is not on
+      // this screen any more. What shows the apply reached the model from here
+      // is the save bar: nothing else on the page changes.
+      afterDirty: [...document.querySelectorAll(".bp-savebar .bp-muted")]
+        .some((n) => n.textContent.includes("Unsaved")),
       summary: window.__preview ?? null,
       skipped: window.__skipped ?? null,
       // Applying should reset the panel, so the preview is gone now.
-      previewCleared: !document.querySelector(".bp-import__summary"),
+      previewCleared: !document.querySelector(".bp-import--gantt .bp-import__summary"),
     };
   `;
 
   let result;
   try {
-    result = await visit(cdp, "/p/dlab5-blueprint/", {
+    result = await visit(cdp, "/p/dlab5-blueprint/import/", {
       awaitSelector: SIGNED_IN,
       awaitGone: "Loading model",
       then: paste,
@@ -714,9 +1034,9 @@ async function ganttImport(cdp) {
     v.skipped ?? "nothing reported"
   );
   check(
-    v.before !== null && v.after === v.before + 4,
-    "applying adds exactly the parsed elements",
-    `${v.before} -> ${v.after}, expected +4`
+    v.beforeDirty === false && v.afterDirty === true,
+    "applying reaches the model, which the save bar then reports as unsaved",
+    `dirty before ${v.beforeDirty}, after ${v.afterDirty}`
   );
   check(v.previewCleared, "applying clears the paste box, so it cannot be applied twice");
 }
@@ -1104,14 +1424,58 @@ async function signedIn(cdp) {
     const { value, consoleErrors, failedRequests } = result;
 
     check(value.h1s === 1, `${route.name}: exactly one <h1>`, `found ${value.h1s}`);
+    // ADR-0009: the id in the URL is opaque and says nothing a reader can
+    // use, so a page titled with its own id has failed to load the row.
+    // This is the exact defect the ADR corrects — p.tsx read `<h1>{slug}</h1>`.
+    const routeSlug = route.path.split("/")[2] ?? "";
+    if (routeSlug) {
+      check(
+        value.h1Text !== routeSlug,
+        `${route.name}: titled with the product name, not its id`,
+        `<h1> reads "${value.h1Text}"`
+      );
+      // Catches every leak at once, including diagram titles rendered
+      // inside an SVG. The id belongs in the URL and in DOM ids, never in
+      // anything a person reads.
+      check(
+        !value.bodyText.includes(routeSlug),
+        `${route.name}: the product id is never shown as text`,
+        value.bodyText.includes(routeSlug)
+          ? `"${routeSlug}" is rendered as text`
+          : "not in the rendered text"
+      );
+      // The assertion above is only worth having if it can see diagram text.
+      if (value.svgText) {
+        check(
+          value.bodyText.includes(value.svgText),
+          `${route.name}: the id check can see inside diagrams`,
+          `svg text "${value.svgText}" ${
+            value.bodyText.includes(value.svgText) ? "is" : "is NOT"
+          } in body.innerText`
+        );
+      }
+    }
+    // The save bar belongs to the model, so it appears on the screens that
+    // edit one and nowhere else — not on the record screens, and not on a page
+    // that has no product at all. A Save button under a list of documents or
+    // of API keys reads as though those are what it saves.
+    const editsAModel = Boolean(routeSlug) && !/\/(documents|export)\/$/.test(route.path);
+    check(
+      value.hasSaveBar === editsAModel,
+      `${route.name}: ${editsAModel ? "the save bar is present" : "no save bar, nothing here to save"}`,
+      `save bar ${value.hasSaveBar ? "present" : "absent"}`
+    );
     check(!value.hasSignIn, `${route.name}: the gate is gone`);
     check(
       value.renderedContent,
       `${route.name}: the model rendered, not an empty frame`
     );
+    // The workspace section lists a product's screens, so it exists only where
+    // there is a product. At the launcher and on /keys/ the rail carries the
+    // switcher and the account links and nothing else, which is correct.
     check(
-      value.railItems === RAIL_ITEMS,
-      `${route.name}: ${RAIL_ITEMS} rail entries`,
+      value.railItems === (routeSlug ? RAIL_ITEMS : 0),
+      `${route.name}: ${routeSlug ? `${RAIL_ITEMS} rail entries` : "no workspace rail without a product"}`,
       `${value.railItems} items`
     );
     check(
@@ -1141,6 +1505,9 @@ async function signedIn(cdp) {
   await ganttImport(cdp);
   await findingsPanel(cdp);
   await viewport(cdp);
+  await productSettings(cdp);
+  await documentRendering(cdp);
+  await radar(cdp);
 
   // The rail must fold away rather than eat a phone screen.
   try {

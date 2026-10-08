@@ -1,8 +1,8 @@
 {
   "name": "blueprinting-dlab5-net",
   "private": true,
-  "description": "D-LAB-5 Blueprinting Platform — engineering governance over an ArchiMate 3.2 semantic model",
-  "license": "MIT",
+  "description": "D-LAB-5 Blueprinting Platform \u2014 engineering governance over an ArchiMate 3.2 semantic model",
+  "license": "GPL-3.0-or-later",
   "workspaces": [
     "packages/*"
   ],
@@ -23,6 +23,8 @@
     "verify:auth": "node scripts/verify-auth.mjs",
     "verify:model-store": "node scripts/verify-model-store.mjs",
     "verify:mcp": "node scripts/verify-mcp.mjs",
+    "verify:mcp-client": "./.venv/bin/python scripts/verify-mcp-client.py",
+    "setup:python": "python3 -m venv .venv && ./.venv/bin/pip install --quiet mcp",
     "dev:web": "npm run develop -w @dlab5/blueprint-site",
     "start:web": "npm run serve -w @dlab5/blueprint-site",
     "clean:web": "npm run clean -w @dlab5/blueprint-site",
@@ -30,7 +32,17 @@
     "backend:install": "npm --prefix backend install",
     "backend:sandbox": "npm --prefix backend run sandbox",
     "backend:sync-outputs": "npm --prefix backend run sync-outputs",
-    "backend:typecheck": "npm --prefix backend run typecheck"
+    "backend:typecheck": "npm --prefix backend run typecheck",
+    "bundle:export": "node scripts/bundle-export.mjs",
+    "bundle:import": "node scripts/bundle-import.mjs",
+    "verify:bundle": "node scripts/verify-bundle-roundtrip.mjs",
+    "verify:documents": "node scripts/verify-documents.mjs",
+    "verify:api-keys": "node scripts/verify-api-keys.mjs",
+    "gen:sap-landscape": "node scripts/gen-sap-landscape.mjs",
+    "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs",
+    "gen:skills-catalog": "node scripts/gen-skills-catalog.mjs",
+    "gen:platform-model": "node scripts/gen-platform-model.mjs",
+    "check:gpl": "node scripts/check-gpl-compatibility.mjs"
   },
   "engines": {
     "node": ">=22"

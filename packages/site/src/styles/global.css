@@ -503,6 +503,430 @@ a {
   color: var(--bp-text-muted);
 }
 
+/* ── Tools: documents, import, export ──────────────────────────────── */
+
+.bp-apikeys__form,
+.bp-apikeys__minted {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem;
+  max-width: 46rem;
+  background: var(--bp-surface);
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* The one moment the key exists. It should look like the one moment. */
+.bp-apikeys__minted {
+  border-color: var(--bp-accent-strong, #0ea5e9);
+  border-width: 2px;
+}
+
+.bp-apikeys__secret {
+  display: block;
+  word-break: break-all;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 4px;
+  background: var(--bp-bg);
+}
+
+.bp-apikeys__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* A dead key is kept for the record and should read as history, not as
+   something you might still use. */
+.bp-apikeys__dead td {
+  color: var(--bp-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--bp-text-muted) 50%, transparent);
+}
+
+.bp-apikeys__dead td .bp-tag {
+  opacity: 0.6;
+}
+
+.bp-apikeys__scope {
+  border: 1px solid var(--bp-border);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bp-apikeys__scope legend {
+  font-size: 0.85rem;
+  color: var(--bp-text-muted);
+  padding: 0 0.3rem;
+}
+
+.bp-apikeys__scope label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  cursor: pointer;
+}
+
+.bp-documents__upload {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 46rem;
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-documents__index {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 60rem;
+}
+
+.bp-documents__index th,
+.bp-documents__index td {
+  text-align: left;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--bp-border);
+  vertical-align: top;
+}
+
+.bp-documents__index th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bp-text-muted);
+}
+
+.bp-documents__id {
+  font-size: 0.8rem;
+}
+
+/* Confidential is the loud one on purpose: it is the state that carries a
+   consequence, and the one somebody needs to notice before they act. */
+.bp-tag {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.bp-tag--confidential {
+  background: color-mix(in srgb, var(--bp-danger, #b91c1c) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-danger, #b91c1c) 45%, transparent);
+}
+
+/* Collaboration sits between the two, and looks it. */
+.bp-tag--collaboration {
+  background: color-mix(in srgb, var(--bp-accent, #0e7490) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-accent, #0e7490) 40%, transparent);
+}
+
+.bp-tag--shared {
+  background: color-mix(in srgb, var(--bp-text-muted) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bp-text-muted) 35%, transparent);
+}
+
+/* Rendered document prose. Constrained to a readable measure, because a
+   document that runs the full width of a 1400px window is not a document. */
+.bp-prose {
+  max-width: 72ch;
+  line-height: 1.6;
+}
+
+.bp-prose h1,
+.bp-prose h2,
+.bp-prose h3,
+.bp-prose h4 {
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+}
+
+.bp-prose h1:first-child,
+.bp-prose h2:first-child {
+  margin-top: 0;
+}
+
+.bp-prose p,
+.bp-prose ul,
+.bp-prose ol {
+  margin: 0 0 0.9em;
+}
+
+.bp-prose code {
+  font-size: 0.88em;
+}
+
+.bp-prose pre {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+}
+
+.bp-prose blockquote {
+  margin: 0 0 0.9em;
+  padding-left: 1rem;
+  border-left: 3px solid var(--bp-border-strong);
+  color: var(--bp-text-muted);
+}
+
+/* Tables are why the renderer choice mattered. These documents are full of
+   them, and a table that overflows the page is worse than no table. */
+.bp-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 1em;
+  font-size: 0.92em;
+}
+
+.bp-prose th,
+.bp-prose td {
+  border: 1px solid var(--bp-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.bp-prose th {
+  background: var(--bp-surface);
+}
+
+.bp-prose img {
+  max-width: 100%;
+}
+
+.bp-documents__reader {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-documents__reader .bp-prose {
+  max-height: 34rem;
+  overflow: auto;
+}
+
+.bp-documents__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+/* Delete is the one action here with no undo, and it should not look like
+   the two beside it that have. */
+.bp-linkbutton--danger {
+  color: var(--bp-danger);
+}
+
+.bp-import__help {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  max-width: 60rem;
+}
+
+.bp-import__help > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.bp-import__help pre {
+  background: var(--bp-surface);
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+}
+
+.bp-import__help li {
+  margin-bottom: 0.35rem;
+}
+
+.bp-import__load {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  max-width: 46rem;
+  background: var(--bp-surface);
+}
+
+.bp-import__source {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.bp-import__plan {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  max-width: 60rem;
+}
+
+.bp-import__summary {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.bp-import__changes {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bp-import__changes label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.bp-import__kind {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--bp-border-strong);
+  color: var(--bp-text-muted);
+}
+
+.bp-import__was {
+  margin: 0 0 0 2.4rem;
+  font-size: 0.85rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-import__refused {
+  border-left: 3px solid var(--bp-danger, #b91c1c);
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.bp-import__actions,
+.bp-export__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bp-export__boundary {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  max-width: 46rem;
+  margin-bottom: 1.5rem;
+  background: var(--bp-surface);
+}
+
+.bp-export__boundary dt {
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.bp-export__boundary dd {
+  margin: 0 0 0.25rem;
+  color: var(--bp-text-muted);
+}
+
+/* Only the document prints. Everything else on the page — rail, controls,
+   the export panel itself — is chrome that has no business in a PDF someone
+   hands to a colleague. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .bp-print,
+  .bp-print * {
+    visibility: visible;
+  }
+
+  .bp-print {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  .bp-print__body {
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* A heading should not be the last thing on a page, and a table row should
+     not be split down the middle. Both are free to ask for and neither is
+     guaranteed, but the browser honours them more often than not. */
+  .bp-print h1,
+  .bp-print h2,
+  .bp-print h3 {
+    break-after: avoid;
+  }
+
+  .bp-print tr,
+  .bp-print pre,
+  .bp-print blockquote {
+    break-inside: avoid;
+  }
+}
+
+/* The product's description, under its title. Muted and narrow: it is
+   orientation, not content, and a full-width paragraph reads as the page. */
+/* Product settings: collapsed by default. Renaming is rare and the panel
+   would otherwise sit above the thing the page is actually for. */
+.bp-settings {
+  margin: 0 0 1.25rem;
+  max-width: 60ch;
+}
+
+.bp-settings > summary {
+  cursor: pointer;
+  color: var(--bp-text-muted);
+  font-size: 0.9rem;
+}
+
+.bp-settings__form {
+  border: 1px solid var(--bp-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.75rem;
+  background: var(--bp-surface);
+}
+
+.bp-settings__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bp-product__blurb {
+  color: var(--bp-text-muted);
+  max-width: 60ch;
+  margin: -0.25rem 0 1rem;
+}
+
 .bp-error {
   color: var(--bp-danger);
 }
@@ -935,12 +1359,17 @@ a {
   /* Shrink-wraps the diagram so the frame has something wider than itself to
      scroll to. Without this the stage fills the frame and the SVG is clipped
      rather than reachable. */
-  display: inline-block;
-  /* An inline-block reserves room for a text baseline under its content, so
-     the stage measured ~40px taller than the diagram inside it and anything
-     fitting to the frame height came out short. */
-  font-size: 0;
-  line-height: 0;
+  /* A block that shrink-wraps, NOT an inline-block.
+     An inline-block sits on the frame's text baseline, which reserves a few
+     pixels of descender space beneath it — the stage measured 544 while the
+     frame's scrollHeight was 550, so Fit "fitted" and the frame still
+     scrolled. width:max-content keeps the shrink-wrap that makes horizontal
+     scrolling work, without joining a line box.
+     Suppressing font-size here instead would have hidden the "Rendering…"
+     message, which lives inside the stage. */
+  display: block;
+  width: max-content;
+  max-width: none;
   min-width: min-content;
   padding: var(--bp-space-3);
   /* No transform and no will-change. Promoting this to a compositor layer is
@@ -1124,9 +1553,11 @@ a {
 .bp-radar__chart svg {
   width: 100%;
   height: auto;
-  background: var(--bp-surface);
-  border: 1px solid var(--bp-border);
-  border-radius: var(--bp-radius);
+  /* No border or background of its own: the viewport around it draws the
+     frame now, and two nested borders read as a mistake. The viewport also
+     sets width and height in pixels when zooming, which overrides the 100%
+     above — that is what keeps the vectors sharp instead of stretching a
+     bitmap. */
 }
 
 .bp-radar__ringlabel {
@@ -1955,4 +2386,35 @@ a {
   margin-left: auto;
   color: var(--bp-text-muted);
   font-size: 0.6875rem;
+}
+
+/* -- radar filters --------------------------------------------------------- */
+
+.bp-radar__filters {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--bp-space-3) var(--bp-space-4);
+  margin-bottom: var(--bp-space-4);
+}
+
+.bp-radar__filterrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bp-space-2);
+}
+
+.bp-radar__search {
+  min-width: 12rem;
+}
+
+.bp-radar__search input {
+  font-size: 0.8125rem;
+}
+
+.bp-radar__count {
+  margin: 0 0 var(--bp-space-2) auto;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
