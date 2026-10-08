@@ -61,6 +61,27 @@ export interface DocumentAccess {
   classification: string;
 }
 
+/**
+ * A working file from the project-docs store (ADR-0013), shared between
+ * claude.ai and Claude Code. Read-only here; `path` is relative to the product.
+ */
+export interface SharedFile {
+  path: string;
+  size: number;
+  lastModified: string;
+}
+
+/** `available` is false where this environment has no project-docs store. */
+export interface SharedFileList {
+  available: boolean;
+  files: SharedFile[];
+  truncated: boolean;
+}
+
+export interface SharedFileContent extends SharedFile {
+  content: string;
+}
+
 export interface ModelAccess {
   url?: string | null;
   etag?: string | null;
@@ -182,6 +203,31 @@ const READ_DOCUMENT = /* GraphQL */ `
       url
       exists
       classification
+    }
+  }
+`;
+
+const LIST_SHARED_FILES = /* GraphQL */ `
+  mutation ListSharedFiles($projectSlug: String!) {
+    listSharedFiles(projectSlug: $projectSlug) {
+      available
+      truncated
+      files {
+        path
+        size
+        lastModified
+      }
+    }
+  }
+`;
+
+const READ_SHARED_FILE = /* GraphQL */ `
+  mutation ReadSharedFile($projectSlug: String!, $path: String!) {
+    readSharedFile(projectSlug: $projectSlug, path: $path) {
+      path
+      content
+      size
+      lastModified
     }
   }
 `;
@@ -484,6 +530,26 @@ export async function loadDocument(
   const response = await fetch(access.url);
   if (!response.ok) return { markdown: null, access };
   return { markdown: await response.text(), access };
+}
+
+export async function listSharedFiles(projectSlug: string): Promise<SharedFileList> {
+  const result = (await client().graphql({
+    query: LIST_SHARED_FILES,
+    variables: { projectSlug },
+  })) as GraphQLResult<{ listSharedFiles: SharedFileList }>;
+  return unwrap(result).listSharedFiles;
+}
+
+/** The file's text, straight through AppSync: shared files are at most 1 MB. */
+export async function readSharedFile(
+  projectSlug: string,
+  path: string
+): Promise<SharedFileContent> {
+  const result = (await client().graphql({
+    query: READ_SHARED_FILE,
+    variables: { projectSlug, path },
+  })) as GraphQLResult<{ readSharedFile: SharedFileContent }>;
+  return unwrap(result).readSharedFile;
 }
 
 export async function loadModel(

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { slugifyId } from "@dlab5/blueprint-core";
 import { renderMarkdown } from "../lib/markdown";
+import { SharedFiles } from "./SharedFiles";
 import {
   deleteDocument,
   listDocuments,
@@ -244,6 +245,8 @@ export function Documents({ slug }: { slug: string }) {
           </button>
         </div>
       )}
+
+      <SharedFiles slug={slug} />
     </section>
   );
 }

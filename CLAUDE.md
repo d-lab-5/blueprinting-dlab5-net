@@ -261,7 +261,10 @@ reachable over HTTPS with a bearer key. A space is a product id, read from the
 Project table, which is never written. It is not an npm workspace and not part
 of the Amplify app. `samconfig.toml` is gitignored because it carries the Web
 Adapter layer ARN and the table name. The MCP Python SDK there is **v2**:
-`MCPServer`, not `FastMCP`. ADR-0013.
+`MCPServer`, not `FastMCP`. The app shows a product's shared files read-only
+on its Documents page through the `sharedFiles` function, which finds the
+bucket via the `/project-docs-mcp/bucket-name` SSM parameter at runtime.
+ADR-0013.
 
 ## Before pushing
 

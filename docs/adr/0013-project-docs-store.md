@@ -63,6 +63,16 @@ at deploy time.
 cached per Lambda instance and re-read on an unknown id, at most once a minute,
 so guessing ids cannot turn every request into a table scan.
 
+**Shared files are visible in the app, read-only.** A product's Documents
+page lists its space below the product's own documents, and opens or
+downloads a file, for members of `bp-<id>` only, through the same check the
+document functions use (`functions/shared/product-access.ts`). Content comes
+back through AppSync rather than a pre-signed URL: files are at most 1 MB, so
+the bucket needs no CORS and gains no new public path. The app finds the
+bucket through the `/project-docs-mcp/bucket-name` SSM parameter at runtime,
+so no stack references another and an environment without the store says so
+rather than failing. Editing stays in claude.ai and Claude Code.
+
 **Two document stores now exist.** The rule for which to use: a record about
 the architecture, to be annotated and modelled, goes to the product (ADR-0011).
 Working material shared between Claude clients goes here. A `publish_doc` that
