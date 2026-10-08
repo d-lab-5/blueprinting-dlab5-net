@@ -75,9 +75,15 @@ rather than failing. Editing stays in claude.ai and Claude Code.
 
 **Two document stores now exist.** The rule for which to use: a record about
 the architecture, to be annotated and modelled, goes to the product (ADR-0011).
-Working material shared between Claude clients goes here. A `publish_doc` that
-copies one into the other is the obvious next step and is deliberately not
-built yet.
+Working material shared between Claude clients goes here. **Publishing** moves
+a shared Markdown file across: a member presses Publish on the Documents page,
+chooses a title and a classification (confidential by default), and the file
+goes through `saveDocument` like an upload, so every rule that guards a
+document applies. The published document is a snapshot, and later edits to the
+shared file do not follow it. Publishing again makes a new document with a
+fresh id, which is the revision ADR-0011 asks for. There is no MCP tool for
+it, because the project-docs key has no user behind it, and a classification
+is a decision a person makes.
 
 **The MCP Python SDK is at v2.** `FastMCP` is now `MCPServer`, and its
 DNS-rebinding guard defaults on and rejects any non-localhost `Host`. Behind a
