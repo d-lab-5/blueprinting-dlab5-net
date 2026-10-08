@@ -62,6 +62,16 @@ Resources:
               Bool:
                 aws:SecureTransport: "false"
 
+  # How the blueprinting app finds this bucket: it reads the parameter at
+  # runtime, so the name is never committed and no stack references another.
+  BucketNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /project-docs-mcp/bucket-name
+      Type: String
+      Value: !Ref DocsBucket
+      Description: The project-docs bucket, read by blueprinting's sharedFiles function.
+
   ServerLogs:
     Type: AWS::Logs::LogGroup
     Properties:

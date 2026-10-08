@@ -1,5 +1,6 @@
 import type { AppSyncResolverEvent } from "aws-lambda";
 import { requireWrite } from "../shared/claims";
+import { authorizeProduct } from "../shared/product-access";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import {
@@ -23,8 +24,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
  * the field name is a hint and the arguments are the decision. Two mutations
  * with matching arguments need two functions; see projectRename/resource.ts.
  */
-
-const ADMIN_GROUP = "bp-admins";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const s3 = new S3Client({});
@@ -79,43 +78,6 @@ interface DocumentAccess {
   classification: string;
 }
 
-class Refused extends Error {}
-
-function groupsOf(identity: unknown): string[] {
-  const cognito = identity as
-    | { claims?: Record<string, unknown> }
-    | undefined;
-  const claim = cognito?.claims?.["cognito:groups"];
-  if (Array.isArray(claim)) return claim as string[];
-  if (typeof claim === "string") return claim.split(/[\s,]+/).filter(Boolean);
-  return [];
-}
-
-/**
- * Resolves the product and confirms the caller may touch it.
- *
- * Throws the same message whether the product is missing or merely forbidden,
- * so that a signed-in user cannot enumerate product ids — the same reasoning
- * as modelStorageProxy.
- */
-async function authorize(projectSlug: string, identity: unknown) {
-  const groups = groupsOf(identity);
-  const { Item } = await ddb.send(
-    new GetCommand({ TableName: PROJECT_TABLE, Key: { slug: projectSlug } })
-  );
-
-  const denied = new Refused("No such product, or you cannot access it.");
-  if (!Item) throw denied;
-
-  const productGroup = Item.group as string | undefined;
-  const permitted =
-    groups.includes(ADMIN_GROUP) ||
-    (productGroup !== undefined && groups.includes(productGroup));
-  if (!permitted) throw denied;
-
-  return { group: productGroup as string };
-}
-
 const documentKey = (projectSlug: string, docId: string, kind: string) =>
   `projects/${projectSlug}/documents/${docId}/${kind === "annotated" ? "annotated" : "source"}.md`;
 
@@ -123,7 +85,7 @@ export const handler = async (
   event: AppSyncResolverEvent<Args>
 ): Promise<DocumentAccess> => {
   const { projectSlug, docId, markdown, kind } = event.arguments;
-  const { group } = await authorize(projectSlug, event.identity);
+  const { group } = await authorizeProduct(ddb, PROJECT_TABLE, projectSlug, event.identity);
 
   const key = documentKey(projectSlug, docId, kind ?? "source");
 

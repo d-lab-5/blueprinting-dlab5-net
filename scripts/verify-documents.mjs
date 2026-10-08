@@ -59,6 +59,12 @@ const sharedId = `verify-shared-${stamp}`;
 const collabId = `verify-collab-${stamp}`;
 const secretId = `verify-secret-${stamp}`;
 const created = [];
+const sharedScratch = [];
+let sharedBucket = null;
+
+/** The operator's own AWS CLI, for what the functions deliberately cannot do. */
+const aws = (...args) =>
+  execFileSync("aws", [...args, "--output", "json"], { encoding: "utf8" });
 
 const SOURCE = `# Quarterly review
 
@@ -236,6 +242,69 @@ try {
     "an unknown product is refused without saying which it was",
     elsewhere.error ? "refused, indistinguishably" : "IT ANSWERED"
   );
+
+  /* -- shared files: the project-docs store, read-only (ADR-0013) ----------- */
+
+  try {
+    sharedBucket = JSON.parse(
+      aws("ssm", "get-parameter", "--name", "/project-docs-mcp/bucket-name")
+    ).Parameter.Value;
+  } catch {
+    sharedBucket = null;
+  }
+
+  const listed = await call(client, "listSharedFiles", { projectSlug: product });
+  if (!sharedBucket) {
+    check(
+      listed.data?.available === false,
+      "without a project-docs store, the list says so rather than failing",
+      listed.error ?? ""
+    );
+  } else {
+    // Written with the operator's credentials: nothing in this app writes
+    // there, which is the point being checked.
+    const md = `_verify-${stamp}/check.md`;
+    const ttl = `_verify-${stamp}/check.ttl`;
+    const MD = "# Shared\n\nwritten by verify:documents, ümlaut and all\n";
+    const TTL = '@prefix : <urn:x#> .\n:a :b "c" .\n';
+    for (const [path, body] of [[md, MD], [ttl, TTL]]) {
+      execFileSync(
+        "aws",
+        ["s3", "cp", "-", `s3://${sharedBucket}/docs/${product}/${path}`, "--content-type", "text/plain; charset=utf-8"],
+        { input: body }
+      );
+      sharedScratch.push(`docs/${product}/${path}`);
+    }
+
+    const again = await call(client, "listSharedFiles", { projectSlug: product });
+    const paths = (again.data?.files ?? []).map((f) => f.path);
+    check(
+      again.data?.available === true && paths.includes(md) && paths.includes(ttl),
+      "shared files are listed, relative to the product",
+      again.error ?? `${paths.length} listed`
+    );
+
+    const got = await call(client, "readSharedFile", { projectSlug: product, path: md });
+    check(got.data?.content === MD, "a shared file reads back byte for byte", got.error ?? "");
+    const gotTtl = await call(client, "readSharedFile", { projectSlug: product, path: ttl });
+    check(gotTtl.data?.content === TTL, "so does Turtle", gotTtl.error ?? "");
+
+    for (const [bad, why] of [
+      [`../${product}/${md}`, "a '..' path"],
+      [`_verify-${stamp}/check.exe`, "a file type the store does not hold"],
+      [`/${md}`, "an absolute path"],
+    ]) {
+      const r = await call(client, "readSharedFile", { projectSlug: product, path: bad });
+      check(Boolean(r.error) && !r.data?.content, `${why} is refused`, r.error ?? "IT ANSWERED");
+    }
+
+    const foreign = await call(client, "listSharedFiles", { projectSlug: "no-such-product-anywhere" });
+    check(
+      Boolean(foreign.error) && /No such product, or you cannot access it/.test(foreign.error),
+      "another product's shared files are refused without saying which",
+      foreign.error ? "refused, indistinguishably" : "IT ANSWERED"
+    );
+  }
 } finally {
   for (const docId of created) {
     try {
@@ -272,6 +341,21 @@ try {
     }
     console.log("cleared the scratch objects from S3");
   }
+  // Versioned bucket: removing the key is not enough, every version goes.
+  for (const key of sharedScratch) {
+    try {
+      const v = JSON.parse(
+        aws("s3api", "list-object-versions", "--bucket", sharedBucket, "--prefix", key)
+      );
+      for (const x of [...(v.Versions ?? []), ...(v.DeleteMarkers ?? [])]) {
+        if (x.Key !== key) continue;
+        aws("s3api", "delete-object", "--bucket", sharedBucket, "--key", key, "--version-id", x.VersionId);
+      }
+    } catch {
+      console.error(`LEFT BEHIND: s3://${sharedBucket}/${key}`);
+    }
+  }
+  if (sharedScratch.length) console.log("cleared the shared-file scratch, every version");
   await signOut();
 }
 

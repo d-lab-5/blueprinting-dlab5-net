@@ -16,6 +16,7 @@ import { projectRename } from "./functions/projectRename/resource";
 import { documentStore } from "./functions/documentStore/resource";
 import { documentDelete } from "./functions/documentDelete/resource";
 import { apiKeyAdmin } from "./functions/apiKeyAdmin/resource";
+import { sharedFiles } from "./functions/sharedFiles/resource";
 import { createAuthChallenge } from "./auth/triggers/createAuthChallenge.resource";
 import { defineAuthChallenge } from "./auth/triggers/defineAuthChallenge.resource";
 import { preTokenGeneration } from "./auth/triggers/preTokenGeneration.resource";
@@ -30,6 +31,7 @@ const backend = defineBackend({
   projectRename,
   documentStore,
   documentDelete,
+  sharedFiles,
   apiKeyAdmin,
   // Registered here as well as in defineAuth's `triggers`. It is the same
   // factory instance, so no second function is created — this is only how a
@@ -276,6 +278,61 @@ documentDeleteLambda.addToRolePolicy(
 backend.documentDelete.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
 backend.documentDelete.addEnvironment("DOCUMENT_TABLE_NAME", documentTable.tableName);
 backend.documentDelete.addEnvironment("MODEL_BUCKET_NAME", bucket.bucketName);
+
+/* ------------------------------------------------------------------------ *
+ * sharedFiles.
+ *
+ * Reads the project-docs store (ADR-0013), a bucket in another stack that this
+ * app does not own. Its name comes from an SSM parameter at runtime, so no
+ * stack references another and nothing is committed. The grants are by name
+ * pattern and pinned to this account; read-only, and docs/ only.
+ * ------------------------------------------------------------------------ */
+
+const sharedFilesLambda = backend.sharedFiles.resources.lambda;
+const sharedFilesStack = Stack.of(sharedFilesLambda);
+const SHARED_FILES_PARAMETER = "/project-docs-mcp/bucket-name";
+
+sharedFilesLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["dynamodb:GetItem"],
+    resources: [projectTable.tableArn],
+  })
+);
+
+sharedFilesLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["ssm:GetParameter"],
+    resources: [
+      `arn:aws:ssm:${sharedFilesStack.region}:${sharedFilesStack.account}:parameter${SHARED_FILES_PARAMETER}`,
+    ],
+  })
+);
+
+sharedFilesLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["s3:ListBucket"],
+    resources: ["arn:aws:s3:::project-docs-mcp-*"],
+    conditions: {
+      StringLike: { "s3:prefix": ["docs/*"] },
+      StringEquals: { "s3:ResourceAccount": sharedFilesStack.account },
+    },
+  })
+);
+
+sharedFilesLambda.addToRolePolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ["s3:GetObject"],
+    resources: ["arn:aws:s3:::project-docs-mcp-*/docs/*"],
+    conditions: { StringEquals: { "s3:ResourceAccount": sharedFilesStack.account } },
+  })
+);
+
+backend.sharedFiles.addEnvironment("PROJECT_TABLE_NAME", projectTable.tableName);
+backend.sharedFiles.addEnvironment("SHARED_FILES_BUCKET_PARAMETER", SHARED_FILES_PARAMETER);
 
 /* ------------------------------------------------------------------------ *
  * API keys (ADR-0012).

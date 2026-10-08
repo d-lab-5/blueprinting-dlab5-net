@@ -5,6 +5,7 @@ import { projectRename } from "../functions/projectRename/resource";
 import { documentStore } from "../functions/documentStore/resource";
 import { documentDelete } from "../functions/documentDelete/resource";
 import { apiKeyAdmin } from "../functions/apiKeyAdmin/resource";
+import { sharedFiles } from "../functions/sharedFiles/resource";
 
 /**
  * DynamoDB holds *metadata and structural references only*. The ArchiMate ABox
@@ -304,6 +305,50 @@ const schema = a.schema({
     .returns(a.boolean())
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(documentDelete)),
+
+  /**
+   * A product's shared working files: the project-docs store (ADR-0013),
+   * which claude.ai and Claude Code write through its MCP server. Read-only
+   * here, under the same group check as the product's own documents.
+   */
+  SharedFile: a.customType({
+    /** Relative to the product, e.g. `le-bosc/ontology/perma-core.ttl`. */
+    path: a.string().required(),
+    size: a.integer().required(),
+    lastModified: a.string().required(),
+  }),
+
+  /** `available` is false where this environment has no project-docs stack. */
+  SharedFileList: a.customType({
+    available: a.boolean().required(),
+    files: a.ref("SharedFile").array().required(),
+    truncated: a.boolean().required(),
+  }),
+
+  SharedFileContent: a.customType({
+    path: a.string().required(),
+    content: a.string().required(),
+    size: a.integer().required(),
+    lastModified: a.string().required(),
+  }),
+
+  listSharedFiles: a
+    .mutation()
+    .arguments({ projectSlug: a.string().required() })
+    .returns(a.ref("SharedFileList"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(sharedFiles)),
+
+  /** Same function as listSharedFiles, told apart by `path`. */
+  readSharedFile: a
+    .mutation()
+    .arguments({
+      projectSlug: a.string().required(),
+      path: a.string().required(),
+    })
+    .returns(a.ref("SharedFileContent"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(a.handler.function(sharedFiles)),
 
   /**
    * One API key, as its owner may see it — which never includes the key.

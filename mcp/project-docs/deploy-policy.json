@@ -82,7 +82,7 @@
       "Sid": "ApiKey",
       "Effect": "Allow",
       "Action": [
-        "ssm:PutParameter", "ssm:GetParameter", "ssm:DeleteParameter",
+        "ssm:PutParameter", "ssm:GetParameter", "ssm:GetParameters", "ssm:DeleteParameter",
         "ssm:AddTagsToResource", "ssm:ListTagsForResource"
       ],
       "Resource": "arn:aws:ssm:eu-central-1:*:parameter/project-docs-mcp/*"
