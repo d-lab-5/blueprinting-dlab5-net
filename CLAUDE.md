@@ -73,6 +73,10 @@ BP_USER=… BP_PASSWORD=… npm run verify:api-keys  # scopes and refusals, live
 (cd mcp/project-docs && .venv/bin/python -m pytest -q tests)   # project-docs store
 (cd mcp/project-docs && sam build && sam deploy)               # see its README
 
+npm run build:mcp-hosted            # bundle the hosted MCP server (packages/mcp/hosted)
+BP_USER=… BP_PASSWORD=… npm run verify:mcp-hosted  # hosted MCP over HTTP, scratch keys
+BP_USER=… BP_PASSWORD=… node scripts/merge-models.mjs --into <id> --from a.ttl [--dry-run]
+
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
@@ -265,6 +269,15 @@ Adapter layer ARN and the table name. The MCP Python SDK there is **v2**:
 on its Documents page through the `sharedFiles` function, which finds the
 bucket via the `/project-docs-mcp/bucket-name` SSM parameter at runtime.
 ADR-0013.
+
+**The blueprint MCP is also hosted** (`packages/mcp/hosted`, SAM stack
+`blueprint-mcp`), for claude.ai and any client that would rather hold a URL and
+a key. Each request's `Authorization: Bearer bp_…` becomes its owner's Cognito
+session, and every call goes to AppSync with that token: per request, never per
+process. `src/data.ts` must stay free of Amplify for that reason. ADR-0014.
+
+**Merge model files with `merge-models`, never `seed --merge`.** Model files
+number relationships `r1…rN`; `seed --merge` matches by id and drops them.
 
 ## Before pushing
 

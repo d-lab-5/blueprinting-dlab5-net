@@ -27,6 +27,12 @@ Two libraries, two subjects, and the distinction is worth keeping:
 The patterns library earns entries by evidence we generated. This one earns
 them by pointing at an argument someone else already made and defended.
 
+**In the platform the two live in one product.** Since 2026-10-09 the
+`engineering-practices` product also holds the D-LAB-5 patterns (cloud and
+edge, engineering patterns, the technology radar), merged from `docs/patterns/`
+(see its README). The distinction above still holds per element: a practice
+cites a published source, a pattern names its instances.
+
 ## What the checker uses
 
 Four of these are enforced, in `packages/core/src/practices.ts` and
