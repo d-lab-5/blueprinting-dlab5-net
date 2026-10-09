@@ -1,0 +1,21 @@
+# Copy to samconfig.toml (gitignored) and fill in the four values from the
+# deployed environment. They identify live resources, so they stay out of git.
+#   node -p "require('../../../backend/amplify_outputs.json').data.url"
+#   node -p "require('../../../backend/amplify_outputs.json').custom"
+#   aws dynamodb list-tables --query "TableNames[?contains(@,'ApiKeyTable')]"
+version = 0.1
+
+[default.global.parameters]
+stack_name = "blueprint-mcp"
+region = "eu-central-1"
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = true
+parameter_overrides = [
+  "AppSyncUrl=https://<api>.appsync-api.eu-central-1.amazonaws.com/graphql",
+  "ApiKeyClientReadId=<read client id>",
+  "ApiKeyClientWriteId=<write client id>",
+  "ApiKeyTableName=<ApiKeyTable name>",
+]

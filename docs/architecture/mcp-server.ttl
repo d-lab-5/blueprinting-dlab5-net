@@ -69,15 +69,15 @@ _:p-e-data-metamodel-0 a archimate:Property;
 <https://blueprinting.dlab5.net/i/mcp-server/TechnologyService/hosted-transport> a archimate:TechnologyService;
     archimate:identifier "hosted-transport";
     archimate:name "Hosted MCP transport";
-    archimate:documentation "stdio works because the server is a child process of its client. A hosted transport is the obvious next step once the tool surface has settled, and it brings back an endpoint to secure — which is exactly why it is being assessed rather than adopted.";
+    archimate:documentation "stdio works because the server is a child process of its client. Since ADR-0014 the same tools are also served over streamable HTTP for claude.ai, with the caller's own API key as the identity on every request. In trial: one deployment, one client so far.";
     archimate:hasProperty _:p-e-hosted-transport-0.
 _:p-e-hosted-transport-0 a archimate:Property;
     archimate:propertyKey "radarRing";
-    archimate:propertyValue "assess".
+    archimate:propertyValue "trial".
 <https://blueprinting.dlab5.net/i/mcp-server/ApplicationComponent/mcp-server> a archimate:ApplicationComponent;
     archimate:identifier "mcp-server";
     archimate:name "MCP server (@dlab5/archimate-mcp)";
-    archimate:documentation "Sixteen tools over stdio. Runs beside the agent that uses it, so there is no endpoint to secure and no token to park anywhere.";
+    archimate:documentation "Twenty-three tools over stdio, beside the agent that uses it; nineteen of them also hosted over HTTP (ADR-0014).";
     archimate:hasProperty _:p-e-mcp-server-0.
 _:p-e-mcp-server-0 a archimate:Property;
     archimate:propertyKey "reference";

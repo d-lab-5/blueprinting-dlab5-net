@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test __tests__/*.test.mjs"
+    "test": "npm run build && node --test __tests__/*.test.mjs",
+    "build:hosted": "npm run build && node hosted/bundle.mjs"
   },
   "dependencies": {
     "@dlab5/archimate-exchange": "^0.1.0",
@@ -25,7 +26,9 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
-    "@types/node": "^22.7.0"
+    "@aws-sdk/client-dynamodb": "^3.1116.0",
+    "@types/node": "^22.7.0",
+    "esbuild": "^0.25.10",
+    "typescript": "^5.6.0"
   }
 }

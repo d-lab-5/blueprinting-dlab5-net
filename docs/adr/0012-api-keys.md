@@ -93,3 +93,6 @@ endpoint is separate work, and a hosted transport still needs the streamable
 HTTP transport, rate limiting, and a decision about exposing a write path to
 the internet at all. Read-only keys exist partly so that decision has a safe
 answer.
+
+*Since answered by ADR-0014: the blueprint MCP is hosted, with the caller's own
+key as the identity on every request.*

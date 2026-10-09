@@ -27,7 +27,7 @@ import {
 } from "@dlab5/blueprint-core";
 import type { AbModel } from "@dlab5/blueprint-core";
 import { toOpenExchange } from "@dlab5/archimate-exchange";
-import * as backend from "./backend.js";
+import * as backend from "./data.js";
 import * as sap from "./sapDiagrams.js";
 
 /**
@@ -850,4 +850,17 @@ export const ALL_TOOLS: Tool[] = [
   ...METAMODEL_TOOLS,
   ...DIAGRAM_TOOLS,
   ...MODEL_TOOLS,
+];
+
+/**
+ * What the hosted server offers: everything that works through the API.
+ *
+ * The four SAP diagram tools are left out, not served to refuse. They run
+ * python3 on a vendored toolchain and read and write files on the server's own
+ * disk, and on a Lambda there is neither the toolchain nor a disk a caller
+ * could see. Over stdio they are still there.
+ */
+export const HOSTED_TOOLS: Tool[] = [
+  ...METAMODEL_TOOLS,
+  ...MODEL_TOOLS.filter((tool) => tool !== sapDiagramFromModel),
 ];
