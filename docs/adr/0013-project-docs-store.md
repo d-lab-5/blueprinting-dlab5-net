@@ -53,7 +53,7 @@ answers ADR-0012's open question for this store only, not for `packages/mcp`.
 **One key sees every product's space.** Per-product access arrives with phase 2:
 a Cognito token carries `bp-<id>` groups, and the same rule the platform uses
 can then filter spaces. Until then, anyone holding the key is trusted with all
-of them, which is why it goes only to Frank-Uwe's own clients.
+of them, which is why it goes only to the owner's own clients.
 
 **The store is tied to one blueprinting environment.** Each Amplify
 environment has its own Project table, and the stack is pointed at one table
