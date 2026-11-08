@@ -2,7 +2,7 @@
 
 # Skills catalogue
 
-43 skills in `.claude/skills/`. Use the narrowest one that fits;
+41 skills in `.claude/skills/`. Use the narrowest one that fits;
 open its `SKILL.md` for the full workflow rather than working from the line
 below.
 
@@ -11,7 +11,7 @@ Regenerate with `npm run gen:skills-catalog` after adding a skill or running
 
 ## Contents
 
-- [D-LAB-5](#d-lab-5) — 3
+- [D-LAB-5](#d-lab-5) — 1
 - [ABAP and SAP development](#abap-and-sap-development) — 8
 - [BTP and platform engineering](#btp-and-platform-engineering) — 15
 - [Data, analytics and AI](#data-analytics-and-ai) — 13
@@ -20,13 +20,11 @@ Regenerate with `npm run gen:skills-catalog` after adding a skill or running
 
 ## D-LAB-5
 
-Written here, for this repository.
+Written here, for this repository only. Skills for every D-LAB-5 repository come as plugins (below).
 
 | Skill | Purpose |
 | --- | --- |
-| [dlab5-cognito-api-keys](../.claude/skills/dlab5-cognito-api-keys/SKILL.md) | Build named, scoped, revocable API keys on an AWS Amplify Gen 2 backend by making a key a COGNITO credential rather than an API-level one. |
 | [dlab5-git-push](../.claude/skills/dlab5-git-push/SKILL.md) | Quality gate for blueprinting.dlab5.net, run when PUSHING rather than on every commit. |
-| [dlab5-mcp-server](../.claude/skills/dlab5-mcp-server/SKILL.md) | Build an MCP server over an Amplify Gen 2 backend — stdio transport, three tool groups by what each needs, and three ways to authenticate: password, Cognito… |
 
 ## ABAP and SAP development
 
@@ -102,6 +100,17 @@ Driving SAP tools and interfaces from outside them.
 | Skill | Purpose |
 | --- | --- |
 | [sap-browser-automation](../.claude/skills/sap-browser-automation/SKILL.md) | Use when an agent must inspect or operate an authenticated SAP web UI through an in-app Browser, Microsoft Edge CDP, or an existing Playwright client, especi… |
+
+## Plugins
+
+Enabled in `.claude/settings.json`, so every session in this repository,
+local or in the cloud, loads them. Each has one home; none is copied here.
+See [d-lab-5/agent-skills](https://github.com/d-lab-5/agent-skills).
+
+| Plugin | Catalogue | Home |
+| --- | --- | --- |
+| `dlab5-house` | d-lab-5 | its home repository, through the catalogue |
+| `dlab5-cloud-edge-blueprint` | d-lab-5 | this repository, `plugin/`: [dlab5-cloud-edge-blueprint](../plugin/skills/dlab5-cloud-edge-blueprint/SKILL.md) |
 
 ## Licensing
 

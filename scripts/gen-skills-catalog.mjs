@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Generates docs/skills-catalog.md from .claude/skills/.
+ * Generates docs/skills-catalog.md from .claude/skills/, this repository's
+ * own plugin (plugin/), and the plugins .claude/settings.json enables from the
+ * d-lab-5 catalogue (d-lab-5/agent-skills).
  *
  * Generated rather than written, because a hand-kept catalogue goes stale the
  * first time somebody runs sync-sap-skills.sh and does not think to update it.
@@ -9,7 +11,7 @@
  *
  * Usage:  node scripts/gen-skills-catalog.mjs
  */
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,7 +26,7 @@ const OUT = join(ROOT, "docs/skills-catalog.md");
  * `sap-btp-cloud-identity-services` is security before it is BTP.
  */
 const SECTIONS = [
-  ["D-LAB-5", /^dlab5-/, "Written here, for this repository."],
+  ["D-LAB-5", /^dlab5-/, "Written here, for this repository only. Skills for every D-LAB-5 repository come as plugins (below)."],
   [
     "ABAP and SAP development",
     /^(sap-abap|sap-cap|sap-fiori|sap-sqlscript|sapui5)/,
@@ -158,6 +160,44 @@ lines.push(
   "made to them.",
   ""
 );
+
+// Skills that come as plugins: this repository's own, and the ones its
+// settings enable from the catalogue. They have one home each, elsewhere or in
+// plugin/, so they are listed by plugin rather than copied into .claude/skills.
+const settingsPath = join(ROOT, ".claude/settings.json");
+const enabled = existsSync(settingsPath)
+  ? Object.entries(JSON.parse(readFileSync(settingsPath, "utf8")).enabledPlugins || {})
+      .filter(([, on]) => on)
+      .map(([id]) => id)
+  : [];
+const ownPlugin = join(ROOT, "plugin");
+const own = existsSync(join(ownPlugin, ".claude-plugin/plugin.json"))
+  ? JSON.parse(readFileSync(join(ownPlugin, ".claude-plugin/plugin.json"), "utf8")).name
+  : null;
+if (enabled.length) {
+  const rows = enabled.map((id) => {
+    const [plugin, market] = id.split("@");
+    const skillsDir = join(ownPlugin, "skills");
+    const here = plugin === own && existsSync(skillsDir)
+      ? readdirSync(skillsDir).map((d) => `[${d}](../plugin/skills/${d}/SKILL.md)`).join(", ")
+      : null;
+    return `| \`${plugin}\` | ${market} | ${here ? `this repository, \`plugin/\`: ${here}` : "its home repository, through the catalogue"} |`;
+  });
+  lines.splice(
+    lines.indexOf("## Licensing"),
+    0,
+    "## Plugins",
+    "",
+    "Enabled in `.claude/settings.json`, so every session in this repository,",
+    "local or in the cloud, loads them. Each has one home; none is copied here.",
+    "See [d-lab-5/agent-skills](https://github.com/d-lab-5/agent-skills).",
+    "",
+    "| Plugin | Catalogue | Home |",
+    "| --- | --- | --- |",
+    ...rows,
+    ""
+  );
+}
 
 writeFileSync(OUT, lines.join("\n"));
 console.log(`wrote ${OUT}`);

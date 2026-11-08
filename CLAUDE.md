@@ -292,6 +292,9 @@ request, merged as a merge commit; `stage` refuses force pushes and deletion.
 The same rulesets are on every public repository that deploys. ADR-0015.
 
 `docs/skills-catalog.md` lists every skill; regenerate it rather than editing.
+Skills for every D-LAB-5 repository are not copied here: `.claude/settings.json`
+enables them as plugins from the d-lab-5 catalogue (d-lab-5/agent-skills), and
+this repository's own, `dlab5-cloud-edge-blueprint`, lives in `plugin/`.
 
 ## House conventions
 
