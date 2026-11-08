@@ -1,0 +1,11 @@
+{
+  "name": "dlab5-cloud-edge-blueprint",
+  "version": "1.0.0",
+  "description": "Designing a D-LAB-5 product as a cloud, edges, or both, from the ArchiMate blueprint in blueprinting-dlab5-net.",
+  "author": {
+    "name": "D-LAB-5"
+  },
+  "homepage": "https://github.com/d-lab-5/blueprinting-dlab5-net",
+  "repository": "https://github.com/d-lab-5/blueprinting-dlab5-net",
+  "license": "GPL-3.0-or-later"
+}
