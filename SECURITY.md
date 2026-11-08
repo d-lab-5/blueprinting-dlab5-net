@@ -47,6 +47,10 @@ a security bug, not a refactor.
 5. **Static output contains no authenticated data.** `gatsby-ssr` neither
    configures Amplify nor mounts the auth gate; every project byte is fetched
    in the browser after sign-in.
+6. **Only a reviewed branch deploys, and the account refuses what no deploy may
+   do.** `main` takes changes by pull request only, under a GitHub ruleset with
+   no bypass. Public access to S3 is blocked at account level, outside any
+   repository. The code stays public; the instance stays closed. ADR-0015.
 
 ## Auditing
 

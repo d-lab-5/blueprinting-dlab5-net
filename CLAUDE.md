@@ -287,6 +287,10 @@ secret sweep a public repository needs, and the cleanup audit a live check
 needs. It runs **on push, not on every commit** — the checks are slow and some
 are live, and making commits expensive is how commits stop being made.
 
+**`main` refuses a direct push.** A ruleset with no bypass allows only a pull
+request, merged as a merge commit; `stage` refuses force pushes and deletion.
+The same rulesets are on every public repository that deploys. ADR-0015.
+
 `docs/skills-catalog.md` lists every skill; regenerate it rather than editing.
 
 ## House conventions
