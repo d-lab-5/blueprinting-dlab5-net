@@ -39,6 +39,24 @@ story. A hosted transport earns its place only for an agent that cannot run a
 local process, and then it needs real authentication rather than shared
 credentials in an environment variable.
 
+## Hosting it, when a client cannot run a process
+
+claude.ai is that client. What it took here (ADR-0014):
+
+- **Per-request identity, never per-process.** Amplify keeps one session per
+  process; on a Lambda two keys would share a token. Keep the data calls free
+  of Amplify, send each request's own JWT to AppSync with plain fetch, and bind
+  the client per request with `AsyncLocalStorage` so the tools need no change.
+  Test it with concurrent requests from two keys.
+- **The key is the identity.** A key needs a USERNAME to sign in; read the
+  key's owner `sub` and scope from its row, then do the custom-auth exchange on
+  the client its scope names. Cache tokens by sha256(key), never the key.
+- **Stateless streamable HTTP**, a fresh server per request, JSON responses.
+  Leave out tools that need the server's disk or local toolchains.
+- **Reserved concurrency** is the cheap rate limit.
+- Verify with a foreign client over HTTP and **scratch keys of both scopes**:
+  the read key must be refused on a write.
+
 ## Three tool groups, by what each needs
 
 ```ts

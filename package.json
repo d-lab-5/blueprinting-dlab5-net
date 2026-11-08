@@ -42,7 +42,9 @@
     "verify:sap-diagrams": "node scripts/verify-sap-diagrams.mjs",
     "gen:skills-catalog": "node scripts/gen-skills-catalog.mjs",
     "gen:platform-model": "node scripts/gen-platform-model.mjs",
-    "check:gpl": "node scripts/check-gpl-compatibility.mjs"
+    "check:gpl": "node scripts/check-gpl-compatibility.mjs",
+    "verify:mcp-hosted": "node scripts/verify-mcp-hosted.mjs",
+    "build:mcp-hosted": "npm run build:hosted -w @dlab5/archimate-mcp"
   },
   "engines": {
     "node": ">=22"

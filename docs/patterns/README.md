@@ -3,6 +3,25 @@
 An ArchiMate model of how D-LAB-5 builds things, held in the platform and
 seeded from `engineering-patterns.ttl`.
 
+> **Now held in the Engineering practices product.** On 2026-10-09 this file,
+> `cloud-edge-platform.ttl` and `technology-radar.ttl` were merged into the
+> `engineering-practices` product with `scripts/merge-models.mjs`, so every
+> MCP client can read them. **The product is authoritative from here on:**
+> edit it in the app or over MCP, and bring it back with
+> `npm run export -- --project engineering-practices`. These files stay as the
+> record of what was loaded, and as test fixtures (`verify-views`,
+> `views.test` read `engineering-patterns.ttl`). Products built from a pattern
+> are named in its `reference` (e.g. `product: Mediathek`), never by id.
+>
+> To merge a model file into a product, use `merge-models`, not `seed --merge`.
+> Model files number relationships `r1, r2, …`, and `seed --merge` matches by
+> id, so it would drop them silently:
+>
+> ```bash
+> BP_USER=… BP_PASSWORD=… node scripts/merge-models.mjs \
+>   --into engineering-practices --from docs/patterns/<file>.ttl --dry-run
+> ```
+
 ```bash
 BP_USER=… BP_PASSWORD=… npm run seed -- \
   --project patterns --from docs/patterns/engineering-patterns.ttl \

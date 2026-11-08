@@ -73,6 +73,10 @@ BP_USER=… BP_PASSWORD=… npm run verify:api-keys  # scopes and refusals, live
 (cd mcp/project-docs && .venv/bin/python -m pytest -q tests)   # project-docs store
 (cd mcp/project-docs && sam build && sam deploy)               # see its README
 
+npm run build:mcp-hosted            # bundle the hosted MCP server (packages/mcp/hosted)
+BP_USER=… BP_PASSWORD=… npm run verify:mcp-hosted  # hosted MCP over HTTP, scratch keys
+BP_USER=… BP_PASSWORD=… node scripts/merge-models.mjs --into <id> --from a.ttl [--dry-run]
+
 npm run setup:python                # once: a venv for the MCP client check
 npm run verify:mcp-client           # drives the MCP server over stdio, from Python
 ```
@@ -266,6 +270,15 @@ on its Documents page through the `sharedFiles` function, which finds the
 bucket via the `/project-docs-mcp/bucket-name` SSM parameter at runtime.
 ADR-0013.
 
+**The blueprint MCP is also hosted** (`packages/mcp/hosted`, SAM stack
+`blueprint-mcp`), for claude.ai and any client that would rather hold a URL and
+a key. Each request's `Authorization: Bearer bp_…` becomes its owner's Cognito
+session, and every call goes to AppSync with that token: per request, never per
+process. `src/data.ts` must stay free of Amplify for that reason. ADR-0014.
+
+**Merge model files with `merge-models`, never `seed --merge`.** Model files
+number relationships `r1…rN`; `seed --merge` matches by id and drops them.
+
 ## Before pushing
 
 `.claude/skills/dlab5-git-push/SKILL.md` is the gate: which checks to run for
@@ -273,6 +286,10 @@ what changed, the documentation each kind of change obliges you to update, the
 secret sweep a public repository needs, and the cleanup audit a live check
 needs. It runs **on push, not on every commit** — the checks are slow and some
 are live, and making commits expensive is how commits stop being made.
+
+**`main` refuses a direct push.** A ruleset with no bypass allows only a pull
+request, merged as a merge commit; `stage` refuses force pushes and deletion.
+The same rulesets are on every public repository that deploys. ADR-0015.
 
 `docs/skills-catalog.md` lists every skill; regenerate it rather than editing.
 

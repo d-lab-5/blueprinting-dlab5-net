@@ -21,6 +21,9 @@ import { defineStorage } from "@aws-amplify/backend";
  */
 export const storage = defineStorage({
   name: "blueprintingStorage",
+  // Every overwrite keeps the version before it: the ABox is the source of
+  // truth and agents can rewrite it over MCP. Expiry is set in backend.ts.
+  versioned: true,
   access: (allow) => ({
     "projects/*": [allow.groups(["bp-admins"]).to(["read", "write", "delete"])],
     "exports/*": [allow.groups(["bp-admins"]).to(["read", "write", "delete"])],

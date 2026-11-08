@@ -220,3 +220,8 @@ vendor/*
 .aws-sam/
 mcp/project-docs/samconfig.toml
 .pytest_cache/
+
+# -- hosted blueprint MCP (packages/mcp/hosted) -----------------------------
+# The bundle is built from source; samconfig.toml names live resources.
+packages/mcp/hosted/dist/
+packages/mcp/hosted/samconfig.toml

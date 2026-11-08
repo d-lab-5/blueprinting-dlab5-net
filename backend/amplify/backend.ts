@@ -60,13 +60,18 @@ cfnUserPool.adminCreateUserConfig = {
 // the guest IAM role entirely rather than leaving it present but unused.
 cfnIdentityPool.allowUnauthenticatedIdentities = false;
 
+// Deleting the pool deletes every account with it, and nothing recreates
+// them. A stack mistake or a broad IAM key should not be able to do that in
+// one call (audit 2026-10-09, M-6).
+cfnUserPool.deletionProtection = "ACTIVE";
+
 /* ------------------------------------------------------------------------ *
  * Point-in-time recovery. Project rows carry the ttlKey and version that make
  * the S3 graph findable and its concurrency checkable; losing one orphans a
  * model.
  * ------------------------------------------------------------------------ */
 
-for (const table of ["Project", "View"] as const) {
+for (const table of ["Project", "View", "Document"] as const) {
   backend.data.resources.cfnResources.amplifyDynamoDbTables[
     table
   ].pointInTimeRecoveryEnabled = true;
@@ -81,6 +86,21 @@ for (const table of ["Project", "View"] as const) {
 
 const projectTable = backend.data.resources.tables["Project"];
 const bucket = backend.storage.resources.bucket;
+
+// The ABox here is the source of truth (ADR-0003), and agents can now rewrite
+// it over MCP (ADR-0014). The ETag precondition stops a lost update, not a bad
+// one, so every overwrite keeps the version before it (`versioned` in
+// storage/resource.ts), for 90 days (audit 2026-10-09, H-4).
+const { cfnBucket } = backend.storage.resources.cfnResources;
+cfnBucket.lifecycleConfiguration = {
+  rules: [
+    {
+      id: "expire-noncurrent-versions",
+      status: "Enabled",
+      noncurrentVersionExpiration: { noncurrentDays: 90 },
+    },
+  ],
+};
 const proxyLambda = backend.modelStorageProxy.resources.lambda;
 
 // Read-only on Project: the function decides whether a caller may touch a

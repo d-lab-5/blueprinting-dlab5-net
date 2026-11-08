@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  blueprint-mcp — the blueprint MCP server (@dlab5/archimate-mcp) over
+  streamable HTTP, for claude.ai. Every request carries a blueprinting API key
+  and is served as that key's owner, through AppSync, so the app's own
+  authorization applies. ADR-0014.
+
+Parameters:
+  AppSyncUrl:
+    Type: String
+    Description: The blueprinting GraphQL endpoint (amplify_outputs.json → data.url).
+  ApiKeyClientReadId:
+    Type: String
+    Description: The read-scope API key app client (amplify_outputs.json → custom.apiKeyClientReadId).
+  ApiKeyClientWriteId:
+    Type: String
+    Description: The write-scope API key app client (custom.apiKeyClientWriteId).
+  ApiKeyTableName:
+    Type: String
+    Description: The API key table in the Amplify apiKeys stack. Read for a key's owner and scope only.
+
+Resources:
+  ServerLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/blueprint-mcp
+      RetentionInDays: 30
+
+  Server:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: blueprint-mcp
+      # Built by `npm run build:hosted -w @dlab5/archimate-mcp`, not by sam build.
+      CodeUri: dist/
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Architectures: [arm64]
+      MemorySize: 512
+      Timeout: 30
+      # The rate limit ADR-0012 asked for: at most five requests at once.
+      ReservedConcurrentExecutions: 5
+      LoggingConfig:
+        LogGroup: !Ref ServerLogs
+      Environment:
+        Variables:
+          APPSYNC_URL: !Ref AppSyncUrl
+          API_KEY_CLIENT_READ_ID: !Ref ApiKeyClientReadId
+          API_KEY_CLIENT_WRITE_ID: !Ref ApiKeyClientWriteId
+          API_KEY_TABLE: !Ref ApiKeyTableName
+      FunctionUrlConfig:
+        # NONE on purpose: the app checks a blueprinting API key on every
+        # request, and everything after that goes through AppSync as its owner.
+        AuthType: NONE
+      Policies:
+        - Statement:
+            # Its only privilege: a key's owner and scope. Every read and write
+            # of a product goes through AppSync with the caller's own token.
+            - Sid: ReadKeyOwner
+              Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: !Sub "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ApiKeyTableName}"
+
+Outputs:
+  McpUrl:
+    Description: The MCP endpoint. Not committed anywhere.
+    Value: !Sub "${ServerUrl.FunctionUrl}mcp"

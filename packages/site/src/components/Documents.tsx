@@ -1,7 +1,8 @@
 import * as React from "react";
-import { slugifyId } from "@dlab5/blueprint-core";
+import { uniqueId } from "@dlab5/blueprint-core";
 import { renderMarkdown } from "../lib/markdown";
 import { SharedFiles } from "./SharedFiles";
+import { ClassificationSelect } from "./ClassificationSelect";
 import {
   deleteDocument,
   listDocuments,
@@ -60,21 +61,30 @@ export function Documents({ slug }: { slug: string }) {
 
   React.useEffect(refresh, [refresh]);
 
+  /**
+   * The one path into saveDocument, for an upload and for a published shared
+   * file alike. The id is kept unique among this product's documents, so a
+   * second upload or publish of a revised file becomes a new document — the
+   * revision ADR-0011 asks for — rather than a refused rewrite of a record.
+   */
+  async function store(markdown: string, title: string, classification: Classification) {
+    await saveDocument({
+      projectSlug: slug,
+      docId: uniqueId(title, (documents ?? []).map((d) => d.docId)),
+      markdown,
+      title,
+      classification,
+      kind: "source",
+    });
+    refresh();
+  }
+
   async function upload(file: File, classification: Classification) {
     setBusy(true);
     setError(null);
     try {
-      const markdown = await file.text();
       const title = file.name.replace(/\.(md|markdown|txt)$/i, "");
-      await saveDocument({
-        projectSlug: slug,
-        docId: slugifyId(title),
-        markdown,
-        title,
-        classification,
-        kind: "source",
-      });
-      refresh();
+      await store(await file.text(), title, classification);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -246,7 +256,7 @@ export function Documents({ slug }: { slug: string }) {
         </div>
       )}
 
-      <SharedFiles slug={slug} />
+      <SharedFiles slug={slug} onPublish={store} />
     </section>
   );
 }
@@ -266,20 +276,7 @@ function UploadForm({
     <div className="bp-documents__upload">
       <label className="bp-field">
         <span>Classification</span>
-        <select
-          value={classification}
-          onChange={(e) => setClassification(e.target.value as Classification)}
-        >
-          <option value="confidential">
-            Confidential — never leaves this system
-          </option>
-          <option value="collaboration">
-            Collaboration — travels with the product, never to a public repo
-          </option>
-          <option value="shared">
-            Shared — safe anywhere, including a public repo
-          </option>
-        </select>
+        <ClassificationSelect value={classification} onChange={setClassification} />
       </label>
 
       <label className="bp-field">
@@ -306,3 +303,4 @@ function UploadForm({
     </div>
   );
 }
+

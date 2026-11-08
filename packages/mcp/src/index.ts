@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { connect } from "./backend.js";
+import { buildServer } from "./server.js";
 import { ALL_TOOLS, DIAGRAM_TOOLS, METAMODEL_TOOLS } from "./tools.js";
 
 /**
@@ -95,35 +95,7 @@ async function main() {
     );
   }
 
-  const server = new McpServer({
-    name: "archimate",
-    version: "0.1.0",
-  });
-
-  for (const tool of tools) {
-    server.registerTool(
-      tool.name,
-      { description: tool.description, inputSchema: tool.schema },
-      async (args: Record<string, unknown>) => {
-        try {
-          return { content: [{ type: "text" as const, text: await tool.run(args) }] };
-        } catch (err) {
-          // Returned as content rather than thrown, so the agent sees the
-          // reason and can choose what to do — a conflict means "read again
-          // and reapply", which it can act on.
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: err instanceof Error ? err.message : String(err),
-              },
-            ],
-            isError: true,
-          };
-        }
-      }
-    );
-  }
+  const server = buildServer(tools);
 
   await server.connect(new StdioServerTransport());
 }

@@ -1,7 +1,26 @@
 import * as React from "react";
 import { renderMarkdown } from "../lib/markdown";
 import { listSharedFiles, readSharedFile } from "../lib/data";
-import type { SharedFileContent, SharedFileList } from "../lib/data";
+import type { Classification, SharedFileContent, SharedFileList } from "../lib/data";
+import { ClassificationSelect } from "./ClassificationSelect";
+
+/** The types the product's document store holds (ADR-0011). */
+const PUBLISHABLE = /\.(md|txt)$/i;
+
+/** The first `# ` heading, or else the file name without its extension. */
+function suggestTitle(path: string, content: string): string {
+  const heading = content.match(/^#\s+(.+?)\s*$/m);
+  if (heading) return heading[1];
+  return (path.split("/").pop() ?? path).replace(/\.[^.]+$/, "");
+}
+
+interface Publishing {
+  path: string;
+  content: string;
+  title: string;
+  classification: Classification;
+  busy: boolean;
+}
 
 /**
  * A product's shared working files, read-only.
@@ -14,11 +33,25 @@ import type { SharedFileContent, SharedFileList } from "../lib/data";
  * Only Markdown is rendered, through the same boundary as the documents above
  * (lib/markdown.ts). Everything else — Turtle, JSON, SPARQL — is shown as
  * text, which React escapes.
+ *
+ * Publish copies a Markdown file into the product's documents above, as a
+ * record with a classification a person chooses. It goes through the same
+ * saveDocument path as an upload, so every rule that guards a document
+ * applies. The copy is a snapshot: later edits to the shared file do not
+ * follow it.
  */
-export function SharedFiles({ slug }: { slug: string }) {
+export function SharedFiles({
+  slug,
+  onPublish,
+}: {
+  slug: string;
+  onPublish: (markdown: string, title: string, classification: Classification) => Promise<void>;
+}) {
   const [list, setList] = React.useState<SharedFileList | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState<SharedFileContent | null>(null);
+  const [publishing, setPublishing] = React.useState<Publishing | null>(null);
+  const [notice, setNotice] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setList(null);
@@ -36,6 +69,40 @@ export function SharedFiles({ slug }: { slug: string }) {
     try {
       setOpen(await readSharedFile(slug, path));
     } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function startPublish(path: string) {
+    setError(null);
+    setNotice(null);
+    try {
+      const file = await readSharedFile(slug, path);
+      setPublishing({
+        path,
+        content: file.content,
+        title: suggestTitle(path, file.content),
+        classification: "confidential",
+        busy: false,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function publish() {
+    if (!publishing || !publishing.title.trim()) return;
+    const { content, title, classification } = publishing;
+    setPublishing({ ...publishing, busy: true });
+    setError(null);
+    try {
+      await onPublish(content, title.trim(), classification);
+      setPublishing(null);
+      setNotice(
+        `Published as “${title.trim()}”. It is a snapshot: later edits to the shared file do not follow it.`
+      );
+    } catch (err) {
+      setPublishing({ ...publishing, busy: false });
       setError(err instanceof Error ? err.message : String(err));
     }
   }
@@ -63,6 +130,7 @@ export function SharedFiles({ slug }: { slug: string }) {
         Working files shared with claude.ai and Claude Code. Edit them there.
       </p>
 
+      {notice && <p className="bp-muted" role="status">{notice}</p>}
       {error && (
         <p className="bp-error" role="alert">
           {error}
@@ -89,28 +157,82 @@ export function SharedFiles({ slug }: { slug: string }) {
           </thead>
           <tbody>
             {list.files.map((file) => (
-              <tr key={file.path}>
-                <td>
-                  <button
-                    type="button"
-                    className="bp-linkbutton"
-                    onClick={() => void view(file.path)}
-                  >
-                    <code>{file.path}</code>
-                  </button>
-                </td>
-                <td className="bp-muted">{`${Math.ceil(file.size / 1024)} kB`}</td>
-                <td className="bp-muted">{file.lastModified.slice(0, 10)}</td>
-                <td className="bp-documents__actions">
-                  <button
-                    type="button"
-                    className="bp-linkbutton"
-                    onClick={() => void download(file.path)}
-                  >
-                    Download
-                  </button>
-                </td>
-              </tr>
+              <React.Fragment key={file.path}>
+                <tr>
+                  <td>
+                    <button
+                      type="button"
+                      className="bp-linkbutton"
+                      onClick={() => void view(file.path)}
+                    >
+                      <code>{file.path}</code>
+                    </button>
+                  </td>
+                  <td className="bp-muted">{`${Math.ceil(file.size / 1024)} kB`}</td>
+                  <td className="bp-muted">{file.lastModified.slice(0, 10)}</td>
+                  <td className="bp-documents__actions">
+                    <button
+                      type="button"
+                      className="bp-linkbutton"
+                      onClick={() => void download(file.path)}
+                    >
+                      Download
+                    </button>
+                    {PUBLISHABLE.test(file.path) && (
+                      <button
+                        type="button"
+                        className="bp-linkbutton"
+                        onClick={() => void startPublish(file.path)}
+                      >
+                        Publish
+                      </button>
+                    )}
+                  </td>
+                </tr>
+                {publishing?.path === file.path && (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="bp-documents__upload">
+                        <label className="bp-field">
+                          <span>Title</span>
+                          <input
+                            type="text"
+                            value={publishing.title}
+                            disabled={publishing.busy}
+                            onChange={(e) => setPublishing({ ...publishing, title: e.target.value })}
+                          />
+                        </label>
+                        <label className="bp-field">
+                          <span>Classification</span>
+                          <ClassificationSelect
+                            value={publishing.classification}
+                            onChange={(classification) =>
+                              setPublishing({ ...publishing, classification })
+                            }
+                          />
+                        </label>
+                        <div className="bp-documents__actions">
+                          <button
+                            type="button"
+                            disabled={publishing.busy || !publishing.title.trim()}
+                            onClick={() => void publish()}
+                          >
+                            Publish as document
+                          </button>
+                          <button
+                            type="button"
+                            className="bp-linkbutton"
+                            disabled={publishing.busy}
+                            onClick={() => setPublishing(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

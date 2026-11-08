@@ -70,6 +70,8 @@ export { fromMermaidGantt } from "./import/gantt.js";
 export type { GanttImportResult } from "./import/gantt.js";
 
 export { applyImport, everyChange, planImport } from "./import/plan.js";
+export { mergeModels } from "./merge.js";
+export type { MergeConflict, MergeResult } from "./merge.js";
 export type {
   ChangeKind,
   ElementChange,
